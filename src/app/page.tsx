@@ -1,6 +1,6 @@
-import { exampleContent } from '@/data/content'
+import { content } from '@/data/content'
 import { ReadingCarousel } from '@/features/reader'
 
 export default function Home() {
-  return <ReadingCarousel content={exampleContent} />
+  return <ReadingCarousel content={content} />
 }

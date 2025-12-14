@@ -10,14 +10,21 @@ export interface Part {
   chapters: Chapter[]
 }
 
+export interface NavigationChapter {
+  id: string
+  title: string
+  globalIndex: number
+}
+
+export interface NavigationPart {
+  id: string
+  title: string
+  partStartIndex: number
+  chapters: NavigationChapter[]
+}
+
 export interface ReaderContent {
   title: string
   parts: Part[]
-}
-
-// Устаревшие типы для обратной совместимости (можно удалить позже)
-export interface Page {
-  id: string
-  title?: string
-  content: string
+  navigation: NavigationPart[]
 }

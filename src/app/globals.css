@@ -20,54 +20,33 @@
   --color-muted: var(--muted);
 }
 
-/* Safe area insets для iPhone с Dynamic Island и вырезом */
-:root {
-  --safe-area-inset-top: env(safe-area-inset-top, 0px);
-  --safe-area-inset-right: env(safe-area-inset-right, 0px);
-  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-area-inset-left: env(safe-area-inset-left, 0px);
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  min-height: 100vh;
   min-height: 100dvh;
   overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Кастомный скроллбар */
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: var(--gray) transparent;
-  margin-right: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-  height: 6px;
   width: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-  border-radius: 10px;
+  height: 6px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: var(--gray);
   border-radius: 10px;
-  transition: all 0.2s;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: var(--muted);
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:active {
-  background: var(--light-gray);
-}
-
-/* Скрыть скроллбар полностью */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -75,20 +54,4 @@ body {
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
-}
-
-/* Для fixed bottom элементов */
-nav[class*='fixed'][class*='bottom']:not(.no-safe-area-padding) {
-  padding-bottom: var(--safe-area-inset-bottom);
-}
-
-/* Плавная прокрутка */
-* {
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Стили для markdown контента */
-.prose {
-  color: var(--foreground);
-  max-width: none;
 }

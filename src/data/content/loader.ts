@@ -65,9 +65,11 @@ function loadPartChapters(
 }
 
 /**
- * Загружает контент из markdown файлов
+ * Загружает контент из markdown файлов (без навигации)
  */
-export function loadContent(partsConfig: PartConfig[]): ReaderContent {
+export function loadContent(
+  partsConfig: PartConfig[],
+): Omit<ReaderContent, 'navigation'> {
   const parts: Part[] = partsConfig.map((partConfig) => {
     const partFolder = join(CONTENT_DIR, partConfig.folder)
     const chapters = loadPartChapters(partFolder, partConfig)
@@ -80,7 +82,7 @@ export function loadContent(partsConfig: PartConfig[]): ReaderContent {
   })
 
   return {
-    title: 'Введение в TypeScript',
+    title: 'Полное руководство по фронтенд-разработке',
     parts,
   }
 }

@@ -28,13 +28,6 @@ export function getCurrentPart(
 }
 
 /**
- * Получить общее количество глав
- */
-export function getTotalChapters(content: ReaderContent): number {
-  return content.parts.reduce((sum, part) => sum + part.chapters.length, 0)
-}
-
-/**
  * Получить индекс главы внутри текущей части
  */
 export function getChapterIndexInPart(
@@ -52,4 +45,20 @@ export function getChapterIndexInPart(
     currentIndex += part.chapters.length
   }
   return 0
+}
+
+/**
+ * Получить глобальный индекс главы по локальному индексу в части
+ */
+export function getGlobalChapterIndex(
+  parts: Part[],
+  partId: string,
+  localIndex: number,
+): number {
+  const partIndex = parts.findIndex((p) => p.id === partId)
+  return (
+    parts
+      .slice(0, partIndex)
+      .reduce((sum, part) => sum + part.chapters.length, 0) + localIndex
+  )
 }
