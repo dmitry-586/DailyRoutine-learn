@@ -1,36 +1,141 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DailyRoutine Learn
 
-## Getting Started
+Мобильно-ориентированная читалка с поддержкой Markdown. Построена на архитектуре Feature-Sliced Design.
 
-First, run the development server:
+## 🚀 Технологии
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Next.js 16** - React фреймворк с App Router
+- **TypeScript** - строгая типизация без компромиссов
+- **Tailwind CSS 4** - utility-first CSS фреймворк
+- **Embla Carousel** - плавная карусель для страниц
+- **React Markdown** - рендеринг Markdown контента
+- **Lucide React** - современные иконки
+
+## 📁 Архитектура
+
+Проект использует **Feature-Sliced Design (FSD)**:
+
+```
+src/
+├── app/                  # Next.js App Router
+│   ├── layout.tsx
+│   ├── page.tsx
+│   └── globals.css
+├── features/            # Фичи приложения
+│   └── reader/          # Фича читалки
+│       ├── ui/          # UI компоненты фичи
+│       └── index.ts
+├── shared/              # Общие ресурсы
+│   ├── lib/             # Утилиты
+│   │   └── utils/
+│   ├── types/           # Типы TypeScript
+│   └── ui/              # Переиспользуемые UI компоненты
+└── data/                # Данные и контент
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🎨 Стиль и дизайн
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Темная тема** с цветовой схемой из DailyRoutine
+- **Нижняя навигация** с backdrop-blur эффектом
+- **Максимум пространства** для полезного контента
+- **Адаптивность** для всех устройств
+- **Safe area insets** для iPhone с Dynamic Island
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🛠 Установка и запуск
 
-## Learn More
+### Требования
 
-To learn more about Next.js, take a look at the following resources:
+- Node.js 18+
+- npm, pnpm, yarn или bun
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Команды
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+# Установка зависимостей
+npm install
 
-## Deploy on Vercel
+# Запуск dev сервера
+npm run dev
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Сборка для production
+npm run build
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Запуск production сборки
+npm start
+
+# Проверка кода
+npm run lint
+
+# Форматирование кода
+npm run format
+```
+
+## 📱 PWA поддержка
+
+Приложение поддерживает установку как Progressive Web App:
+
+- Оффлайн режим
+- Установка на домашний экран
+- Native-like интерфейс
+- Поддержка safe area insets
+
+## 🔧 Настройки TypeScript
+
+Проект использует строгие настройки TypeScript:
+
+- `noImplicitAny: true`
+- `noUnusedLocals: true`
+- `noUnusedParameters: true`
+- `strict: true`
+
+## 📝 ESLint и Prettier
+
+Проект настроен с:
+
+- ESLint для проверки кода
+- Prettier для форматирования
+- Import order sorting
+- Unused imports detection
+
+## 🎯 Особенности
+
+### Читалка (Reader)
+
+- **Карусель страниц** - плавный свайп между страницами
+- **Прогресс-бар** - визуальный прогресс чтения
+- **Индикаторы страниц** - быстрая навигация
+- **Markdown рендеринг** - поддержка GFM и raw HTML
+- **Кастомные стили** - адаптированные под темную тему
+
+### Навигация
+
+- **Floating navigation** - закругленная навигация внизу
+- **Backdrop blur** - эффект размытия фона
+- **Safe area support** - поддержка вырезов iPhone
+- **Responsive** - адаптация под разные размеры экрана
+
+## 📦 Структура компонентов
+
+### Features
+
+- `ReadingCarousel` - основной компонент карусели
+- `ReaderNavigation` - навигация для читалки
+
+### Shared UI
+
+- `MarkdownContent` - рендеринг Markdown с кастомными стилями
+
+### Shared Lib
+
+- `cn()` - утилита для объединения классов (clsx + tailwind-merge)
+
+## 🔄 Workflow
+
+1. Разработка ведется в feature-ветках
+2. Код проходит через ESLint и Prettier
+3. TypeScript проверяет типы на этапе компиляции
+4. Сборка оптимизируется для production
+
+## 📄 Лицензия
+
+MIT
