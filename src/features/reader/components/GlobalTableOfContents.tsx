@@ -27,14 +27,12 @@ export function GlobalTableOfContents({
 
   return (
     <>
-      {/* Overlay */}
       <div
         className='fixed inset-0 z-40 bg-black/50 transition-opacity duration-150 ease-out'
         onClick={onClose}
         aria-hidden='true'
       />
 
-      {/* Sidebar */}
       <aside className='bg-background fixed top-0 right-0 z-50 h-full w-full max-w-sm overflow-y-auto shadow-xl transition-transform duration-150 ease-out sm:max-w-md'>
         <div className='bg-background sticky top-0 border-b border-gray-200 px-4 py-4 dark:border-gray-700'>
           <div className='flex items-center justify-between'>

@@ -1,4 +1,5 @@
 export { ChapterIndicators } from './ChapterIndicators'
+export { ChapterSlide } from './ChapterSlide'
 export { GlobalTableOfContents } from './GlobalTableOfContents'
 export { NavigationButton } from './NavigationButton'
 export { ReaderHeader } from './ReaderHeader'

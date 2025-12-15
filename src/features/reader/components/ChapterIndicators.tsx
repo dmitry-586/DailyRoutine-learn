@@ -1,7 +1,7 @@
 import { cn } from '@/shared/lib'
 import type { Part } from '@/shared/types'
 
-import { getGlobalChapterIndex } from '../lib'
+import { getGlobalChapterIndex } from '../utils'
 
 interface ChapterIndicatorsProps {
   chapters: Part['chapters']

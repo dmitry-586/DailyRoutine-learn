@@ -1,4 +1,5 @@
 import type { Part } from '@/shared/types'
+
 import { ChapterIndicators } from './ChapterIndicators'
 import { NavigationButton } from './NavigationButton'
 

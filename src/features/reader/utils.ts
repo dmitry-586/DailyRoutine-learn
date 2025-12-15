@@ -1,15 +1,9 @@
-import type { Chapter, Part, ReaderContent } from '@/shared/types'
+import type { ChapterMeta, Part, ReaderContent } from '@/shared/types'
 
-/**
- * Получить все главы из всех частей
- */
-export function getAllChapters(content: ReaderContent): Chapter[] {
+export function getAllChapters(content: ReaderContent): ChapterMeta[] {
   return content.parts.flatMap((part) => part.chapters)
 }
 
-/**
- * Получить текущую часть по индексу главы
- */
 export function getCurrentPart(
   content: ReaderContent,
   chapterIndex: number,
@@ -27,9 +21,6 @@ export function getCurrentPart(
   return null
 }
 
-/**
- * Получить индекс главы внутри текущей части
- */
 export function getChapterIndexInPart(
   content: ReaderContent,
   globalChapterIndex: number,
@@ -47,18 +38,25 @@ export function getChapterIndexInPart(
   return 0
 }
 
-/**
- * Получить глобальный индекс главы по локальному индексу в части
- */
 export function getGlobalChapterIndex(
   parts: Part[],
   partId: string,
   localIndex: number,
 ): number {
-  const partIndex = parts.findIndex((p) => p.id === partId)
+  const partIndex = parts.findIndex((item) => item.id === partId)
   return (
     parts
       .slice(0, partIndex)
       .reduce((sum, part) => sum + part.chapters.length, 0) + localIndex
   )
+}
+
+export function findChapterIndexById(
+  content: ReaderContent,
+  chapterId: string | null,
+): number | null {
+  if (!chapterId) return null
+  const all = getAllChapters(content)
+  const index = all.findIndex((chapter) => chapter.id === chapterId)
+  return index >= 0 ? index : null
 }

@@ -1,13 +1,15 @@
-export interface Chapter {
+export interface ChapterMeta {
   id: string
   title: string
-  content: string
+  file: string
+  partId: string
 }
 
 export interface Part {
   id: string
   title: string
-  chapters: Chapter[]
+  folder: string
+  chapters: ChapterMeta[]
 }
 
 export interface NavigationChapter {

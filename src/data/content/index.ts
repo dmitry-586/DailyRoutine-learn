@@ -3,7 +3,7 @@ import type { NavigationPart, ReaderContent } from '@/shared/types'
 import { loadContent } from './loader'
 
 // Конфигурация частей и глав
-const partsConfig = [
+export const partsConfig = [
   {
     id: 'part-1',
     title: 'Часть I. Фундамент веба',

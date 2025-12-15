@@ -1,5 +1,5 @@
 import { FlatCompat } from '@eslint/eslintrc'
-import pluginPrettier from 'eslint-plugin-prettier'
+import unusedImports from 'eslint-plugin-unused-imports'
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -11,12 +11,7 @@ const compat = new FlatCompat({
 })
 
 const eslintConfig = [
-  ...compat.extends(
-    'next/core-web-vitals',
-    'next/typescript',
-    'plugin:prettier/recommended',
-    'prettier',
-  ),
+  ...compat.extends('next/core-web-vitals'),
   {
     ignores: [
       'node_modules/**',
@@ -51,11 +46,7 @@ const eslintConfig = [
         version: 'detect',
       },
     },
-    plugins: {
-      prettier: pluginPrettier,
-    },
     rules: {
-      'prettier/prettier': 'error',
       'import/prefer-default-export': 'off',
 
       'react/react-in-jsx-scope': 'off',
@@ -92,6 +83,9 @@ const eslintConfig = [
         },
       ],
       '@typescript-eslint/no-explicit-any': 'error',
+    },
+    plugins: {
+      'unused-imports': unusedImports,
     },
   },
 ]

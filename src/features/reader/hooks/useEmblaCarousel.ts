@@ -13,15 +13,23 @@ interface UseEmblaCarouselReturn {
   scrollTo: (index: number) => void
 }
 
-export function useEmblaCarouselLogic(): UseEmblaCarouselReturn {
+interface UseEmblaCarouselOptions {
+  initialIndex?: number
+}
+
+export function useEmblaCarouselLogic(
+  options: UseEmblaCarouselOptions = {},
+): UseEmblaCarouselReturn {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: false,
     align: 'start',
     skipSnaps: false,
     duration: 20,
+    containScroll: 'trimSnaps',
+    startIndex: options.initialIndex ?? 0,
   })
 
-  const [currentIndex, setCurrentIndex] = useState(0)
+  const [currentIndex, setCurrentIndex] = useState(options.initialIndex ?? 0)
   const [canScrollPrev, setCanScrollPrev] = useState(false)
   const [canScrollNext, setCanScrollNext] = useState(false)
 
