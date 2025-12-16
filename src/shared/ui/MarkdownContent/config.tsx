@@ -1,3 +1,5 @@
+'use client'
+
 import type { Components } from 'react-markdown'
 
 const baseText = 'text-foreground'
@@ -82,13 +84,13 @@ export const markdownComponents: Components = {
     </p>
   ),
   ul: ({ children }) => (
-    <ul className={`${baseText} mb-4 list-inside list-disc space-y-1.5 pl-6`}>
+    <ul className={`${baseText} mb-4 list-inside list-disc space-y-1.5 pl-0`}>
       {children}
     </ul>
   ),
   ol: ({ children }) => (
     <ol
-      className={`${baseText} mb-4 list-inside list-decimal space-y-1.5 pl-6`}
+      className={`${baseText} mb-4 list-inside list-decimal space-y-1.5 pl-0`}
     >
       {children}
     </ol>
@@ -101,8 +103,14 @@ export const markdownComponents: Components = {
   ),
   pre: ({ children }) => (
     <pre
-      className='mb-4 overflow-x-auto rounded-lg bg-gray-900 p-4 font-mono text-sm text-gray-100'
+      className='bg-dark-gray mb-4 touch-pan-x overflow-x-auto rounded-lg p-4 font-mono text-sm text-gray-100'
       onPointerDownCapture={(event) => {
+        event.stopPropagation()
+      }}
+      onTouchStartCapture={(event) => {
+        event.stopPropagation()
+      }}
+      onMouseDownCapture={(event) => {
         event.stopPropagation()
       }}
     >
@@ -115,7 +123,7 @@ export const markdownComponents: Components = {
     if (isInline) {
       return (
         <code
-          className='rounded bg-gray-100 px-1.5 py-0.5 font-mono text-sm text-gray-800 dark:bg-gray-800 dark:text-gray-200'
+          className='bg-dark-gray rounded px-1.5 py-0.5 font-mono text-sm text-gray-200'
           {...props}
         >
           {children}

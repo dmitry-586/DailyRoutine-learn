@@ -118,7 +118,7 @@ export function ReadingCarousel({ content }: ReadingCarouselProps) {
         />
       )}
 
-      <div className='flex-1 overflow-hidden' ref={emblaRef}>
+      <div className='flex-1 touch-pan-x overflow-hidden' ref={emblaRef}>
         <div className='flex h-full'>
           {allChapters.map((chapter, index) => (
             <div

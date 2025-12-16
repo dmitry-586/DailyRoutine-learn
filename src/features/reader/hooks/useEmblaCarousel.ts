@@ -26,6 +26,7 @@ export function useEmblaCarouselLogic(
     skipSnaps: false,
     duration: 20,
     containScroll: 'trimSnaps',
+    dragThreshold: 8,
     startIndex: options.initialIndex ?? 0,
   })
 
