@@ -103,7 +103,7 @@ export const markdownComponents: Components = {
   ),
   pre: ({ children }) => (
     <pre
-      className='bg-dark-gray mb-4 touch-pan-x overflow-x-auto rounded-lg p-4 font-mono text-sm text-gray-100'
+      className='bg-dark-gray mb-4 overflow-x-auto rounded-lg p-4 font-mono text-sm text-gray-100'
       onPointerDownCapture={(event) => {
         event.stopPropagation()
       }}
