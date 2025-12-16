@@ -100,7 +100,12 @@ export const markdownComponents: Components = {
     </blockquote>
   ),
   pre: ({ children }) => (
-    <pre className='mb-4 overflow-x-auto rounded-lg bg-gray-900 p-4 font-mono text-sm text-gray-100'>
+    <pre
+      className='mb-4 overflow-x-auto rounded-lg bg-gray-900 p-4 font-mono text-sm text-gray-100'
+      onPointerDownCapture={(event) => {
+        event.stopPropagation()
+      }}
+    >
       {children}
     </pre>
   ),
