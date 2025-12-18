@@ -1,62 +1,52 @@
-# Глава 11. Асинхронность
+# Глава 11. Асинхронность, Event Loop и промисы без мистики
 
-Асинхронность — одна из самых критичных тем для фронтенд-разработчика. Большинство реальных багов связано не с синтаксисом, а с непониманием порядка выполнения кода.
+Асинхронность — одна из самых болезненных тем на практике и на собеседованиях. Большинство «магических» багов в фронтенде возникает не из‑за синтаксиса, а из‑за непонимания **порядка выполнения кода**.
 
-На собеседованиях почти всегда:
+В этой главе разберём:
 
-- просят объяснить Event Loop
-- дают код «угадай вывод»
-- спрашивают про промисы и async/await
-
-Эта глава объясняет:
-
-1. Event Loop и модель выполнения
-2. Промисы
-3. async/await
-4. Web APIs
-5. Обработка ошибок
-6. Частые ошибки и паттерны
+- как на самом деле работает Event Loop в браузере и Node.js;
+- чем отличаются macrotask и microtask очереди;
+- как устроены промисы и `async/await` под капотом;
+- как правильно обрабатывать ошибки в асинхронном коде;
+- типичные ловушки (race conditions, «забытый return», смешивание then/await).
 
 ---
 
-## 11.1. Event Loop: как выполняется JavaScript
+## 11.1. Event Loop: как однопоточный JS становится неблокирующим
 
-JavaScript — однопоточный, но не блокирующий. Это возможно благодаря Event Loop.
+JavaScript выполняет код **в одном потоке**, но при этом не блокирует интерфейс при сетевых запросах, таймерах и т.д. Это достигается за счёт разделения:
 
-### Основные сущности
+- **Call Stack** — стек вызовов функций;
+- **Web APIs** (в браузере) / системные API (в Node.js);
+- **очередей задач**: macrotask и microtask;
+- **Event Loop**, который координирует всё это.
 
-1. Call Stack — стек вызовов функций
-2. Web APIs — браузерные API (setTimeout, fetch, DOM и т.д.)
-3. Task Queue (macrotasks) — очередь макрозадач
-4. Microtask Queue — очередь микрозадач
-5. Event Loop — механизм, переносящий задачи из очередей в стек
+### Общая схема
 
-### Схема выполнения
+1. Выполняется синхронный код — функции попадают в Call Stack и отрабатывают до конца.
+2. Асинхронные операции (таймеры, `fetch`, события) передаются во внешние API.
+3. Когда операция завершена, её коллбек ставится в одну из очередей (macrotask или microtask).
+4. Event Loop берёт задачи из очередей **только когда стек пуст**, и отправляет их на выполнение.
 
-1. Выполняется синхронный код (попадает в Call Stack)
-2. Асинхронные операции уходят в Web APIs
-3. Callback попадает в очередь (macrotask или microtask)
-4. Event Loop переносит задачи в Call Stack (когда стек пуст)
+### Macrotasks и microtasks
 
-### Macrotasks
+Примеры **macrotasks**:
 
-- setTimeout
-- setInterval
-- setImmediate
-- UI events (клики, скролл)
-- I/O операции
+- `setTimeout`, `setInterval`;
+- I/O операции;
+- события UI (клики, скролл и т.п.).
 
-### Microtasks
+Примеры **microtasks**:
 
-- Promise.then
-- Promise.catch
-- Promise.finally
-- queueMicrotask
-- MutationObserver
+- `Promise.then`, `catch`, `finally`;
+- `queueMicrotask`;
+- `MutationObserver`.
 
-⚠️ Важно: Microtasks выполняются до следующей macrotask.
+**Критически важное правило:**
 
-### Пример
+> После выполнения синхронного кода **сначала** выполняются все microtasks, и только потом — следующая macrotask.
+
+### Пример: порядок логов
 
 ```javascript
 console.log(1)
@@ -68,57 +58,53 @@ Promise.resolve().then(() => console.log(3))
 console.log(4)
 ```
 
-**Вывод:** 1 4 3 2
+Порядок вывода: `1, 4, 3, 2`.
 
-**Почему?**
+- `1` и `4` — синхронный код;
+- `Promise.then` — microtask → будет выполнен сразу после синхронного кода;
+- `setTimeout` — macrotask → пойдёт после всех microtasks.
 
-1. Синхронный код: 1, 4
-2. Promise.then — microtask, выполняется сразу после синхронного кода
-3. setTimeout — macrotask, выполняется после всех microtasks
+Последовательность фаз:
 
-**Порядок выполнения:**
+1. синхронный код (1, 4);
+2. все microtasks (3);
+3. первая macrotask (2);
+4. снова все microtasks, образовавшиеся во время этой macrotask;
+5. следующая macrotask и т.д.
 
-1. Синхронный код
-2. Все microtasks
-3. Одна macrotask
-4. Снова все microtasks
-5. Следующая macrotask
-6. И так далее
+### Различия браузера и Node.js (для собеседований)
 
-### Различия Event Loop в браузере и Node.js
+В браузере:
 
-**Браузер:**
+- microtasks выполняются после каждой macrotask;
+- `Promise.then` и `queueMicrotask` на одной ступени приоритета.
 
-- Microtasks выполняются после каждой macrotask
-- Promise.then и queueMicrotask имеют одинаковый приоритет
-- Web APIs обрабатываются браузером
+В Node.js (упрощённо):
 
-**Node.js:**
+- есть несколько фаз Event Loop (timers, poll, check и т.д.);
+- `process.nextTick` выполняется **раньше** microtasks промисов;
+- детали важны, если вы пишете низкоуровневый Node‑код или библиотеки.
 
-- process.nextTick имеет приоритет над Promise.then
-- Microtasks выполняются между фазами Event Loop
-- Фазы: timers → pending callbacks → idle/prepare → poll → check → close callbacks
-- libuv обрабатывает I/O операции
-
-Важно: В Node.js process.nextTick выполняется раньше Promise.then, что может влиять на порядок выполнения асинхронного кода.
+Для фронтенда достаточно понимать общую идею о приоритетах microtask → macrotask.
 
 ---
 
-## 11.2. Промисы
+## 11.2. Промисы: состояния и цепочки
 
-Promise — объект, представляющий результат асинхронной операции.
+**Promise** — это объект, который представляет результат асинхронной операции.
 
-### Состояния
+Состояния промиса:
 
-- pending — ожидание
-- fulfilled — успешно выполнено
-- rejected — отклонено
+- `pending` — ожидание результата;
+- `fulfilled` — успешно завершён;
+- `rejected` — завершён с ошибкой.
 
-### Создание
+### Создание промиса
 
 ```javascript
 const p = new Promise((resolve, reject) => {
   // асинхронная операция
+
   if (success) {
     resolve(data)
   } else {
@@ -127,210 +113,272 @@ const p = new Promise((resolve, reject) => {
 })
 ```
 
-### Цепочки
+Важно: переход из `pending` в `fulfilled` или `rejected` происходит **один раз и навсегда**.
+
+### then / catch / finally
 
 ```javascript
 fetch(url)
-  .then((res) => res.json())
-  .then((data) => console.log(data))
-  .catch((err) => console.error(err))
-  .finally(() => console.log('done'))
+  .then((res) => {
+    if (!res.ok) {
+      throw new Error('HTTP error')
+    }
+
+    return res.json()
+  })
+  .then((data) => {
+    console.log(data)
+  })
+  .catch((error) => {
+    console.error('Request failed', error)
+  })
+  .finally(() => {
+    console.log('Request finished')
+  })
 ```
 
-**Почему then возвращает Promise?**
+Каждый `then` **возвращает новый промис**, что позволяет строить цепочки.
 
-Это позволяет строить цепочки. Каждый then возвращает новый Promise.
+Типичная ошибка:
+
+```javascript
+// забыли return
+.then((res) => {
+  res.json() // промис создан, но не возвращён
+})
+.then((data) => {
+  // data === undefined
+})
+```
+
+Нужно **обязательно возвращать** промис или значение из `then`, если планируешь пользоваться результатом дальше.
+
+---
+
+## 11.3. Комбинаторы промисов: all, allSettled, race
 
 ### Promise.all
 
-Ожидает выполнения всех промисов:
+Ждёт, пока **все** промисы выполнятся успешно, или падает при первой ошибке:
 
 ```javascript
-Promise.all([promise1, promise2, promise3])
-  .then((results) => {
-    // все промисы выполнены
+Promise.all([p1, p2, p3])
+  .then(([r1, r2, r3]) => {
+    // все три успешны
   })
-  .catch((err) => {
+  .catch((error) => {
     // хотя бы один отклонён
   })
 ```
 
+Используется, когда:
+
+- все операции обязательны;
+- без любого из результатов продолжать нельзя.
+
 ### Promise.allSettled
 
-Ждёт завершения всех, независимо от результата:
+Всегда дожидается завершения **всех** промисов, независимо от успеха или ошибки:
 
 ```javascript
-Promise.allSettled([promise1, promise2]).then((results) => {
-  // все завершены, есть статус каждого
+Promise.allSettled([p1, p2]).then((results) => {
+  // results: [{ status: 'fulfilled' | 'rejected', value | reason }]
 })
 ```
+
+Подходит для:
+
+- агрегации результатов, где часть может упасть (логирование, метрики, параллельные запросы на разные сервисы).
 
 ### Promise.race
 
-Возвращает результат первого завершившегося:
+Возвращает результат **первого завершившегося** промиса (успех или ошибка):
 
 ```javascript
-Promise.race([fastPromise, slowPromise]).then((result) => {
-  // результат первого
+Promise.race([slow, fast]).then((result) => {
+  // результат того, кто завершился первым
 })
 ```
 
+Используется для реализации таймаутов и конкурентных запросов.
+
 ---
 
-## 11.3. async / await
+## 11.4. `async / await`: синтаксический сахар над промисами
 
-Синтаксический сахар над промисами. Делает асинхронный код похожим на синхронный.
+`async / await` делают асинхронный код похожим на синхронный, но под капотом это по‑прежнему промисы и microtasks.
 
 ```javascript
-async function load() {
+async function loadData(url) {
+  const res = await fetch(url)
+
+  if (!res.ok) {
+    throw new Error('HTTP error')
+  }
+
+  const data = await res.json()
+  return data
+}
+```
+
+Особенности `async`‑функций:
+
+- всегда возвращают **промис**;
+- любое выброшенное исключение превращается в `rejected`‑состояние промиса;
+- `await` останавливает функцию до завершения промиса (не блокируя поток в целом).
+
+### Обработка ошибок с async / await
+
+```javascript
+async function safeLoad(url) {
   try {
-    const res = await fetch(url)
-    const data = await res.json()
+    const data = await loadData(url)
     return data
-  } catch (e) {
-    console.error(e)
+  } catch (error) {
+    console.error('Failed to load', error)
+    throw error // пробрасываем дальше, если нужно
   }
 }
 ```
 
-**Что происходит под капотом?**
+### Параллельное vs последовательное выполнение
 
-- функция всегда возвращает Promise
-- await ставит выполнение «на паузу»
-- фактически создаётся цепочка then
-- ошибки обрабатываются через try/catch
-
-### Ошибка новичков
+Плохо, если запросы независимы:
 
 ```javascript
-await fetch(url)
-await fetch(url2)
+const a = await fetch(url1)
+const b = await fetch(url2)
 ```
 
-Если запросы независимы — лучше:
+Лучше запускать параллельно:
 
 ```javascript
-await Promise.all([fetch(url), fetch(url2)])
+const [a, b] = await Promise.all([fetch(url1), fetch(url2)])
 ```
 
-Параллельное выполнение независимых операций ускоряет код.
+Такой паттерн часто проверяют на собеседованиях.
 
 ---
 
-## 11.4. Web APIs
+## 11.5. Web APIs: таймеры, fetch, Web Workers, Streams
 
-### Timers
-
-```javascript
-setTimeout(fn, 0)
-```
-
-Не означает «выполнится сразу». Минимальная задержка — 4ms (в браузере).
+### Таймеры: `setTimeout` и `setInterval`
 
 ```javascript
-setTimeout(() => console.log('timeout'), 0)
+setTimeout(() => {
+  console.log('timeout')
+}, 0)
+
 Promise.resolve().then(() => console.log('promise'))
-// promise выполнится раньше
+// вывод: 'promise', потом 'timeout'
 ```
 
-### setInterval
+Даже с задержкой `0` таймер попадает в очередь macrotasks, а `Promise.then` — в очередь microtasks.
 
-Повторяет выполнение функции:
+`setInterval` повторяет вызов функции через заданный интервал:
 
 ```javascript
-const interval = setInterval(() => {
+const id = setInterval(() => {
   console.log('tick')
 }, 1000)
 
-clearInterval(interval) // остановка
+clearInterval(id)
 ```
 
-### fetch
-
-Современный API для HTTP-запросов:
+### Fetch API
 
 ```javascript
-fetch('/api').then((r) => r.json())
+fetch('/api')
+  .then((res) => {
+    if (!res.ok) {
+      throw new Error('HTTP error')
+    }
+    return res.json()
+  })
+  .then((data) => {
+    console.log(data)
+  })
+  .catch((error) => {
+    console.error(error)
+  })
 ```
 
-⚠️ Важно: Fetch не отклоняет промис при 4xx/5xx. Нужно проверять r.ok:
-
-```javascript
-fetch('/api').then((r) => {
-  if (!r.ok) throw new Error('HTTP error')
-  return r.json()
-})
-```
+Важно: `fetch` **не отклоняет промис при HTTP‑ошибках (4xx, 5xx)** — только при сетевых проблемах. Статус нужно проверять вручную.
 
 ### Web Workers
 
-Запускают код в отдельном потоке. Используются для тяжёлых вычислений.
+Нужны для запуска тяжёлых вычислений в отдельном потоке, чтобы не блокировать UI.
 
 ```javascript
 const worker = new Worker('worker.js')
 
-worker.postMessage(data)
-worker.onmessage = (e) => {
-  console.log(e.data)
+worker.postMessage({ task: 'calculate', payload: 42 })
+
+worker.onmessage = (event) => {
+  console.log('Result:', event.data)
 }
 ```
 
-**Ограничения:**
+Ограничения воркеров:
 
-- нет доступа к DOM
-- нет доступа к window
-- общение только через postMessage
+- нет доступа к DOM;
+- нет доступа к `window`;
+- общение только через `postMessage`.
 
-### Streams API
+### Streams API (в общих чертах)
 
-Используется для работы с потоками данных.
+Для по‑частной обработки больших объёмов данных:
 
 ```javascript
-const reader = response.body.getReader()
+const response = await fetch('/big-file')
+const reader = response.body?.getReader()
+
+if (!reader) return
+
 while (true) {
   const { done, value } = await reader.read()
   if (done) break
-  // обработка value
+
+  // обрабатываем chunk в value
 }
 ```
 
-Позволяет:
-
-- обрабатывать большие файлы
-- стримить видео
-- экономить память
+Это экономит память и уменьшает задержку ответа.
 
 ---
 
-## 11.5. Обработка ошибок
+## 11.6. Обработка ошибок и типичные ловушки
 
-### В промисах
+### Ошибки в промисах
 
 ```javascript
 fetch(url)
+  .then((res) => res.json())
   .then((data) => {
-    // обработка
+    // ...
   })
-  .catch((err) => {
-    // обработка ошибки
+  .catch((error) => {
+    console.error('Request failed', error)
   })
 ```
 
-### В async/await
+Если в любом `then` произойдёт исключение, оно тоже попадёт в ближайший `catch` в цепочке.
+
+### Ошибки в async / await
 
 ```javascript
-async function load() {
+async function load(url) {
   try {
-    const data = await fetch(url)
-    return data
-  } catch (err) {
-    console.error(err)
-    throw err // пробрасываем дальше
+    const res = await fetch(url)
+    return await res.json()
+  } catch (error) {
+    console.error('Failed', error)
+    throw error
   }
 }
 ```
 
-### Глобальная обработка
+### Глобальная обработка необработанных отклонений
 
 ```javascript
 window.addEventListener('unhandledrejection', (event) => {
@@ -338,15 +386,11 @@ window.addEventListener('unhandledrejection', (event) => {
 })
 ```
 
-### Частые ошибки в асинхронности
+Это последний рубеж, не замена нормальной обработки ошибок.
 
-- забыли return в then
-- не обработали ошибку
-- смешали await и then
-- гонки состояний (race conditions)
-- параллельное выполнение независимых операций через await
+### Гонки состояний (race conditions)
 
-**Пример гонки состояний:**
+Проблема возникает, когда несколько асинхронных операций меняют общее состояние.
 
 ```javascript
 let counter = 0
@@ -359,83 +403,25 @@ async function increment() {
 
 increment()
 increment()
-// counter может быть 1 вместо 2
+// теоретически counter может стать 1 вместо 2
 ```
 
-Решение: использовать атомарные операции или блокировки.
+Решения:
+
+- сериализовать операции (ждать завершения предыдущей);
+- использовать атомарные операции на сервере;
+- в React — учитывать актуальное состояние через функции обновления (`setState((prev) => prev + 1)`).
 
 ---
 
-## Вопросы на собеседовании
+## 11.7. Мини‑самопроверка по асинхронности
 
-### 1. Как работает Event Loop?
+Проверь, что ты можешь:
 
-Однопоточный механизм выполнения: синхронный код → microtasks → одна macrotask → снова microtasks → следующая macrotask.
+- на словах и на примере объяснить, как Event Loop обрабатывает смесь синхронного кода, `setTimeout` и `Promise.then`, и предсказать порядок логов;
+- объяснить разницу между macrotask и microtask и привести примеры API, которые туда попадают;
+- переписать цепочку `.then().catch().finally()` в `async/await` (и наоборот), **не потеряв обработку ошибок**;
+- выбрать между `Promise.all`, `Promise.allSettled` и `Promise.race` в реальных сценариях (загрузка нескольких ресурсов, агрегация метрик, таймаут запроса);
+- заметить потенциальную race condition в асинхронном коде и предложить способ её устранения.
 
-### 2. Разница между macrotask и microtask?
-
-Macrotasks — setTimeout, UI events. Microtasks — Promise.then, queueMicrotask. Microtasks выполняются до следующей macrotask.
-
-### 3. Почему Promise.then выполняется раньше setTimeout?
-
-Promise.then — microtask, setTimeout — macrotask. Microtasks имеют приоритет.
-
-### 4. Что возвращает async-функция?
-
-Всегда Promise. Даже если функция возвращает обычное значение, оно оборачивается в Promise.
-
-### 5. Как правильно обрабатывать ошибки в async/await?
-
-Через try/catch блок или .catch() на возвращаемом Promise.
-
-### 6. Когда использовать Promise.all?
-
-Когда нужно дождаться выполнения всех промисов. Все должны быть успешными.
-
-### 7. Почему fetch не падает на 404?
-
-Fetch отклоняет промис только при сетевых ошибках. HTTP-ошибки (4xx, 5xx) нужно проверять через r.ok.
-
-### 8. Зачем нужны Web Workers?
-
-Для тяжёлых вычислений в отдельном потоке, чтобы не блокировать основной поток и UI.
-
-### 9. Что такое race condition?
-
-Ситуация, когда результат зависит от порядка выполнения асинхронных операций.
-
-### 10. Как избежать race conditions?
-
-Использовать атомарные операции, блокировки, или правильную последовательность await.
-
----
-
-## Key Takeaways
-
-- Event Loop управляет порядком выполнения асинхронного кода
-- Microtasks выполняются до следующей macrotask
-- Промисы — основа современной асинхронности в JS
-- async/await делает код читаемее, но под капотом — промисы
-- Promise.all для параллельного выполнения независимых операций
-- Fetch не отклоняет промис при HTTP-ошибках — нужно проверять r.ok
-- Web Workers для тяжёлых вычислений в отдельном потоке
-- Обработка ошибок обязательна в асинхронном коде
-- Race conditions — частая проблема в асинхронном коде
-
----
-
-## 11.6. Самопроверка
-
-Если ты можешь:
-
-- объяснить на доске, как Event Loop обрабатывает сочетание `setTimeout`, `Promise` и синхронного кода, и предсказать порядок логов;
-- уверенно различать, когда использовать `Promise.all`, `Promise.allSettled` и `Promise.race` в реальных сценариях;
-- переписать цепочку `.then().catch()` в `async/await` (и обратно), не теряя обработку ошибок и финализацию (`finally`);
-- заметить потенциальную гонку состояний в асинхронном коде (например, при обновлении общего счётчика или состояния React) и предложить безопасное решение;
-- объяснить, почему fetch не кидает исключение на 404/500 и как правильно обработать такие ошибки,
-
-то твой уровень понимания асинхронности уже соответствует ожиданиям сильного Middle‑фронтендера.
-
----
-
-Следующий блок будет уже не про сам язык, а про окружение, в котором он живёт: мы разберём инструменты инфраструктуры — npm, сборщики, тестирование — без которых невозможно поддерживать серьёзные фронтенд‑проекты в продакшене.
+Если это получается — твой уровень понимания асинхронности уже соответствует ожиданиям сильного middle‑фронтендера, и можно уверенно двигаться к более прикладным темам (инфраструктура, архитектура, React / фреймворки).

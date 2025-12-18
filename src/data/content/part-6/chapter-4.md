@@ -1,4 +1,4 @@
-# Глава 20. SSR и современный React-стек
+# Глава 21. SSR и современный React-стек
 
 Современный фронтенд — это уже не просто SPA, загружаемая одним JS-файлом. Сегодня важно понимать где выполняется код, когда происходит рендер и какой код доезжает до браузера.
 
@@ -6,7 +6,7 @@
 
 ---
 
-## 20.1. Проблемы классического SPA
+## 21.1. Проблемы классического SPA
 
 Классическое SPA имеет ряд ограничений:
 
@@ -18,7 +18,7 @@
 
 ---
 
-## 20.2. SSR (Server-Side Rendering)
+## 21.2. SSR (Server-Side Rendering)
 
 SSR — рендеринг React-приложения на сервере.
 
@@ -54,7 +54,7 @@ Hydration — процесс, при котором React:
 
 ---
 
-## 20.3. Next.js
+## 21.3. Next.js
 
 Next.js — стандарт де-факто для SSR/SSG в React.
 
@@ -123,7 +123,7 @@ Next.js — стандарт де-факто для SSR/SSG в React.
 
 ---
 
-## 20.4. Server Components
+## 21.4. Server Components
 
 React Server Components — новый этап эволюции React.
 
@@ -166,7 +166,7 @@ React Server Components доступны в Next.js 13+ (App Router). В App Rou
 
 ---
 
-## 20.5. Код-сплиттинг и оптимизация
+## 21.5. Код-сплиттинг и оптимизация
 
 ### Dynamic import
 
@@ -195,7 +195,7 @@ const Heavy = lazy(() => import('./Heavy'))
 
 ---
 
-## 20.6. Concurrent Features
+## 21.6. Concurrent Features
 
 React 18+ concurrent features:
 

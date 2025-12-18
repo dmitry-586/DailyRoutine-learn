@@ -1,4 +1,4 @@
-# Глава 18. Хуки и управление состоянием
+# Глава 19. Хуки и управление состоянием
 
 Хуки — это механизм, который позволил React отказаться от классов и сделать логику компонентов компонуемой и переиспользуемой.
 
@@ -6,7 +6,7 @@
 
 ---
 
-## 18.1. useState и useEffect
+## 19.1. useState и useEffect
 
 ### useState
 
@@ -82,7 +82,7 @@ useEffect(() => {
 
 ---
 
-## 18.2. useMemo и useCallback
+## 19.2. useMemo и useCallback
 
 ### useMemo
 
@@ -119,7 +119,7 @@ const onClick = useCallback(() => {
 
 ---
 
-## 18.3. useRef и forwardRef
+## 19.3. useRef и forwardRef
 
 ### useRef
 
@@ -155,7 +155,7 @@ const Input = forwardRef((props, ref) => <input ref={ref} {...props} />)
 
 ---
 
-## 18.4. useReducer
+## 19.4. useReducer
 
 Альтернатива useState для сложного состояния.
 
@@ -192,7 +192,7 @@ dispatch({ type: 'increment' })
 
 ---
 
-## 18.5. Context API
+## 19.5. Context API
 
 Позволяет передавать данные без проп-дриллинга.
 

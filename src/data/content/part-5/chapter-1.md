@@ -1,4 +1,4 @@
-# Глава 15. Основы TypeScript
+# Глава 16. Основы TypeScript
 
 TypeScript — это не просто «JavaScript с типами». Это инструмент проектирования API, компонентов и архитектуры, который позволяет ловить ошибки до запуска кода.
 
@@ -6,7 +6,7 @@ TypeScript — это не просто «JavaScript с типами». Это �
 
 ---
 
-## 15.1. Типы данных, union и intersection
+## 16.1. Типы данных, union и intersection
 
 ### Базовые типы
 
@@ -61,7 +61,7 @@ type AdminUser = User & Admin
 
 ---
 
-## 15.2. Интерфейсы и типы
+## 16.2. Интерфейсы и типы
 
 ### Interface
 
@@ -125,7 +125,7 @@ type ButtonVariant = 'primary' | 'secondary'
 
 ---
 
-## 15.3. Кортежи, enum и literal types
+## 16.3. Кортежи, enum и literal types
 
 ### Кортежи
 
@@ -164,7 +164,7 @@ let size: 1 | 2 | 3 = 2
 
 ---
 
-## 15.4. unknown vs any vs never
+## 16.4. unknown vs any vs never
 
 ### any
 
@@ -208,7 +208,7 @@ function infiniteLoop(): never {
 
 ---
 
-## 15.5. Type inference
+## 16.5. Type inference
 
 TypeScript умеет выводить типы автоматически:
 
@@ -232,7 +232,7 @@ function sum(a: number, b: number): number {
 
 ---
 
-## 15.6. Strict mode
+## 16.6. Strict mode
 
 ```json
 "strict": true
