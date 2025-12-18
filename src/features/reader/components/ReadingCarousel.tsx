@@ -109,7 +109,7 @@ export function ReadingCarousel({ content }: ReadingCarouselProps) {
   }, [isTableOfContentsOpen, scrollNext, scrollPrev])
 
   return (
-    <div className='bg-background relative flex h-screen flex-col pb-12'>
+    <div className='bg-background relative mx-auto flex h-screen max-w-5xl flex-col pb-12'>
       {currentPart && (
         <ReaderHeader
           part={currentPart}
