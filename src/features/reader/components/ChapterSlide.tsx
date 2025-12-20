@@ -58,7 +58,7 @@ export function ChapterSlide({
 
   return (
     <div className='flex h-full items-center justify-center px-4'>
-      <div className='bg-muted/40 h-40 w-full max-w-3xl animate-pulse rounded-xl' />
+      <div className='border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent' />
     </div>
   )
 }

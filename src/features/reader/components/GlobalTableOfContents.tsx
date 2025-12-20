@@ -33,7 +33,7 @@ export function GlobalTableOfContents({
         aria-hidden='true'
       />
 
-      <aside className='bg-background fixed top-0 right-0 z-50 h-full w-full max-w-sm overflow-y-auto shadow-xl transition-transform duration-150 ease-out sm:max-w-md'>
+      <aside className='bg-background custom-scrollbar fixed top-0 right-0 z-50 h-full w-full max-w-sm overflow-y-auto shadow-xl transition-transform duration-150 ease-out sm:max-w-md'>
         <div className='bg-background sticky top-0 border-b border-gray-200 px-4 py-4 dark:border-gray-700'>
           <div className='flex items-center justify-between'>
             <h2 className='text-foreground text-xl font-bold'>Оглавление</h2>

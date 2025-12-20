@@ -308,10 +308,9 @@ async function loadUserAndPosts(userId) {
 
 > Рекомендуется сначала честно попытаться решить задачу, а уже потом раскрывать ответы.
 
-<details>
-<summary><strong>Ответы к заданиям 1–2 (типы и приведение)</strong></summary>
+### Ответы к заданиям 1–2 (типы и приведение)
 
-### Задание 1
+#### Задание 1
 
 ```javascript
 '5' + 3         // '53' — сработала конкатенация строки и числа
@@ -323,7 +322,7 @@ null == undefined // true — спец‑правило абстрактного
 [1, 2] + [3, 4] // '1,23,4' — массивы приводятся к строкам ('1,2' + '3,4')
 ```
 
-### Задание 2 (один из возможных вариантов)
+#### Задание 2 (один из возможных вариантов)
 
 ```javascript
 console.log(null == null) // true
@@ -336,12 +335,9 @@ console.log(undefined === undefined) // true
 - `== null` часто используют, чтобы проверить «`null` или `undefined`» сразу;
 - `=== null` и `=== undefined` — для строгой проверки конкретного значения.
 
-</details>
+### Ответы к заданиям 3–4 (scope и hoisting)
 
-<details>
-<summary><strong>Ответы к заданиям 3–4 (scope и hoisting)</strong></summary>
-
-### Задание 3
+#### Задание 3
 
 ```javascript
 console.log(a) // undefined — объявление var a поднято, но значение ещё не присвоено
@@ -354,7 +350,7 @@ let b = 20
 - `var` поднимает объявление и инициализирует `a` как `undefined`;
 - `let` тоже поднимается, но попадает в Temporal Dead Zone до фактической инициализации.
 
-### Задание 4 (один из вариантов на let/const)
+#### Задание 4 (один из вариантов на let/const)
 
 ```javascript
 let x = 0
@@ -382,12 +378,9 @@ if (true) {
 }
 ```
 
-</details>
+### Ответы к заданиям 5–7 (this и замыкания)
 
-<details>
-<summary><strong>Ответы к заданиям 5–7 (this и замыкания)</strong></summary>
-
-### Задание 5
+#### Задание 5
 
 ```javascript
 const user = {
@@ -410,7 +403,7 @@ const say = user.say.bind(user)
 say() // 'Alice'
 ```
 
-### Задание 6 (пример решения)
+#### Задание 6 (пример решения)
 
 ```javascript
 function createCounter() {
@@ -423,7 +416,7 @@ function createCounter() {
 }
 ```
 
-### Задание 7
+#### Задание 7
 
 1. С `let`:
 
@@ -445,12 +438,9 @@ for (var i = 0; i < 3; i++) {
 }
 ```
 
-</details>
+### Ответы к заданиям 8–9 (прототипы и классы)
 
-<details>
-<summary><strong>Ответы к заданиям 8–9 (прототипы и классы)</strong></summary>
-
-### Задание 8
+#### Задание 8
 
 ```javascript
 function User(name) {
@@ -462,7 +452,7 @@ User.prototype.sayHi = function () {
 }
 ```
 
-### Задание 9
+#### Задание 9
 
 ```javascript
 class User {
@@ -488,12 +478,9 @@ class Admin extends User {
 
 Главное: `extends` для наследования и `super(name)` для вызова конструктора родителя.
 
-</details>
+### Ответы к заданиям 10–11 (DOM и события)
 
-<details>
-<summary><strong>Ответы к заданиям 10–11 (DOM и события)</strong></summary>
-
-### Задание 10
+#### Задание 10
 
 ```javascript
 const list = document.getElementById('list')
@@ -508,7 +495,7 @@ list.addEventListener('click', (event) => {
 })
 ```
 
-### Задание 11
+#### Задание 11
 
 ```javascript
 function renderMessage(el, text) {
@@ -518,12 +505,9 @@ function renderMessage(el, text) {
 
 Используем `textContent`, чтобы не исполнять HTML/JS из строки.
 
-</details>
+### Ответы к заданиям 12–14 (Event Loop и async)
 
-<details>
-<summary><strong>Ответы к заданиям 12–14 (Event Loop и async)</strong></summary>
-
-### Задание 12
+#### Задание 12
 
 ```javascript
 console.log('A')
@@ -546,7 +530,7 @@ console.log('E')
 - затем очередь microtasks (`C`, `D`);
 - затем первая macrotask (`B`).
 
-### Задание 13
+#### Задание 13
 
 ```javascript
 async function loadUserAndPosts(userId) {
@@ -564,7 +548,7 @@ async function loadUserAndPosts(userId) {
 }
 ```
 
-### Задание 14 (упрощённый пример)
+#### Задание 14 (упрощённый пример)
 
 ```javascript
 async function loadUserAndPosts(userId) {
@@ -591,5 +575,3 @@ async function loadUserAndPosts(userId) {
   }
 }
 ```
-
-</details>

@@ -28,20 +28,15 @@ export function ReadingCarousel({ content }: ReadingCarouselProps) {
   const router = useRouter()
   const pathname = usePathname()
 
-  const initialIndexRef = useRef<number | null>(null)
-  if (initialIndexRef.current === null) {
+  // Определяем начальный индекс только из URL для совместимости SSR
+  // На сервере и клиенте должно быть одинаковое значение
+  const initialIndexFromUrl = useMemo(() => {
     const urlChapterId = searchParams.get('chapter')
     const urlIndex = findChapterIndexById(content, urlChapterId)
+    return urlIndex ?? 0
+  }, [content, searchParams])
 
-    if (urlIndex !== null) {
-      initialIndexRef.current = urlIndex
-    } else if (typeof window !== 'undefined') {
-      const saved = Number(localStorage.getItem('reader:lastChapter') ?? '0')
-      initialIndexRef.current = !Number.isNaN(saved) && saved >= 0 ? saved : 0
-    } else {
-      initialIndexRef.current = 0
-    }
-  }
+  const hasInitializedRef = useRef(false)
 
   const {
     emblaRef,
@@ -51,7 +46,27 @@ export function ReadingCarousel({ content }: ReadingCarouselProps) {
     scrollPrev,
     scrollNext,
     scrollTo,
-  } = useEmblaCarouselLogic({ initialIndex: initialIndexRef.current ?? 0 })
+  } = useEmblaCarouselLogic({ initialIndex: initialIndexFromUrl })
+
+  // Обновляем позицию на клиенте из localStorage после монтирования
+  useEffect(() => {
+    if (hasInitializedRef.current) return
+    hasInitializedRef.current = true
+
+    // Если в URL нет главы, используем сохраненную из localStorage
+    const urlChapterId = searchParams.get('chapter')
+    if (!urlChapterId && typeof window !== 'undefined') {
+      const saved = Number(localStorage.getItem('reader:lastChapter') ?? '0')
+      if (
+        !Number.isNaN(saved) &&
+        saved >= 0 &&
+        saved < allChapters.length &&
+        saved !== initialIndexFromUrl
+      ) {
+        scrollTo(saved)
+      }
+    }
+  }, [searchParams, allChapters.length, initialIndexFromUrl, scrollTo])
 
   const { cache, loadChapter } = useChapterContent({
     chapters: allChapters,
@@ -67,6 +82,20 @@ export function ReadingCarousel({ content }: ReadingCarouselProps) {
     () => getChapterIndexInPart(content, currentIndex),
     [content, currentIndex],
   )
+
+  const currentChapter = useMemo(
+    () => allChapters[currentIndex] ?? null,
+    [allChapters, currentIndex],
+  )
+
+  const currentChapterContent = useMemo(() => {
+    if (!currentChapter) return null
+    const chapterState = cache[currentChapter.id]
+    if (chapterState?.status === 'loaded' && chapterState.content) {
+      return chapterState.content
+    }
+    return null
+  }, [cache, currentChapter])
 
   // Persist current chapter
   useEffect(() => {
@@ -114,6 +143,8 @@ export function ReadingCarousel({ content }: ReadingCarouselProps) {
         <ReaderHeader
           part={currentPart}
           chapterIndex={chapterIndexInPart}
+          currentChapter={currentChapter}
+          chapterContent={currentChapterContent}
           onOpenTableOfContents={() => setIsTableOfContentsOpen(true)}
         />
       )}

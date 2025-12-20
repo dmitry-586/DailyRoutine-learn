@@ -6,7 +6,6 @@ import ReactMarkdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
 import rehypeSlug from 'rehype-slug'
 import remarkGfm from 'remark-gfm'
-
 import { markdownComponents } from './config'
 import type { MarkdownContentProps } from './types'
 import { normalizeHeadings } from './utils'
