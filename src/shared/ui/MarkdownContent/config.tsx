@@ -84,13 +84,13 @@ export const markdownComponents: Components = {
     </p>
   ),
   ul: ({ children }) => (
-    <ul className={`${baseText} mb-4 list-inside list-disc space-y-1.5 pl-0`}>
+    <ul className={`${baseText} mb-4 list-outside list-disc space-y-1.5 pl-6`}>
       {children}
     </ul>
   ),
   ol: ({ children }) => (
     <ol
-      className={`${baseText} mb-4 list-inside list-decimal space-y-1.5 pl-0`}
+      className={`${baseText} mb-4 list-outside list-decimal space-y-1.5 pl-6`}
     >
       {children}
     </ol>
