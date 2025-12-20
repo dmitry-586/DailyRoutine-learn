@@ -14,6 +14,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
+  --color-primary-foreground: var(--background);
   --color-light-gray: var(--light-gray);
   --color-gray: var(--gray);
   --color-dark-gray: var(--dark-gray);

@@ -1,7 +1,9 @@
 'use client'
 
+import { usePWAInstall } from '@/shared/lib/pwa'
 import type { ReaderContent } from '@/shared/types'
-import { X } from 'lucide-react'
+import { Button } from '@/shared/ui/Button'
+import { Download, X } from 'lucide-react'
 
 interface GlobalTableOfContentsProps {
   content: ReaderContent
@@ -18,6 +20,9 @@ export function GlobalTableOfContents({
   isOpen,
   onClose,
 }: GlobalTableOfContentsProps) {
+  const { deferredPrompt, isInstalled, isCheckingPrompt, handleInstall } =
+    usePWAInstall()
+
   const handleChapterClick = (globalIndex: number) => {
     onNavigateToChapter(globalIndex)
     onClose()
@@ -91,6 +96,19 @@ export function GlobalTableOfContents({
               )
             })}
           </ul>
+
+          {!isInstalled && !isCheckingPrompt && deferredPrompt && (
+            <div className='border-gray mt-6 border-t pt-4'>
+              <Button
+                onClick={handleInstall}
+                variant='primary'
+                className='flex w-full items-center justify-center gap-2'
+              >
+                <Download size={16} />
+                Установить приложение
+              </Button>
+            </div>
+          )}
         </nav>
       </aside>
     </>

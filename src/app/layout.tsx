@@ -1,3 +1,5 @@
+import { getPWAMetadata, getPWAViewport } from '@/shared/lib/pwa'
+import { PWAProvider } from '@/shared/model/providers'
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 
@@ -9,25 +11,20 @@ const inter = Inter({
   display: 'swap',
 })
 
+const pwaMetadata = getPWAMetadata()
+
 export const metadata: Metadata = {
-  title: 'DailyRoutine Learn - Удобная читалка',
-  description: 'Мобильно-ориентированная читалка с поддержкой Markdown',
-  manifest: '/manifest.json',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'black-translucent',
-    title: 'DailyRoutine Learn',
-  },
+  ...pwaMetadata,
+  title: pwaMetadata.title,
+  description: pwaMetadata.description,
+  manifest: pwaMetadata.manifest,
+  applicationName: pwaMetadata.applicationName,
+  appleWebApp: pwaMetadata.appleWebApp,
+  icons: pwaMetadata.icons,
+  other: pwaMetadata.other,
 }
 
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  viewportFit: 'cover',
-  themeColor: '#2d3134',
-}
+export const viewport: Viewport = getPWAViewport()
 
 export default function RootLayout({
   children,
@@ -36,7 +33,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='ru'>
-      <body className={`${inter.variable} antialiased`}>{children}</body>
+      <body className={`${inter.variable} antialiased`}>
+        <PWAProvider />
+        {children}
+      </body>
     </html>
   )
 }
