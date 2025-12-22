@@ -15,8 +15,10 @@ export interface ChapterCacheEntry {
 
 const NEIGHBOR_PREFETCH_DELAY_MS = 220
 const STORAGE_KEY_PREFIX = 'reader:chapter:'
+const CACHE_VERSION = 'v2'
 
-const getStorageKey = (chapterId: string) => `${STORAGE_KEY_PREFIX}${chapterId}`
+const getStorageKey = (chapterId: string) =>
+  `${STORAGE_KEY_PREFIX}${CACHE_VERSION}:${chapterId}`
 
 interface UseChapterContentParams {
   chapters: ChapterMeta[]
@@ -35,6 +37,21 @@ export function useChapterContent({
   const [cache, setCache] = useState<Record<string, ChapterCacheEntry>>({})
   const inFlightRef = useRef(new Set<string>())
   const cacheRef = useRef(cache)
+
+  // Очистка старых версий кэша при монтировании
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const keysToRemove: string[] = []
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i)
+      if (key?.startsWith(STORAGE_KEY_PREFIX) && !key.includes(CACHE_VERSION)) {
+        keysToRemove.push(key)
+      }
+    }
+
+    keysToRemove.forEach((key) => sessionStorage.removeItem(key))
+  }, [])
 
   useEffect(() => {
     cacheRef.current = cache
