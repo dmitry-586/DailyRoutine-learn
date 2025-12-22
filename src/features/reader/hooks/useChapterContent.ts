@@ -15,7 +15,7 @@ export interface ChapterCacheEntry {
 
 const NEIGHBOR_PREFETCH_DELAY_MS = 220
 const STORAGE_KEY_PREFIX = 'reader:chapter:'
-const CACHE_VERSION = 'v2'
+const CACHE_VERSION = 'v3'
 
 const getStorageKey = (chapterId: string) =>
   `${STORAGE_KEY_PREFIX}${CACHE_VERSION}:${chapterId}`
