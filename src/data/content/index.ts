@@ -2,7 +2,6 @@ import type { NavigationPart, ReaderContent } from '@/shared/types'
 
 import { loadContent } from './loader'
 
-// Конфигурация частей и глав
 export const partsConfig = [
   {
     id: 'part-1',
@@ -33,7 +32,7 @@ export const partsConfig = [
   },
   {
     id: 'part-2',
-    title: 'Часть II. CSS: от основ до продвинутых инструментов',
+    title: 'Часть II. CSS',
     folder: 'part-2',
     chapters: [
       {
@@ -48,20 +47,19 @@ export const partsConfig = [
       },
       {
         id: 'chapter-2-3',
-        title: 'Глава 7. Препроцессоры и инструменты CSS',
+        title: 'Глава 7. Препроцессоры и инструменты',
         file: 'chapter-3.md',
       },
     ],
   },
   {
     id: 'part-3',
-    title: 'Часть III. JavaScript: фундамент, механика, архитектура',
+    title: 'Часть III. JavaScript',
     folder: 'part-3',
     chapters: [
       {
         id: 'chapter-3-1',
-        title:
-          'Глава 8. Глава 8. Фундамент JavaScript: как язык устроен под капотом',
+        title: 'Глава 8. Фундамент JavaScript: как язык устроен под капотом',
         file: 'chapter-1.md',
       },
       {
@@ -76,7 +74,7 @@ export const partsConfig = [
       },
       {
         id: 'chapter-3-4',
-        title: 'Глава 11. Асинхронность, Event Loop и промисы без мистики',
+        title: 'Глава 11. Асинхронность, Event Loop и промисы',
         file: 'chapter-4.md',
       },
       {
@@ -88,12 +86,12 @@ export const partsConfig = [
   },
   {
     id: 'part-4',
-    title: 'Часть IV. Инфраструктура: сборка, тестирование, инструменты',
+    title: 'Часть IV. Инфраструктура',
     folder: 'part-4',
     chapters: [
       {
         id: 'chapter-4-1',
-        title: 'Глава 13. NPM, package.json и зависимости проекта',
+        title: 'Глава 13. NPM, package.json и зависимости',
         file: 'chapter-1.md',
       },
       {
@@ -110,7 +108,7 @@ export const partsConfig = [
   },
   {
     id: 'part-5',
-    title: 'Часть V. TypeScript: строгая типизация для фронтенда',
+    title: 'Часть V. TypeScript',
     folder: 'part-5',
     chapters: [
       {
@@ -127,7 +125,7 @@ export const partsConfig = [
   },
   {
     id: 'part-6',
-    title: 'Часть VI. React и современная разработка SPA',
+    title: 'Часть VI. React и SPA',
     folder: 'part-6',
     chapters: [
       {
@@ -188,7 +186,7 @@ export const partsConfig = [
   },
   {
     id: 'part-9',
-    title: 'Часть IX. Node.js для фронтенд-разработчика',
+    title: 'Часть IX. Node.js',
     folder: 'part-9',
     chapters: [
       {
@@ -205,7 +203,7 @@ export const partsConfig = [
     chapters: [
       {
         id: 'chapter-10-1',
-        title: 'Глава 27. Алгоритмические задачи для фронтенда',
+        title: 'Глава 27. Алгоритмические задачи',
         file: 'chapter-1.md',
       },
       {
