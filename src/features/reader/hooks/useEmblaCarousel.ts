@@ -11,6 +11,7 @@ interface UseEmblaCarouselReturn {
   scrollPrev: () => void
   scrollNext: () => void
   scrollTo: (index: number) => void
+  emblaApi: ReturnType<typeof useEmblaCarousel>[1]
 }
 
 interface UseEmblaCarouselOptions {
@@ -24,7 +25,7 @@ export function useEmblaCarouselLogic(
     loop: false,
     align: 'start',
     skipSnaps: false,
-    duration: 20,
+    duration: 25,
     containScroll: 'trimSnaps',
     dragThreshold: 8,
     watchDrag: (_emblaApi, event) => {
@@ -83,5 +84,6 @@ export function useEmblaCarouselLogic(
     scrollPrev,
     scrollNext,
     scrollTo,
+    emblaApi,
   }
 }

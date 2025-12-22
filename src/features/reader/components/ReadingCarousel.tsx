@@ -46,6 +46,7 @@ export function ReadingCarousel({ content }: ReadingCarouselProps) {
     scrollPrev,
     scrollNext,
     scrollTo,
+    emblaApi,
   } = useEmblaCarouselLogic({ initialIndex: initialIndexFromUrl })
 
   // Обновляем позицию на клиенте из localStorage после монтирования
@@ -97,19 +98,33 @@ export function ReadingCarousel({ content }: ReadingCarouselProps) {
     return null
   }, [cache, currentChapter])
 
-  // Persist current chapter
+  // Persist current chapter - обновляем только после завершения анимации
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    localStorage.setItem('reader:lastChapter', String(currentIndex))
+    if (!emblaApi || typeof window === 'undefined') return
 
-    const chapter = allChapters[currentIndex]
-    if (!chapter) return
+    const handleSettle = () => {
+      const settledIndex = emblaApi.selectedScrollSnap()
+      localStorage.setItem('reader:lastChapter', String(settledIndex))
 
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('chapter', chapter.id)
-    params.set('part', chapter.partId)
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
-  }, [currentIndex])
+      const chapter = allChapters[settledIndex]
+      if (!chapter) return
+
+      // Проверяем, нужно ли обновлять URL
+      const currentChapterId = searchParams.get('chapter')
+      if (currentChapterId === chapter.id) return
+
+      const params = new URLSearchParams(searchParams.toString())
+      params.set('chapter', chapter.id)
+      params.set('part', chapter.partId)
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+    }
+
+    emblaApi.on('settle', handleSettle)
+
+    return () => {
+      emblaApi.off('settle', handleSettle)
+    }
+  }, [emblaApi, allChapters, searchParams, pathname, router])
 
   // Hotkeys
   useEffect(() => {
@@ -150,7 +165,7 @@ export function ReadingCarousel({ content }: ReadingCarouselProps) {
       )}
 
       <div className='flex-1 touch-pan-x overflow-hidden' ref={emblaRef}>
-        <div className='flex h-full'>
+        <div className='flex h-full will-change-transform'>
           {allChapters.map((chapter, index) => (
             <div
               key={chapter.id}
