@@ -90,7 +90,7 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
     return (
       <div
         ref={containerRef}
-        className='custom-scrollbar prose h-full max-w-none overflow-y-auto px-4 py-6 sm:px-6 lg:px-8'
+        className='custom-scrollbar prose h-full max-w-none overflow-y-auto px-4 pt-6 pb-16 sm:px-6 lg:px-8'
       >
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
@@ -108,7 +108,7 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
   return (
     <div
       ref={containerRef}
-      className='custom-scrollbar prose relative h-full max-w-none overflow-y-auto px-4 py-6 sm:px-6 lg:px-8'
+      className='custom-scrollbar prose relative h-full max-w-none overflow-y-auto px-4 pt-6 pb-16 sm:px-6 lg:px-8'
     >
       <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
         {virtualItems.map((item) => (

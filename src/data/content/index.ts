@@ -82,6 +82,11 @@ export const partsConfig = [
         title: 'Глава 12. Практикум по основам JavaScript, DOM и асинхронности',
         file: 'chapter-5.md',
       },
+      {
+        id: 'chapter-3-6',
+        title: 'Разбор решений к практикуму',
+        file: 'chapter-6.md',
+      },
     ],
   },
   {
