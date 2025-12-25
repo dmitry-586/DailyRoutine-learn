@@ -1,4 +1,4 @@
-import { partsConfig } from '@/data/content'
+import { partsConfig } from '@/data'
 import type { ChapterMeta } from '@/shared/types'
 import { readFile } from 'fs/promises'
 import { NextResponse } from 'next/server'

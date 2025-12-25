@@ -4,7 +4,7 @@ import {
   clearDeferredPrompt,
   getDeferredPrompt,
   subscribe,
-} from '@/shared/model/providers'
+} from '@/shared/providers'
 import { useEffect, useState } from 'react'
 import type { BeforeInstallPromptEvent } from './types'
 import { isStandalone } from './utils'

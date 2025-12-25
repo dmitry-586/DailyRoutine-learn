@@ -1,5 +1,5 @@
 import { getPWAMetadata, getPWAViewport } from '@/shared/lib/pwa'
-import { PWAProvider } from '@/shared/model/providers'
+import { PWAProvider } from '@/shared/providers'
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 
