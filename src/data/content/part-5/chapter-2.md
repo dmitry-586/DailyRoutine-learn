@@ -1,40 +1,413 @@
-# Глава 17. Продвинутый TypeScript
+# Глава 17. Типы, интерфейсы и функции
 
-Эта глава — граница между «я умею писать на TS» и «я проектирую на TS». На уровне Middle+ TypeScript используется как язык описания контрактов и бизнес-логики, а не просто аннотаций.
+Эта глава углубляется в систему типов TypeScript: как описывать структуры данных через интерфейсы и типы, как типизировать функции и использовать продвинутые возможности системы типов.
 
 ---
 
-## 17.1. Дженерики (Generics)
+## 17.1. Интерфейсы (Interfaces)
 
-Дженерики позволяют писать переиспользуемый и типобезопасный код.
+### Базовый синтаксис
 
-### Простейший пример
+Интерфейс описывает форму объекта:
 
 ```typescript
+interface User {
+  id: number
+  name: string
+  email?: string // опциональное поле
+}
+
+const user: User = {
+  id: 1,
+  name: 'Alice',
+  // email можно не указывать
+}
+```
+
+### Опциональные свойства
+
+```typescript
+interface Config {
+  apiUrl: string
+  timeout?: number // опционально
+  retries?: number // опционально
+}
+
+const config: Config = {
+  apiUrl: 'https://api.example.com',
+  // timeout и retries можно не указывать
+}
+```
+
+### Readonly свойства
+
+```typescript
+interface Point {
+  readonly x: number
+  readonly y: number
+}
+
+const point: Point = { x: 10, y: 20 }
+point.x = 30 // Error: Cannot assign to 'x' because it is a read-only property
+```
+
+### Индексные сигнатуры
+
+Позволяют описывать объекты с динамическими ключами:
+
+```typescript
+interface StringMap {
+  [key: string]: string
+}
+
+const map: StringMap = {
+  name: 'Alice',
+  city: 'Moscow',
+  // Можно добавлять любые строковые ключи
+}
+```
+
+### Расширение интерфейсов
+
+```typescript
+interface User {
+  id: number
+  name: string
+}
+
+interface Admin extends User {
+  role: 'admin'
+  permissions: string[]
+}
+
+const admin: Admin = {
+  id: 1,
+  name: 'Alice',
+  role: 'admin',
+  permissions: ['read', 'write'],
+}
+```
+
+### Множественное расширение
+
+```typescript
+interface Timestamped {
+  createdAt: Date
+  updatedAt: Date
+}
+
+interface Identifiable {
+  id: number
+}
+
+interface Entity extends Timestamped, Identifiable {
+  name: string
+}
+```
+
+### Объявление интерфейсов (Declaration Merging)
+
+TypeScript позволяет объявлять интерфейс несколько раз — они автоматически объединяются:
+
+```typescript
+interface Window {
+  myCustomProperty: string
+}
+
+interface Window {
+  anotherProperty: number
+}
+
+// Теперь Window имеет оба свойства
+const w: Window = {
+  myCustomProperty: 'test',
+  anotherProperty: 42,
+  // ... остальные свойства Window
+}
+```
+
+---
+
+## 17.2. Типы (Type Aliases)
+
+### Базовый синтаксис
+
+`type` создаёт псевдоним для типа:
+
+```typescript
+type User = {
+  id: number
+  name: string
+  email?: string
+}
+
+const user: User = {
+  id: 1,
+  name: 'Alice',
+}
+```
+
+### Различия между interface и type
+
+**interface:**
+
+- ✅ Можно расширять через `extends`
+- ✅ Поддерживает declaration merging
+- ❌ Не поддерживает union types напрямую
+- ✅ Лучше для объектов и классов
+
+**type:**
+
+- ❌ Нельзя расширять (но можно использовать intersection)
+- ❌ Не поддерживает declaration merging
+- ✅ Поддерживает union, intersection, mapped types
+- ✅ Лучше для композиций и утилитарных типов
+
+### Когда использовать interface, когда type?
+
+**Используй interface для:**
+
+- Публичных API
+- Объектов и классов
+- Когда нужна расширяемость
+
+```typescript
+interface ButtonProps {
+  title: string
+  onClick: () => void
+}
+```
+
+**Используй type для:**
+
+- Union types
+- Intersection types
+- Mapped types
+- Утилитарных типов
+
+```typescript
+type Theme = 'light' | 'dark'
+type ButtonVariant = 'primary' | 'secondary'
+type Optional<T> = { [K in keyof T]?: T[K] }
+```
+
+---
+
+## 17.3. Типизация функций
+
+### Базовый синтаксис
+
+```typescript
+// Обычная функция
+function greet(name: string): string {
+  return `Hello, ${name}!`
+}
+
+// Стрелочная функция
+const greet = (name: string): string => {
+  return `Hello, ${name}!`
+}
+
+// Функция без возвращаемого значения
+function log(message: string): void {
+  console.log(message)
+}
+```
+
+### Опциональные параметры
+
+```typescript
+function createUser(name: string, age?: number): User {
+  return {
+    name,
+    age: age ?? 0,
+  }
+}
+
+createUser('Alice') // OK
+createUser('Bob', 30) // OK
+```
+
+### Параметры по умолчанию
+
+```typescript
+function greet(name: string, greeting: string = 'Hello'): string {
+  return `${greeting}, ${name}!`
+}
+
+greet('Alice') // 'Hello, Alice!'
+greet('Bob', 'Hi') // 'Hi, Bob!'
+```
+
+### Rest параметры
+
+```typescript
+function sum(...numbers: number[]): number {
+  return numbers.reduce((acc, n) => acc + n, 0)
+}
+
+sum(1, 2, 3) // 6
+sum(1, 2, 3, 4, 5) // 15
+```
+
+### Типы функций
+
+Функция как тип:
+
+```typescript
+// Тип функции как переменной
+type MathOperation = (a: number, b: number) => number
+
+const add: MathOperation = (a, b) => a + b
+const multiply: MathOperation = (a, b) => a * b
+
+// Использование типа функции
+function calculate(a: number, b: number, op: MathOperation): number {
+  return op(a, b)
+}
+
+calculate(5, 3, add) // 8
+calculate(5, 3, multiply) // 15
+```
+
+### Функции как свойства объекта
+
+```typescript
+interface Calculator {
+  add: (a: number, b: number) => number
+  subtract: (a: number, b: number) => number
+}
+
+const calc: Calculator = {
+  add: (a, b) => a + b,
+  subtract: (a, b) => a - b,
+}
+```
+
+### Перегрузка функций (Function Overloads)
+
+Позволяет описать несколько сигнатур для одной функции:
+
+```typescript
+function format(value: string): string
+function format(value: number): string
+function format(value: boolean): string
+function format(value: string | number | boolean): string {
+  return String(value)
+}
+
+format('hello') // string
+format(42) // string
+format(true) // string
+```
+
+**Практический пример:**
+
+```typescript
+// Разные сигнатуры для разных случаев
+function getData(id: number): Promise<User>
+function getData(ids: number[]): Promise<User[]>
+function getData(idOrIds: number | number[]): Promise<User | User[]> {
+  if (Array.isArray(idOrIds)) {
+    return fetchUsers(idOrIds)
+  }
+  return fetchUser(idOrIds)
+}
+
+// TypeScript знает тип возвращаемого значения
+const user = await getData(1) // Promise<User>
+const users = await getData([1, 2, 3]) // Promise<User[]>
+```
+
+---
+
+## 17.4. this в функциях
+
+### Типизация this
+
+TypeScript позволяет явно указать тип `this`:
+
+```typescript
+interface User {
+  name: string
+  greet(this: User): void
+}
+
+const user: User = {
+  name: 'Alice',
+  greet() {
+    console.log(`Hello, I'm ${this.name}`)
+  },
+}
+
+user.greet() // OK
+const greet = user.greet
+greet() // Error: The 'this' context of type 'void' is not assignable
+```
+
+### Связанные функции (Bound functions)
+
+```typescript
+class Button {
+  constructor(public label: string) {}
+
+  onClick(this: Button) {
+    console.log(`Clicked: ${this.label}`)
+  }
+}
+
+const button = new Button('Submit')
+button.onClick() // OK
+
+const onClick = button.onClick
+onClick() // Error: 'this' context is lost
+
+// Решение: bind
+const boundOnClick = button.onClick.bind(button)
+boundOnClick() // OK
+```
+
+---
+
+## 17.5. Дженерики (Generics)
+
+### Зачем нужны дженерики
+
+Дженерики позволяют писать переиспользуемый типобезопасный код:
+
+```typescript
+// Без дженериков — нужно дублировать код
+function identityNumber(value: number): number {
+  return value
+}
+
+function identityString(value: string): string {
+  return value
+}
+
+// С дженериками — один код для всех типов
 function identity<T>(value: T): T {
   return value
 }
 
-const num = identity<number>(42)
-const str = identity<string>('hello')
+const num = identity<number>(42) // number
+const str = identity<string>('hello') // string
+
+// TypeScript может вывести тип
+const num2 = identity(42) // автоматически number
 ```
 
-TypeScript может вывести тип:
+### Ограничения дженериков (extends)
 
 ```typescript
-const num = identity(42) // автоматически number
-```
-
-### Ограничения (extends)
-
-```typescript
+// T должен иметь свойство length
 function logLength<T extends { length: number }>(value: T) {
   console.log(value.length)
 }
 
 logLength('string') // OK
 logLength([1, 2, 3]) // OK
-logLength(42) // Error
+logLength(42) // Error: Argument of type 'number' is not assignable
 ```
 
 ### Дженерики в интерфейсах
@@ -50,6 +423,11 @@ const userResponse: ApiResponse<User> = {
   data: { id: 1, name: 'Alice' },
   status: 200,
 }
+
+const usersResponse: ApiResponse<User[]> = {
+  data: [{ id: 1, name: 'Alice' }],
+  status: 200,
+}
 ```
 
 ### Дженерики в классах
@@ -58,16 +436,22 @@ const userResponse: ApiResponse<User> = {
 class Repository<T> {
   private items: T[] = []
 
-  add(item: T) {
+  add(item: T): void {
     this.items.push(item)
   }
 
   find(id: number): T | undefined {
     return this.items.find((item) => (item as any).id === id)
   }
+
+  getAll(): T[] {
+    return this.items
+  }
 }
 
 const userRepo = new Repository<User>()
+userRepo.add({ id: 1, name: 'Alice' })
+const user = userRepo.find(1) // User | undefined
 ```
 
 ### Множественные дженерики
@@ -81,15 +465,32 @@ const numbers = [1, 2, 3]
 const strings = map(numbers, (n) => n.toString()) // string[]
 ```
 
+### Дженерики с ограничениями и значениями по умолчанию
+
+```typescript
+// Ограничение: T должен иметь id
+interface Identifiable {
+  id: number
+}
+
+// Значение по умолчанию: если не указан, используется Identifiable
+function findById<T extends Identifiable = Identifiable>(
+  items: T[],
+  id: number,
+): T | undefined {
+  return items.find((item) => item.id === id)
+}
+```
+
 ---
 
-## 17.2. Утилитарные типы
+## 17.6. Утилитарные типы (Utility Types)
 
 TypeScript предоставляет готовые утилиты для работы с типами.
 
-### Pick
+### Pick<T, K>
 
-Выбирает указанные свойства из типа.
+Выбирает указанные свойства из типа:
 
 ```typescript
 type User = { id: number; name: string; email: string; role: string }
@@ -97,71 +498,79 @@ type UserPreview = Pick<User, 'id' | 'name'>
 // { id: number; name: string }
 ```
 
-### Omit
+### Omit<T, K>
 
-Исключает указанные свойства.
+Исключает указанные свойства:
 
 ```typescript
 type UserWithoutId = Omit<User, 'id'>
 // { name: string; email: string; role: string }
 ```
 
-### Partial
+### Partial<T>
 
-Делает все свойства опциональными.
+Делает все свойства опциональными:
 
 ```typescript
 type UserUpdate = Partial<User>
-// { id?: number; name?: string; ... }
+// { id?: number; name?: string; email?: string; role?: string }
 ```
 
-### Required
+### Required<T>
 
-Делает все свойства обязательными.
+Делает все свойства обязательными:
 
 ```typescript
 type RequiredUser = Required<Partial<User>>
 // все поля обязательны
 ```
 
-### Readonly
+### Readonly<T>
 
-Делает все свойства только для чтения.
+Делает все свойства только для чтения:
 
 ```typescript
 type ReadonlyUser = Readonly<User>
 // все поля readonly
 ```
 
-### Record
+### Record<K, T>
 
-Создаёт тип объекта с заданными ключами и значениями.
+Создаёт тип объекта с заданными ключами и значениями:
 
 ```typescript
 type UserRoles = Record<string, 'admin' | 'user'>
 // { [key: string]: "admin" | "user" }
+
+type UserMap = Record<number, User>
+// { [key: number]: User }
 ```
 
-### Exclude / Extract
+### Exclude<T, U> / Extract<T, U>
 
-Exclude — исключает типы из union. Extract — извлекает типы из union.
+**Exclude** — исключает типы из union:
 
 ```typescript
 type T = Exclude<'a' | 'b' | 'c', 'a'> // "b" | "c"
+```
+
+**Extract** — извлекает типы из union:
+
+```typescript
 type U = Extract<'a' | 'b' | 'c', 'a' | 'b'> // "a" | "b"
 ```
 
-### NonNullable
+### NonNullable<T>
 
-Удаляет null и undefined из типа.
+Удаляет `null` и `undefined` из типа:
 
 ```typescript
 type T = NonNullable<string | null | undefined> // string
 ```
 
-### ReturnType / Parameters
+### ReturnType<T> / Parameters<T>
 
-Получает тип возвращаемого значения и параметров функции.
+Получает тип возвращаемого значения и параметров функции:
 
 ```typescript
 type Fn = (a: number, b: string) => boolean
@@ -169,246 +578,120 @@ type R = ReturnType<Fn> // boolean
 type P = Parameters<Fn> // [number, string]
 ```
 
----
+### Awaited<T> (TypeScript 4.5+)
 
-## 17.3. Классы и модификаторы доступа
-
-### Модификаторы
-
-- public (по умолчанию) — доступ везде
-- private — доступ только внутри класса
-- protected — доступ в классе и наследниках
+Распаковывает Promise:
 
 ```typescript
-class User {
-  public name: string
-  private id: number
-  protected role: string
+type UserPromise = Promise<User>
+type UserValue = Awaited<UserPromise> // User
+```
 
-  constructor(name: string, id: number) {
-    this.name = name
-    this.id = id
-    this.role = 'user'
+---
+
+## 17.7. Практические паттерны
+
+### Типизация событий
+
+```typescript
+// События мыши
+function handleClick(event: MouseEvent) {
+  console.log(event.clientX, event.clientY)
+}
+
+// События клавиатуры
+function handleKeyPress(event: KeyboardEvent) {
+  if (event.key === 'Enter') {
+    // ...
   }
 }
+
+// События формы (React)
+function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  event.preventDefault()
+  // ...
+}
+
+// События input (React)
+function handleInput(event: ChangeEvent<HTMLInputElement>) {
+  console.log(event.target.value)
+}
 ```
 
-### Readonly-поля
+### Типизация DOM элементов
 
 ```typescript
-class Config {
-  readonly env = 'prod'
-  readonly apiUrl = 'https://api.example.com'
+// Получение элементов
+const button = document.getElementById('btn') as HTMLButtonElement
+const input = document.querySelector('input') as HTMLInputElement
+
+// Проверка типа
+const element = document.getElementById('app')
+if (element instanceof HTMLElement) {
+  element.style.color = 'red'
 }
 ```
 
-### Приватные поля (#)
-
-Современный способ (ES2022):
+### Типизация API ответов
 
 ```typescript
-class User {
-  #password: string
-
-  setPassword(pwd: string) {
-    this.#password = pwd
-  }
-}
-```
-
----
-
-## 17.4. Discriminated Unions
-
-Один из самых мощных паттернов TS. Позволяет TypeScript точно определять тип на основе дискриминанта.
-
-**Пример:**
-
-```typescript
-type Action =
-  | { type: 'ADD'; payload: number }
-  | { type: 'REMOVE'; payload: number }
-  | { type: 'RESET' }
-```
-
-**Использование:**
-
-```typescript
-function reducer(action: Action) {
-  switch (action.type) {
-    case 'ADD':
-      return action.payload // TypeScript знает, что payload есть
-    case 'REMOVE':
-      return -action.payload
-    case 'RESET':
-      return 0
-    default:
-      const _exhaustive: never = action // проверка полноты
-      return _exhaustive
-  }
-}
-```
-
-TypeScript гарантирует, что все кейсы обработаны.
-
----
-
-## 17.5. Type Guards
-
-Позволяют сузить тип в условных блоках.
-
-### typeof
-
-```typescript
-if (typeof x === 'string') {
-  // здесь x — string
-}
-```
-
-### instanceof
-
-```typescript
-if (obj instanceof User) {
-  // здесь obj — User
-}
-```
-
-### in
-
-```typescript
-if ('role' in user) {
-  // user имеет свойство role
-}
-```
-
-### Пользовательский guard
-
-```typescript
-function isAdmin(user: User | Admin): user is Admin {
-  return 'role' in user && user.role === 'admin'
+interface ApiResponse<T> {
+  data: T
+  error?: string
+  status: number
 }
 
-if (isAdmin(user)) {
-  // здесь user — Admin
-}
-```
-
----
-
-## 17.6. Декораторы
-
-Декораторы — экспериментальная возможность TypeScript.
-
-```typescript
-function Log(target: any) {
-  console.log(target)
+interface User {
+  id: number
+  name: string
+  email: string
 }
 
-@Log
-class User {}
-```
-
-**Используются в:**
-
-- Angular
-- NestJS
-
-**Требуют включения в tsconfig:**
-
-```json
-"experimentalDecorators": true
-```
-
----
-
-## 17.7. tsconfig: продвинутые настройки
-
-### Важные флаги
-
-```json
-{
-  "compilerOptions": {
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "exactOptionalPropertyTypes": true,
-    "target": "ES2020",
-    "lib": ["ES2020", "DOM"],
-    "module": "ESNext",
-    "moduleResolution": "bundler"
-  }
+async function fetchUsers(): Promise<ApiResponse<User[]>> {
+  const response = await fetch('/api/users')
+  return response.json()
 }
 ```
-
-### target и lib
-
-Определяют:
-
-- версию JavaScript на выходе
-- доступные API (DOM, ES2020 и т.д.)
-
-### moduleResolution
-
-- "node" — для Node.js
-- "bundler" — для современных бандлеров
-- "classic" — устаревший
-
-### Частые ошибки
-
-- overengineering типов
-- any в продакшне
-- игнорирование strict
-- сложные conditional-типы без необходимости
 
 ---
 
 ## Вопросы на собеседовании
 
-### 1. Что такое дженерики?
+### 1. Разница между interface и type?
+
+`interface` можно расширять и объявлять несколько раз (declaration merging). `type` поддерживает union, intersection, mapped types. `interface` лучше для объектов, `type` — для композиций.
+
+### 2. Когда использовать перегрузку функций?
+
+Когда функция может принимать разные типы аргументов и возвращать разные типы в зависимости от них.
+
+### 3. Что такое дженерики?
 
 Механизм создания переиспользуемых типобезопасных функций/классов с параметризованными типами.
 
-### 2. Когда использовать Pick и Omit?
+### 4. Когда использовать Pick и Omit?
 
-Pick — когда нужно выбрать несколько полей. Omit — когда нужно исключить несколько полей.
+`Pick` — когда нужно выбрать несколько полей. `Omit` — когда нужно исключить несколько полей.
 
-### 3. Что такое discriminated union?
+### 5. Как типизировать this в функции?
 
-Union type с общим полем-дискриминантом, позволяющим TypeScript точно определять тип.
+Указать тип `this` как первый параметр: `function method(this: Class, ...args) {}`
 
-### 4. Как работают type guards?
+### 6. Что такое ReturnType и Parameters?
 
-Функции, которые проверяют тип и сужают его в условных блоках. Позволяют TypeScript понимать тип.
-
-### 5. private vs protected?
-
-private — доступ только в классе. protected — доступ в классе и наследниках.
-
-### 6. Зачем нужны декораторы?
-
-Метапрограммирование, добавление функциональности к классам/методам без изменения их кода.
-
-### 7. Какие флаги tsconfig самые важные?
-
-strict, noImplicitAny, strictNullChecks, target, module, moduleResolution.
-
-### 8. Когда TypeScript мешает, а не помогает?
-
-При overengineering, излишней сложности типов, когда типы становятся препятствием для разработки.
+Утилитарные типы для получения типа возвращаемого значения и параметров функции.
 
 ---
 
 ## Key Takeaways
 
+- `interface` для объектов и публичных API, `type` для композиций
+- Перегрузка функций позволяет описать несколько сигнатур
 - Дженерики делают код переиспользуемым и типобезопасным
 - Утилитарные типы упрощают работу с типами
-- Discriminated unions — мощный паттерн для типобезопасности
-- Type guards сужают типы в условных блоках
-- Модификаторы доступа обеспечивают инкапсуляцию
-- tsconfig настраивает поведение компилятора
-- TypeScript должен помогать, а не мешать разработке
+- `this` можно типизировать явно
+- Практические паттерны: события, DOM, API
 
 ---
 
-В следующей части мы перенесём весь этот фундамент в мир React и SPA: посмотрим, как типизировать компоненты и хуки, строить надёжные интерфейсы и использовать TS не как «надстройку ради галочки», а как реальный инструмент контроля качества кода.
+В следующей главе мы рассмотрим классы, продвинутые типы, type guards и discriminated unions — инструменты для создания надёжных типобезопасных систем.

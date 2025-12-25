@@ -118,13 +118,23 @@ export const partsConfig = [
     chapters: [
       {
         id: 'chapter-5-1',
-        title: 'Глава 16. Основы TypeScript',
+        title: 'Глава 16. TypeScript: вступление и основы',
         file: 'chapter-1.md',
       },
       {
         id: 'chapter-5-2',
-        title: 'Глава 17. Продвинутый TypeScript',
+        title: 'Глава 17. Типы, интерфейсы и функции',
         file: 'chapter-2.md',
+      },
+      {
+        id: 'chapter-5-3',
+        title: 'Глава 18. Классы, продвинутые типы и паттерны',
+        file: 'chapter-3.md',
+      },
+      {
+        id: 'chapter-5-4',
+        title: 'Глава 19. Практические аспекты TypeScript',
+        file: 'chapter-4.md',
       },
     ],
   },
@@ -135,23 +145,33 @@ export const partsConfig = [
     chapters: [
       {
         id: 'chapter-6-1',
-        title: 'Глава 18. Основы React',
+        title: 'Глава 20. Основы React',
         file: 'chapter-1.md',
       },
       {
         id: 'chapter-6-2',
-        title: 'Глава 19. Хуки и управление состоянием',
+        title: 'Глава 21. Хуки и управление состоянием',
         file: 'chapter-2.md',
       },
       {
         id: 'chapter-6-3',
-        title: 'Глава 20. Архитектура больших приложений',
+        title: 'Глава 22. Архитектура больших приложений',
         file: 'chapter-3.md',
       },
       {
         id: 'chapter-6-4',
-        title: 'Глава 21. SSR и современный React-стек',
+        title: 'Глава 23. SSR и современный React-стек',
         file: 'chapter-4.md',
+      },
+      {
+        id: 'chapter-6-5',
+        title: 'Глава 24. Практикум по React и архитектуре',
+        file: 'chapter-5.md',
+      },
+      {
+        id: 'chapter-6-6',
+        title: 'Разбор решений к практикуму',
+        file: 'chapter-6.md',
       },
     ],
   },
@@ -162,12 +182,12 @@ export const partsConfig = [
     chapters: [
       {
         id: 'chapter-7-1',
-        title: 'Глава 22. Паттерны проектирования',
+        title: 'Глава 25. Паттерны проектирования',
         file: 'chapter-1.md',
       },
       {
         id: 'chapter-7-2',
-        title: 'Глава 23. Архитектуры фронтенда',
+        title: 'Глава 26. Архитектуры фронтенда',
         file: 'chapter-2.md',
       },
     ],
@@ -179,12 +199,12 @@ export const partsConfig = [
     chapters: [
       {
         id: 'chapter-8-1',
-        title: 'Глава 24. Производительность',
+        title: 'Глава 27. Производительность',
         file: 'chapter-1.md',
       },
       {
         id: 'chapter-8-2',
-        title: 'Глава 25. Безопасность во фронтенде',
+        title: 'Глава 28. Безопасность во фронтенде',
         file: 'chapter-2.md',
       },
     ],
@@ -196,7 +216,7 @@ export const partsConfig = [
     chapters: [
       {
         id: 'chapter-9-1',
-        title: 'Глава 26. Основы Node.js',
+        title: 'Глава 29. Основы Node.js',
         file: 'chapter-1.md',
       },
     ],
@@ -208,17 +228,17 @@ export const partsConfig = [
     chapters: [
       {
         id: 'chapter-10-1',
-        title: 'Глава 27. Алгоритмические задачи',
+        title: 'Глава 30. Алгоритмические задачи',
         file: 'chapter-1.md',
       },
       {
         id: 'chapter-10-2',
-        title: 'Глава 28. Поведенческое собеседование',
+        title: 'Глава 31. Поведенческое собеседование',
         file: 'chapter-2.md',
       },
       {
         id: 'chapter-10-3',
-        title: 'Глава 29. Итоговый чек-лист',
+        title: 'Глава 32. Итоговый чек-лист',
         file: 'chapter-3.md',
       },
     ],

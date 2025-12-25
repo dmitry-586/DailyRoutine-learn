@@ -348,6 +348,283 @@ double(3, 4) // 24
 
 ---
 
+## 9.5.1. Методы массивов: map, filter, reduce и другие
+
+Методы массивов — это основа функционального программирования в JavaScript. Они позволяют работать с данными декларативно, без явных циклов.
+
+### map: трансформация элементов
+
+`map` создаёт новый массив, применяя функцию к каждому элементу исходного массива.
+
+**Синтаксис:**
+
+```javascript
+const newArray = array.map((element, index, array) => {
+  // возвращаем новое значение
+  return transformedValue
+})
+```
+
+**Примеры:**
+
+```javascript
+// Удвоить каждое число
+const numbers = [1, 2, 3, 4]
+const doubled = numbers.map((n) => n * 2)
+// [2, 4, 6, 8]
+
+// Извлечь имена из объектов пользователей
+const users = [
+  { id: 1, name: 'Alice', age: 25 },
+  { id: 2, name: 'Bob', age: 30 },
+]
+const names = users.map((user) => user.name)
+// ['Alice', 'Bob']
+
+// Преобразовать в другой формат
+const prices = [10, 20, 30]
+const formatted = prices.map((price) => `$${price.toFixed(2)}`)
+// ['$10.00', '$20.00', '$30.00']
+```
+
+**Важно:**
+
+- `map` **не изменяет** исходный массив (создаёт новый);
+- всегда возвращает массив той же длины;
+- если функция ничего не возвращает, в новом массиве будут `undefined`.
+
+### filter: фильтрация элементов
+
+`filter` создаёт новый массив, содержащий только те элементы, для которых функция возвращает `true`.
+
+**Синтаксис:**
+
+```javascript
+const filtered = array.filter((element, index, array) => {
+  return condition // true или false
+})
+```
+
+**Примеры:**
+
+```javascript
+// Оставить только чётные числа
+const numbers = [1, 2, 3, 4, 5, 6]
+const evens = numbers.filter((n) => n % 2 === 0)
+// [2, 4, 6]
+
+// Найти активных пользователей
+const users = [
+  { id: 1, name: 'Alice', active: true },
+  { id: 2, name: 'Bob', active: false },
+  { id: 3, name: 'Charlie', active: true },
+]
+const activeUsers = users.filter((user) => user.active)
+// [{ id: 1, name: 'Alice', active: true }, { id: 3, name: 'Charlie', active: true }]
+
+// Удалить пустые значения
+const data = [1, null, 2, undefined, 3, '', 4]
+const clean = data.filter((item) => item != null && item !== '')
+// [1, 2, 3, 4]
+```
+
+**Важно:**
+
+- `filter` **не изменяет** исходный массив;
+- возвращает массив, длина которого может быть меньше исходного;
+- функция должна возвращать `true` или `false` (truthy/falsy значения тоже работают).
+
+### reduce: агрегация данных
+
+`reduce` — самый мощный метод массивов. Он сводит массив к одному значению, применяя функцию-аккумулятор.
+
+**Синтаксис:**
+
+```javascript
+const result = array.reduce((accumulator, currentValue, index, array) => {
+  // возвращаем новое значение аккумулятора
+  return newAccumulator
+}, initialValue)
+```
+
+**Примеры:**
+
+```javascript
+// Сумма чисел
+const numbers = [1, 2, 3, 4, 5]
+const sum = numbers.reduce((acc, n) => acc + n, 0)
+// 15
+
+// Подсчёт количества элементов по условию
+const users = [
+  { name: 'Alice', role: 'admin' },
+  { name: 'Bob', role: 'user' },
+  { name: 'Charlie', role: 'admin' },
+]
+const adminCount = users.reduce((count, user) => {
+  return user.role === 'admin' ? count + 1 : count
+}, 0)
+// 2
+
+// Группировка по ключу
+const items = [
+  { category: 'fruit', name: 'apple' },
+  { category: 'fruit', name: 'banana' },
+  { category: 'vegetable', name: 'carrot' },
+]
+const grouped = items.reduce((acc, item) => {
+  if (!acc[item.category]) {
+    acc[item.category] = []
+  }
+  acc[item.category].push(item)
+  return acc
+}, {})
+// { fruit: [{ category: 'fruit', name: 'apple' }, ...], vegetable: [...] }
+
+// Преобразование массива в объект
+const users = [
+  { id: 1, name: 'Alice' },
+  { id: 2, name: 'Bob' },
+]
+const usersMap = users.reduce((acc, user) => {
+  acc[user.id] = user
+  return acc
+}, {})
+// { 1: { id: 1, name: 'Alice' }, 2: { id: 2, name: 'Bob' } }
+```
+
+**Важно:**
+
+- `reduce` **не изменяет** исходный массив;
+- начальное значение (`initialValue`) важно — без него первый элемент становится аккумулятором;
+- можно использовать для любых операций агрегации: суммирование, группировка, поиск максимума/минимума.
+
+### Комбинирование методов
+
+Методы массивов можно комбинировать, создавая цепочки трансформаций:
+
+```javascript
+const users = [
+  { name: 'Alice', age: 25, active: true },
+  { name: 'Bob', age: 30, active: false },
+  { name: 'Charlie', age: 20, active: true },
+  { name: 'David', age: 35, active: true },
+]
+
+// Найти имена активных пользователей старше 21 года
+const result = users
+  .filter((user) => user.active && user.age > 21)
+  .map((user) => user.name)
+// ['Alice', 'David']
+
+// Подсчитать средний возраст активных пользователей
+const activeUsers = users.filter((user) => user.active)
+const avgAge =
+  activeUsers.reduce((sum, user) => sum + user.age, 0) / activeUsers.length
+// 26.67 (сумма возрастов: 25 + 20 + 35 = 80, делим на 3 = 26.67)
+```
+
+### Другие важные методы массивов
+
+**forEach: выполнение действия для каждого элемента**
+
+```javascript
+const numbers = [1, 2, 3]
+numbers.forEach((n, index) => {
+  console.log(`Index ${index}: ${n}`)
+})
+// Index 0: 1
+// Index 1: 2
+// Index 2: 3
+```
+
+**Важно:** `forEach` не возвращает значение (возвращает `undefined`). Используй `map`, если нужно создать новый массив.
+
+**find: поиск первого элемента**
+
+```javascript
+const users = [
+  { id: 1, name: 'Alice' },
+  { id: 2, name: 'Bob' },
+]
+const user = users.find((u) => u.id === 2)
+// { id: 2, name: 'Bob' }
+```
+
+**some: проверка, есть ли хотя бы один элемент**
+
+```javascript
+const numbers = [1, 2, 3, 4, 5]
+const hasEven = numbers.some((n) => n % 2 === 0)
+// true
+```
+
+**every: проверка, все ли элементы соответствуют условию**
+
+```javascript
+const numbers = [2, 4, 6, 8]
+const allEven = numbers.every((n) => n % 2 === 0)
+// true
+```
+
+**flat: выравнивание вложенных массивов**
+
+```javascript
+const nested = [1, [2, 3], [4, [5, 6]]]
+const flat = nested.flat(2) // глубина 2
+// [1, 2, 3, 4, 5, 6]
+```
+
+**flatMap: map + flat в одном**
+
+```javascript
+const words = ['hello world', 'foo bar']
+const letters = words.flatMap((word) => word.split(' '))
+// ['hello', 'world', 'foo', 'bar']
+
+// Эквивалентно:
+const letters2 = words.map((word) => word.split(' ')).flat()
+// ['hello', 'world', 'foo', 'bar']
+```
+
+**sort: сортировка (мутирует массив!)**
+
+```javascript
+const numbers = [3, 1, 4, 1, 5]
+numbers.sort((a, b) => a - b) // по возрастанию
+// [1, 1, 3, 4, 5]
+
+const users = [
+  { name: 'Alice', age: 25 },
+  { name: 'Bob', age: 30 },
+]
+users.sort((a, b) => a.age - b.age) // по возрасту
+```
+
+**⚠️ Важно:** `sort` **мутирует** исходный массив. Если нужно сохранить исходный, создай копию:
+
+```javascript
+const sorted = [...numbers].sort((a, b) => a - b)
+```
+
+### Когда что использовать
+
+- **map** — когда нужно преобразовать каждый элемент в новый формат;
+- **filter** — когда нужно оставить только часть элементов;
+- **reduce** — когда нужно свести массив к одному значению (сумма, произведение, группировка, поиск максимума);
+- **find** — когда нужно найти один элемент по условию;
+- **some/every** — когда нужно проверить наличие элементов;
+- **forEach** — когда нужно выполнить действие для каждого элемента без создания нового массива.
+
+### Производительность
+
+- `map`, `filter`, `reduce` создают новые массивы — это может быть дорого для больших данных;
+- для простых операций циклы `for` могут быть быстрее;
+- но читаемость и декларативность часто важнее микрооптимизаций;
+- современные движки JavaScript хорошо оптимизируют методы массивов.
+
+---
+
 ## 9.6. Прототипная модель: как работает `new` и `prototype`
 
 JavaScript — **прототипно‑ориентированный** язык. Классы в ES6 — это **синтаксический сахар**, а не новая модель.

@@ -1,4 +1,4 @@
-# Глава 19. Хуки и управление состоянием
+# Глава 21. Хуки и управление состоянием
 
 Хуки — это механизм, который позволил React отказаться от классов и сделать логику компонентов **компонуемой и переиспользуемой**.
 
@@ -14,7 +14,7 @@
 
 ---
 
-## 19.1. useState: управление локальным состоянием
+## 21.1. useState: управление локальным состоянием
 
 ### Базовое использование
 
@@ -97,7 +97,7 @@ setUser({ ...user, profile: { ...user.profile, email: 'new@email.com' } })
 
 ---
 
-## 19.2. useEffect: побочные эффекты в функциональных компонентах
+## 21.2. useEffect: побочные эффекты в функциональных компонентах
 
 `useEffect` используется для побочных эффектов:
 
@@ -292,7 +292,7 @@ useEffect(() => {
 
 ---
 
-## 19.3. useMemo и useCallback: оптимизация производительности
+## 21.3. useMemo и useCallback: оптимизация производительности
 
 ### useMemo: мемоизация значений
 
@@ -374,7 +374,7 @@ const handleItemClick = useCallback(
 
 ---
 
-## 19.4. useRef: мутабельные значения без ререндеров
+## 21.4. useRef: мутабельные значения без ререндеров
 
 ### Базовое использование
 
@@ -489,7 +489,7 @@ function Form() {
 
 ---
 
-## 19.5. useReducer: управление сложным состоянием
+## 21.5. useReducer: управление сложным состоянием
 
 `useReducer` — альтернатива `useState` для сложного состояния с множеством переходов.
 
@@ -587,7 +587,7 @@ function Form() {
 
 ---
 
-## 19.6. Context API: передача данных без проп-дриллинга
+## 21.6. Context API: передача данных без проп-дриллинга
 
 Context API позволяет передавать данные через дерево компонентов без явной передачи пропсов на каждом уровне.
 
@@ -673,7 +673,7 @@ Context API НЕ подходит для:
 
 ---
 
-## 19.7. Правила хуков
+## 21.7. Правила хуков
 
 Хуки можно вызывать только:
 
@@ -720,9 +720,9 @@ function Component() {
 
 ---
 
-## 19.8. Кастомные хуки: переиспользование логики
+## 21.8. Кастомные хуки: переиспользование логики
 
-Кастомные хуки — это функции, начинающиеся с `use`, которые могут использовать другие хуки.
+Кастомные хуки — это функции, начинающиеся с `use`, которые могут использовать другие хуки. Это основной способ переиспользования логики в React.
 
 ### Пример: useCounter
 
@@ -764,7 +764,12 @@ function useFetch(url) {
     setError(null)
 
     fetch(url)
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`)
+        }
+        return res.json()
+      })
       .then(setData)
       .catch(setError)
       .finally(() => setLoading(false))
@@ -783,16 +788,127 @@ function UserProfile({ userId }) {
 }
 ```
 
+### Пример: useLocalStorage
+
+```jsx
+function useLocalStorage(key, initialValue) {
+  const [storedValue, setStoredValue] = useState(() => {
+    try {
+      const item = window.localStorage.getItem(key)
+      return item ? JSON.parse(item) : initialValue
+    } catch (error) {
+      console.error(error)
+      return initialValue
+    }
+  })
+
+  const setValue = (value) => {
+    try {
+      const valueToStore =
+        value instanceof Function ? value(storedValue) : value
+      setStoredValue(valueToStore)
+      window.localStorage.setItem(key, JSON.stringify(valueToStore))
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  return [storedValue, setValue]
+}
+
+// Использование
+function ThemeToggle() {
+  const [theme, setTheme] = useLocalStorage('theme', 'light')
+
+  return (
+    <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+      Current theme: {theme}
+    </button>
+  )
+}
+```
+
+### Пример: useDebounce
+
+```jsx
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}
+
+// Использование для поиска
+function SearchBox() {
+  const [query, setQuery] = useState('')
+  const debouncedQuery = useDebounce(query, 300)
+
+  useEffect(() => {
+    if (debouncedQuery) {
+      // Выполнить поиск
+      search(debouncedQuery)
+    }
+  }, [debouncedQuery])
+
+  return <input value={query} onChange={(e) => setQuery(e.target.value)} />
+}
+```
+
+### Пример: usePrevious
+
+```jsx
+function usePrevious(value) {
+  const ref = useRef()
+
+  useEffect(() => {
+    ref.current = value
+  }, [value])
+
+  return ref.current
+}
+
+// Использование
+function Counter() {
+  const [count, setCount] = useState(0)
+  const prevCount = usePrevious(count)
+
+  return (
+    <div>
+      <p>Current: {count}</p>
+      <p>Previous: {prevCount}</p>
+      <button onClick={() => setCount(count + 1)}>Increment</button>
+    </div>
+  )
+}
+```
+
 **Преимущества кастомных хуков:**
 
 - переиспользование логики между компонентами;
 - инкапсуляция сложной логики;
 - тестируемость (можно тестировать отдельно от компонентов);
-- читаемость (компоненты становятся проще).
+- читаемость (компоненты становятся проще);
+- композиция (можно комбинировать хуки).
+
+**Правила кастомных хуков:**
+
+- должны начинаться с `use`;
+- могут вызывать другие хуки;
+- должны следовать правилам хуков (не вызываться условно);
+- могут возвращать что угодно (объект, массив, значение).
 
 ---
 
-## 19.9. Мини‑самопроверка по главе
+## 21.9. Мини‑самопроверка по главе
 
 Проверь, что ты можешь:
 
@@ -808,64 +924,6 @@ function UserProfile({ userId }) {
 - объяснить, почему `useMemo` и `useCallback` не всегда нужны.
 
 Если это получается связно и без заучивания, ты прошёл через самую «скользкую» часть работы с React — дальше будет проще связывать это с архитектурой и оптимизацией.
-
----
-
-## 19.10. Практические задания
-
-### Задание 1: Исправление useEffect
-
-Найди и исправь ошибки в коде:
-
-```jsx
-function UserProfile({ userId }) {
-  const [user, setUser] = useState(null)
-
-  useEffect(() => {
-    fetch(`/api/users/${userId}`)
-      .then((res) => res.json())
-      .then(setUser)
-  }, [])
-
-  return <div>{user.name}</div>
-}
-```
-
-### Задание 2: Счётчик с интервалом
-
-Создай компонент счётчика, который автоматически увеличивается каждую секунду. Добавь кнопки для запуска и остановки. Убедись, что интервал правильно очищается.
-
-### Задание 3: Кастомный хук useLocalStorage
-
-Создай кастомный хук `useLocalStorage`, который:
-
-- сохраняет значение в localStorage;
-- синхронизируется между вкладками;
-- возвращает значение и функцию для обновления.
-
-### Задание 4: Оптимизация с useMemo и useCallback
-
-Дан компонент:
-
-```jsx
-function ExpensiveList({ items, onItemClick }) {
-  const sorted = items.sort((a, b) => a.price - b.price)
-
-  return (
-    <ul>
-      {sorted.map((item) => (
-        <ListItem key={item.id} item={item} onClick={onItemClick} />
-      ))}
-    </ul>
-  )
-}
-```
-
-Оптимизируй его с помощью `useMemo` и `useCallback`. Объясни, почему это помогает.
-
-### Задание 5: Форма с useReducer
-
-Создай форму входа с валидацией, используя `useReducer` для управления состоянием. Форма должна иметь поля: email, password, и кнопку отправки.
 
 ---
 
