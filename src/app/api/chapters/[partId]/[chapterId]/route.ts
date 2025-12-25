@@ -6,7 +6,7 @@ import { join } from 'path'
 
 export const dynamic = 'force-dynamic'
 
-const CONTENT_DIR = join(process.cwd(), 'src/data/content')
+const CONTENT_DIR = join(process.cwd(), 'src/data')
 
 interface ResolvedChapter {
   chapter: ChapterMeta

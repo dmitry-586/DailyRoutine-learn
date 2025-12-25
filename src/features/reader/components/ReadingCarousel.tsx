@@ -1,10 +1,8 @@
 'use client'
 
+import type { ReaderContent } from '@/shared/types'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
-
-import type { ReaderContent } from '@/shared/types'
-
 import { useChapterContent, useEmblaCarouselLogic } from '../hooks'
 import {
   findChapterIndexById,

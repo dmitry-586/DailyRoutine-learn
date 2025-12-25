@@ -1,5 +1,4 @@
 import type { NavigationPart, ReaderContent } from '@/shared/types'
-
 import { loadContent } from './loader'
 
 export const partsConfig = [
