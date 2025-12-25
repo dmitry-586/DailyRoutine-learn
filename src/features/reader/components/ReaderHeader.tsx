@@ -1,3 +1,5 @@
+'use client'
+
 import type { ChapterMeta, Part } from '@/shared/types'
 import { Menu } from 'lucide-react'
 

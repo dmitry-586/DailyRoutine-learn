@@ -1,4 +1,8 @@
+'use client'
+
 import type { Part } from '@/shared/types'
+import { ArrowLeft, GraduationCap } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 import { ChapterIndicators } from './ChapterIndicators'
 import { NavigationButton } from './NavigationButton'
@@ -24,35 +28,72 @@ export function ReaderNavigation({
   onScrollNext,
   onScrollTo,
 }: ReaderNavigationProps) {
+  const router = useRouter()
+
   if (!currentPart) return null
 
+  const handleBackToMenu = () => {
+    router.push('/')
+  }
+
+  const handleGenerateTest = () => {
+    router.push('/quiz')
+  }
+
   return (
-    <div className='fixed bottom-5 left-1/2 z-50 flex -translate-x-1/2 items-center'>
-      <nav className='rounded-full bg-white/10 shadow-lg backdrop-blur-xl [backdrop-filter:blur(20px)_saturate(180%)]'>
-        <div className='flex items-center gap-4 px-4 py-2'>
-          <NavigationButton
-            direction='prev'
-            disabled={!canScrollPrev}
-            onClick={onScrollPrev}
-            label='Предыдущая глава'
-          />
+    <>
+      {/* Кнопка "Назад" слева внизу */}
+      <div className='fixed bottom-5 left-5 z-50'>
+        <button
+          onClick={handleBackToMenu}
+          className='flex size-12 cursor-pointer items-center justify-center rounded-full bg-white/10 shadow-lg backdrop-blur-xl [backdrop-filter:blur(20px)_saturate(180%)] transition-all hover:bg-white/20 active:scale-95'
+          title='Вернуться в меню'
+          aria-label='Вернуться в меню'
+        >
+          <ArrowLeft className='text-foreground size-6' />
+        </button>
+      </div>
 
-          <ChapterIndicators
-            chapters={currentPart.chapters}
-            currentIndex={chapterIndexInPart}
-            parts={parts}
-            currentPart={currentPart}
-            onScrollTo={onScrollTo}
-          />
+      {/* Центральная навигация */}
+      <div className='fixed bottom-5 left-1/2 z-50 flex -translate-x-1/2 items-center'>
+        <nav className='rounded-full bg-white/10 shadow-lg backdrop-blur-xl [backdrop-filter:blur(20px)_saturate(180%)]'>
+          <div className='flex items-center gap-4 px-4 py-2'>
+            <NavigationButton
+              direction='prev'
+              disabled={!canScrollPrev}
+              onClick={onScrollPrev}
+              label='Предыдущая глава'
+            />
 
-          <NavigationButton
-            direction='next'
-            disabled={!canScrollNext}
-            onClick={onScrollNext}
-            label='Следующая глава'
-          />
-        </div>
-      </nav>
-    </div>
+            <ChapterIndicators
+              chapters={currentPart.chapters}
+              currentIndex={chapterIndexInPart}
+              parts={parts}
+              currentPart={currentPart}
+              onScrollTo={onScrollTo}
+            />
+
+            <NavigationButton
+              direction='next'
+              disabled={!canScrollNext}
+              onClick={onScrollNext}
+              label='Следующая глава'
+            />
+          </div>
+        </nav>
+      </div>
+
+      {/* Кнопка "Тесты" справа внизу */}
+      <div className='fixed right-5 bottom-5 z-50'>
+        <button
+          onClick={handleGenerateTest}
+          className='flex size-12 cursor-pointer items-center justify-center rounded-full bg-white/10 shadow-lg backdrop-blur-xl [backdrop-filter:blur(20px)_saturate(180%)] transition-all hover:bg-white/20 active:scale-95'
+          title='Пройти тест'
+          aria-label='Пройти тест'
+        >
+          <GraduationCap className='text-foreground size-6' />
+        </button>
+      </div>
+    </>
   )
 }

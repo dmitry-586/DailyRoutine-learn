@@ -1,12 +1,11 @@
 import { Suspense } from 'react'
 
-import { content } from '@/data'
-import { ReadingCarousel } from '@/features/reader'
+import { MainMenu } from '@/features/menu'
 
 export default function Home() {
   return (
     <Suspense fallback={null}>
-      <ReadingCarousel content={content} />
+      <MainMenu />
     </Suspense>
   )
 }

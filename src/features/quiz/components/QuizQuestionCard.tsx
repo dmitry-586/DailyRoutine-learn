@@ -1,0 +1,99 @@
+'use client'
+
+import type { QuizQuestion } from '@/shared/types'
+import { CheckCircle2, Circle } from 'lucide-react'
+
+interface QuizQuestionCardProps {
+  question: QuizQuestion
+  userAnswer?: string[] | string
+  onAnswer: (questionId: string, answer: string[] | string) => void
+}
+
+export function QuizQuestionCard({
+  question,
+  userAnswer,
+  onAnswer,
+}: QuizQuestionCardProps) {
+  const handleSingleSelect = (answerId: string) => {
+    onAnswer(question.id, answerId)
+  }
+
+  const handleMultipleSelect = (answerId: string) => {
+    const current = Array.isArray(userAnswer) ? userAnswer : []
+    const newAnswer = current.includes(answerId)
+      ? current.filter((id) => id !== answerId)
+      : [...current, answerId]
+    onAnswer(question.id, newAnswer)
+  }
+
+  const isSelected = (answerId: string) => {
+    if (question.type === 'single') {
+      return userAnswer === answerId
+    }
+    return Array.isArray(userAnswer) && userAnswer.includes(answerId)
+  }
+
+  return (
+    <div className='bg-muted border-gray rounded-2xl border-2 p-6'>
+      <div className='mb-2 flex items-center gap-2'>
+        {question.difficulty && (
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-medium ${
+              question.difficulty === 'easy'
+                ? 'bg-green-500/20 text-green-400'
+                : question.difficulty === 'medium'
+                  ? 'bg-yellow-500/20 text-yellow-400'
+                  : 'bg-red-500/20 text-red-400'
+            }`}
+          >
+            {question.difficulty === 'easy'
+              ? 'Легко'
+              : question.difficulty === 'medium'
+                ? 'Средне'
+                : 'Сложно'}
+          </span>
+        )}
+      </div>
+
+      <h3 className='text-foreground mb-6 text-xl font-semibold'>
+        {question.question}
+      </h3>
+
+      <div className='space-y-3'>
+        {question.answers.map((answer) => {
+          const selected = isSelected(answer.id)
+          return (
+            <button
+              key={answer.id}
+              onClick={() =>
+                question.type === 'single'
+                  ? handleSingleSelect(answer.id)
+                  : handleMultipleSelect(answer.id)
+              }
+              className={`flex w-full items-start gap-3 rounded-lg border-2 p-4 text-left transition-all ${
+                selected
+                  ? 'border-primary bg-gray'
+                  : 'border-gray bg-background hover:border-gray hover:bg-muted'
+              }`}
+            >
+              <div className='mt-0.5 shrink-0'>
+                {question.type === 'single' ? (
+                  selected ? (
+                    <Circle className='fill-primary text-primary h-5 w-5' />
+                  ) : (
+                    <Circle className='text-light-gray h-5 w-5' />
+                  )
+                ) : selected ? (
+                  <CheckCircle2 className='text-primary h-5 w-5' />
+                ) : (
+                  <div className='border-light-gray h-5 w-5 rounded border-2' />
+                )}
+              </div>
+              <span className='text-foreground flex-1'>{answer.text}</span>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}

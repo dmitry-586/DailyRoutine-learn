@@ -5,3 +5,11 @@ export {
   type Part,
   type ReaderContent,
 } from './reader.types'
+
+export {
+  type QuestionType,
+  type QuizAnswer,
+  type QuizQuestion,
+  type QuizResult,
+  type QuizSession,
+} from './quiz.types'
