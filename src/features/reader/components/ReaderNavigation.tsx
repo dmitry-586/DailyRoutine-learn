@@ -1,6 +1,7 @@
 'use client'
 
 import type { Part } from '@/shared/types'
+import { Button } from '@/shared/ui/Button'
 import { ArrowLeft, GraduationCap } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -43,19 +44,19 @@ export function ReaderNavigation({
   return (
     <>
       {/* Кнопка "Назад" слева внизу */}
-      <div className='fixed bottom-5 left-5 z-50'>
-        <button
+      <div className='absolute bottom-5 left-5 z-50'>
+        <Button
           onClick={handleBackToMenu}
-          className='flex size-12 cursor-pointer items-center justify-center rounded-full bg-white/10 shadow-lg backdrop-blur-xl [backdrop-filter:blur(20px)_saturate(180%)] transition-all hover:bg-white/20 active:scale-95'
+          variant='glass-icon'
           title='Вернуться в меню'
           aria-label='Вернуться в меню'
         >
           <ArrowLeft className='text-foreground size-6' />
-        </button>
+        </Button>
       </div>
 
       {/* Центральная навигация */}
-      <div className='fixed bottom-5 left-1/2 z-50 flex -translate-x-1/2 items-center'>
+      <div className='absolute bottom-5 left-1/2 z-50 flex -translate-x-1/2 items-center'>
         <nav className='rounded-full bg-white/10 shadow-lg backdrop-blur-xl [backdrop-filter:blur(20px)_saturate(180%)]'>
           <div className='flex items-center gap-4 px-4 py-2'>
             <NavigationButton
@@ -84,15 +85,15 @@ export function ReaderNavigation({
       </div>
 
       {/* Кнопка "Тесты" справа внизу */}
-      <div className='fixed right-5 bottom-5 z-50'>
-        <button
+      <div className='absolute right-5 bottom-5 z-50'>
+        <Button
           onClick={handleGenerateTest}
-          className='flex size-12 cursor-pointer items-center justify-center rounded-full bg-white/10 shadow-lg backdrop-blur-xl [backdrop-filter:blur(20px)_saturate(180%)] transition-all hover:bg-white/20 active:scale-95'
+          variant='glass-icon'
           title='Пройти тест'
           aria-label='Пройти тест'
         >
           <GraduationCap className='text-foreground size-6' />
-        </button>
+        </Button>
       </div>
     </>
   )

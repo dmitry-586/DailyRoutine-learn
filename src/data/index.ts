@@ -76,16 +76,6 @@ export const partsConfig = [
         title: 'Глава 11. Асинхронность, Event Loop и промисы',
         file: 'chapter-4.md',
       },
-      {
-        id: 'chapter-3-5',
-        title: 'Глава 12. Практикум по основам JavaScript, DOM и асинхронности',
-        file: 'chapter-5.md',
-      },
-      {
-        id: 'chapter-3-6',
-        title: 'Разбор решений к практикуму',
-        file: 'chapter-6.md',
-      },
     ],
   },
   {
@@ -161,16 +151,6 @@ export const partsConfig = [
         id: 'chapter-6-4',
         title: 'Глава 23. SSR и современный React-стек',
         file: 'chapter-4.md',
-      },
-      {
-        id: 'chapter-6-5',
-        title: 'Глава 24. Практикум по React и архитектуре',
-        file: 'chapter-5.md',
-      },
-      {
-        id: 'chapter-6-6',
-        title: 'Разбор решений к практикуму',
-        file: 'chapter-6.md',
       },
     ],
   },

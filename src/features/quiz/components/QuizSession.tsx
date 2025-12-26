@@ -1,8 +1,9 @@
 'use client'
 
-import { getRandomQuestions } from '@/data/questions'
+import { getAllQuestionsByPart, getRandomQuestions } from '@/data/questions'
 import type { QuizResult } from '@/shared/types'
 import { Button } from '@/shared/ui/Button'
+import { ArrowLeft } from 'lucide-react'
 import { useState } from 'react'
 import { QuizQuestionCard } from './QuizQuestionCard'
 import { QuizResults } from './QuizResults'
@@ -10,6 +11,7 @@ import { QuizResults } from './QuizResults'
 interface QuizSessionProps {
   questionCount?: number
   partIds?: string[]
+  allQuestions?: boolean
   onFinish?: (result: QuizResult) => void
   onBack: () => void
 }
@@ -17,12 +19,20 @@ interface QuizSessionProps {
 export function QuizSession({
   questionCount = 10,
   partIds,
+  allQuestions = false,
   onFinish,
   onBack,
 }: QuizSessionProps) {
-  const [questions, setQuestions] = useState(() =>
-    getRandomQuestions(questionCount, { partIds }),
-  )
+  const [questions, setQuestions] = useState(() => {
+    if (allQuestions && partIds && partIds.length === 1) {
+      // Режим "все вопросы раздела"
+      return getAllQuestionsByPart(partIds[0], {
+        shuffle: true,
+        distributeByChapter: true,
+      })
+    }
+    return getRandomQuestions(questionCount, { partIds })
+  })
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string[] | string>>({})
   const [startTime, setStartTime] = useState(() => Date.now())
@@ -115,7 +125,13 @@ export function QuizSession({
     setAnswers({})
     setStartTime(Date.now())
     // Пересоздаём вопросы для нового теста
-    const newQuestions = getRandomQuestions(questionCount, { partIds })
+    const newQuestions =
+      allQuestions && partIds && partIds.length === 1
+        ? getAllQuestionsByPart(partIds[0], {
+            shuffle: true,
+            distributeByChapter: true,
+          })
+        : getRandomQuestions(questionCount, { partIds })
     setQuestions(newQuestions)
   }
 
@@ -139,18 +155,16 @@ export function QuizSession({
   }
 
   return (
-    <div className='bg-background flex min-h-screen flex-col'>
-      <div className='border-gray bg-background border-b px-4 py-4'>
-        <div className='mx-auto flex max-w-4xl items-center justify-between'>
-          <div className='flex items-center gap-4'>
-            <Button variant='secondary' onClick={onBack} size='sm'>
-              Назад
-            </Button>
-            <div>
-              <h2 className='text-foreground text-lg font-semibold'>
-                Вопрос {currentIndex + 1} из {questions.length}
-              </h2>
-              <div className='bg-gray mt-1 h-2 w-64 overflow-hidden rounded-full'>
+    <div className='bg-background relative mx-auto flex h-screen max-w-5xl flex-col'>
+      {/* Header */}
+      <div className='border-gray bg-background sticky top-0 z-10 border-b px-4 py-3 sm:px-6'>
+        <div className='flex items-center justify-between'>
+          <div className='min-w-0 flex-1'>
+            <h1 className='text-foreground truncate text-lg font-bold sm:text-xl'>
+              Вопрос {currentIndex + 1} из {questions.length}
+            </h1>
+            <div className='mt-2'>
+              <div className='bg-gray h-2 w-full overflow-hidden rounded-full'>
                 <div
                   className='bg-primary h-full transition-all duration-300'
                   style={{ width: `${progress}%` }}
@@ -158,14 +172,16 @@ export function QuizSession({
               </div>
             </div>
           </div>
-          <div className='text-light-gray text-sm'>
-            Прогресс: {Object.keys(answers).length} / {questions.length}
+          <div className='text-light-gray ml-4 text-right text-xs sm:text-sm'>
+            <div>Отвечено: {Object.keys(answers).length}</div>
+            <div>Всего: {questions.length}</div>
           </div>
         </div>
       </div>
 
-      <div className='custom-scrollbar flex-1 overflow-y-auto px-4 py-8'>
-        <div className='mx-auto max-w-3xl'>
+      {/* Content */}
+      <div className='flex-1 overflow-y-auto'>
+        <div className='mx-auto max-w-3xl px-4 py-6 sm:px-6 lg:px-8'>
           <QuizQuestionCard
             question={currentQuestion}
             userAnswer={answers[currentQuestion.id]}
@@ -174,19 +190,46 @@ export function QuizSession({
         </div>
       </div>
 
-      <div className='border-gray bg-background border-t px-4 py-4'>
-        <div className='mx-auto flex max-w-4xl justify-between'>
+      {/* Navigation */}
+      <div className='absolute bottom-5 left-5 z-50'>
+        <Button
+          variant='glass-icon'
+          onClick={onBack}
+          title='Назад к настройкам'
+          aria-label='Назад к настройкам'
+        >
+          <ArrowLeft className='text-foreground size-6' />
+        </Button>
+      </div>
+
+      <div className='absolute right-5 bottom-5 z-50 flex items-center gap-3'>
+        {currentIndex > 0 && (
           <Button
-            variant='secondary'
+            variant='glass'
             onClick={handlePrev}
-            disabled={currentIndex === 0}
+            title='Предыдущий вопрос'
+            aria-label='Предыдущий вопрос'
           >
             Назад
           </Button>
-          <Button onClick={handleNext} disabled={!hasAnswer} variant='default'>
-            {currentIndex === questions.length - 1 ? 'Завершить' : 'Далее'}
-          </Button>
-        </div>
+        )}
+        <Button
+          variant='glass'
+          onClick={handleNext}
+          disabled={!hasAnswer}
+          title={
+            currentIndex === questions.length - 1
+              ? 'Завершить тест'
+              : 'Следующий вопрос'
+          }
+          aria-label={
+            currentIndex === questions.length - 1
+              ? 'Завершить тест'
+              : 'Следующий вопрос'
+          }
+        >
+          {currentIndex === questions.length - 1 ? 'Завершить' : 'Далее'}
+        </Button>
       </div>
     </div>
   )

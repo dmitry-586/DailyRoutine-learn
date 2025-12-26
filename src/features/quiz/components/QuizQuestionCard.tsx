@@ -34,9 +34,9 @@ export function QuizQuestionCard({
   }
 
   return (
-    <div className='bg-muted border-gray rounded-2xl border-2 p-6'>
-      <div className='mb-2 flex items-center gap-2'>
-        {question.difficulty && (
+    <div className='space-y-6'>
+      {question.difficulty && (
+        <div className='flex items-center gap-2'>
           <span
             className={`rounded-full px-3 py-1 text-xs font-medium ${
               question.difficulty === 'easy'
@@ -52,10 +52,10 @@ export function QuizQuestionCard({
                 ? 'Средне'
                 : 'Сложно'}
           </span>
-        )}
-      </div>
+        </div>
+      )}
 
-      <h3 className='text-foreground mb-6 text-xl font-semibold'>
+      <h3 className='text-foreground text-xl font-semibold'>
         {question.question}
       </h3>
 

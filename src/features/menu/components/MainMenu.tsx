@@ -31,7 +31,6 @@ export function MainMenu() {
             title='Практика'
             description='Практические задания и упражнения'
             onClick={() => router.push('/practice')}
-            disabled
           />
 
           <MenuCard
@@ -65,7 +64,7 @@ function MenuCard({
     <button
       onClick={onClick}
       disabled={disabled}
-      className='group border-gray bg-muted hover:border-primary hover:bg-gray disabled:hover:border-gray disabled:hover:bg-muted relative flex flex-col items-center gap-4 rounded-2xl border-2 p-6 text-center transition-all disabled:cursor-not-allowed disabled:opacity-50'
+      className='group relative flex flex-col items-center gap-4 rounded-2xl bg-white/10 p-6 text-center shadow-lg backdrop-blur-xl [backdrop-filter:blur(20px)_saturate(180%)] transition-all hover:bg-white/20 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white/10'
     >
       <div className='text-primary transition-transform group-hover:scale-110'>
         {icon}
@@ -75,7 +74,7 @@ function MenuCard({
         <p className='text-light-gray mt-2 text-sm'>{description}</p>
       </div>
       {disabled && (
-        <span className='bg-gray text-light-gray absolute top-2 right-2 rounded px-2 py-1 text-xs'>
+        <span className='text-light-gray absolute top-2 right-2 rounded bg-white/20 px-2 py-1 text-xs backdrop-blur-sm'>
           Скоро
         </span>
       )}

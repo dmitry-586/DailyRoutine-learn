@@ -13,7 +13,7 @@ import { normalizeHeadings } from './utils'
 const VIRTUALIZATION_THRESHOLD = 32
 const MIN_BLOCK_HEIGHT = 140
 const MAX_BLOCK_HEIGHT = 1100
-const OVERSCAN = 1
+const OVERSCAN = 5
 
 function splitMarkdownIntoBlocks(markdown: string): string[] {
   const lines = markdown.split('\n')
