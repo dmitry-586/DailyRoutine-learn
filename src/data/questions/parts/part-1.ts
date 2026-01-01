@@ -403,7 +403,7 @@ export const part1Questions: QuizQuestion[] = [
       },
       {
         id: 'a-1-12-3',
-        text: 'IPv4 — старый протокол, IPv6 — новый протокол для мобильных устройств',
+        text: 'IPv6 — это “IPv4, только записанный в hex”, поэтому совместимость достигается автоматически без туннелей/dual-stack',
         isCorrect: false,
       },
       {
@@ -605,7 +605,7 @@ export const part1Questions: QuizQuestion[] = [
       },
       {
         id: 'a-1-18-3',
-        text: 'PUT — быстрее, PATCH — медленнее',
+        text: 'PUT чаще используют для “полной замены”, PATCH — для частичных изменений. Идемпотентность PATCH зависит от семантики операции/формата (JSON Patch vs merge patch), поэтому “всегда/никогда” — неверно',
         isCorrect: false,
       },
       {
@@ -871,7 +871,7 @@ export const part1Questions: QuizQuestion[] = [
       },
       {
         id: 'a-1-26-3',
-        text: 'async — быстрее, defer — медленнее',
+        text: 'async может нарушать порядок выполнения скриптов (выполняется по готовности), а defer сохраняет порядок, но оба загружаются параллельно',
         isCorrect: false,
       },
       {
@@ -1041,7 +1041,7 @@ export const part1Questions: QuizQuestion[] = [
       },
       {
         id: 'a-1-31-4',
-        text: 'Нет разницы, это синонимы',
+        text: '<section> — самодостаточная единица контента (можно вынести из страницы), а <article> — просто тематическая группировка внутри страницы',
         isCorrect: false,
       },
     ],
@@ -1238,7 +1238,7 @@ export const part1Questions: QuizQuestion[] = [
       },
       {
         id: 'a-1-37-3',
-        text: 'IPv6 медленнее, но безопаснее, чем IPv4',
+        text: 'IPv6 решает адресное пространство и добавляет механизмы вроде расширений/автоконфига, но “безопасность” не появляется автоматически: шифрование — это обычно TLS/IPsec и политики, а не просто версия IP',
         isCorrect: false,
       },
       {
@@ -1610,7 +1610,7 @@ export const part1Questions: QuizQuestion[] = [
       },
       {
         id: 'a-1-48-5',
-        text: 'PATCH — всегда идемпотентный',
+        text: 'PATCH может быть идемпотентным, если операция так определена (например, “установить поле в X”), но может быть и неидемпотентным (например, “увеличить счётчик”)',
         isCorrect: false,
       },
     ],
@@ -2026,7 +2026,7 @@ export const part1Questions: QuizQuestion[] = [
       },
       {
         id: 'a-1-61-2',
-        text: 'DOM и HTML — это одно и то же, просто разные названия',
+        text: 'DOM — это “сериализованный HTML” (строка), а HTML — объектная модель, с которой работает JavaScript в браузере',
         isCorrect: false,
       },
       {
@@ -2095,12 +2095,12 @@ export const part1Questions: QuizQuestion[] = [
       },
       {
         id: 'a-1-63-3',
-        text: 'defer работает только в старых браузерах, async — в новых',
+        text: 'defer выполняется сразу после загрузки файла (как только он скачался), а async откладывает выполнение до конца парсинга HTML',
         isCorrect: false,
       },
       {
         id: 'a-1-63-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'async и defer отличаются только тем, что один применяется к внешним скриптам, а другой — к inline-скриптам',
         isCorrect: false,
       },
     ],
@@ -2132,7 +2132,7 @@ export const part1Questions: QuizQuestion[] = [
       },
       {
         id: 'a-1-64-4',
-        text: 'CSS блокирует только в старых браузерах',
+        text: 'CSS блокирует только JavaScript (запрещает выполнение скриптов), но никогда не влияет на построение render tree',
         isCorrect: false,
       },
     ],
@@ -2181,6 +2181,369 @@ export const part1Questions: QuizQuestion[] = [
     explanation:
       'Critical Rendering Path: парсинг HTML → DOM, парсинг CSS → CSSOM, объединение → Render Tree, Layout (расчёт позиций), Paint (отрисовка), Composite (компоновка слоёв). Это путь от HTML до пикселей на экране.',
     chapterId: 'chapter-1-3',
+    partId: 'part-1',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-1-66',
+    type: 'single',
+    question:
+      'Какая часть цепочки “ввод URL → страница” почти всегда происходит ещё до отправки HTTP-запроса на сервер?',
+    answers: [
+      {
+        id: 'a-1-66-1',
+        text: 'DNS lookup + установление соединения (TCP и часто TLS) для нового хоста',
+        isCorrect: true,
+      },
+      {
+        id: 'a-1-66-2',
+        text: 'Гидратация React-приложения',
+        isCorrect: false,
+      },
+      {
+        id: 'a-1-66-3',
+        text: 'Построение render tree',
+        isCorrect: false,
+      },
+      {
+        id: 'a-1-66-4',
+        text: 'Компоновка слоёв (composite)',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'До отправки HTTP-запроса браузер должен знать IP (DNS) и иметь транспортный канал (TCP) и часто шифрованный канал (TLS). Поэтому первое подключение к домену всегда “дороже”.',
+    chapterId: 'chapter-1-1',
+    partId: 'part-1',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-1-67',
+    type: 'single',
+    question:
+      'Почему keep-alive/переиспользование соединений обычно ускоряет загрузку страниц?',
+    answers: [
+      {
+        id: 'a-1-67-1',
+        text: 'Снижает число повторных handshake (TCP/TLS) и экономит RTT, особенно на мобильных сетях',
+        isCorrect: true,
+      },
+      {
+        id: 'a-1-67-2',
+        text: 'Потому что keep-alive увеличивает пропускную способность канала в 2 раза',
+        isCorrect: false,
+      },
+      {
+        id: 'a-1-67-3',
+        text: 'Потому что keep-alive отключает DNS',
+        isCorrect: false,
+      },
+      {
+        id: 'a-1-67-4',
+        text: 'Потому что keep-alive включает gzip автоматически',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Handshake — это дополнительные round trips. Переиспользование соединений уменьшает latency и ускоряет серию запросов к одному origin.',
+    chapterId: 'chapter-1-1',
+    partId: 'part-1',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-1-68',
+    type: 'single',
+    question:
+      'Какая формулировка точнее всего описывает head-of-line blocking в HTTP/1.1?',
+    answers: [
+      {
+        id: 'a-1-68-1',
+        text: 'В одном соединении запросы/ответы идут последовательно, и “медленный” ответ блокирует остальные в очереди',
+        isCorrect: true,
+      },
+      {
+        id: 'a-1-68-2',
+        text: 'Это блокировка CPU из-за большого количества JS',
+        isCorrect: false,
+      },
+      {
+        id: 'a-1-68-3',
+        text: 'Это блокировка рендера из-за CSS',
+        isCorrect: false,
+      },
+      {
+        id: 'a-1-68-4',
+        text: 'Это блокировка только в UDP, но не в TCP',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'В HTTP/1.1 без мультиплексирования один “длинный” ответ задерживает другие запросы в этом же соединении. HTTP/2 решает на уровне протокола, но TCP-уровень всё ещё может давать HOL при потерях.',
+    chapterId: 'chapter-1-1',
+    partId: 'part-1',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-1-69',
+    type: 'single',
+    question:
+      'Почему HTTP/3 (QUIC) часто лучше на мобильных сетях, чем HTTP/2?',
+    answers: [
+      {
+        id: 'a-1-69-1',
+        text: 'QUIC работает поверх UDP и избегает TCP head-of-line blocking между потоками: потери в одном потоке меньше влияют на другие',
+        isCorrect: true,
+      },
+      {
+        id: 'a-1-69-2',
+        text: '0‑RTT возможен в QUIC, но это не всегда включено/безопасно (replay). Выигрыш HTTP/3 чаще проявляется на сетях с потерями и при миграции соединений, а не “гарантированно всегда”',
+        isCorrect: false,
+      },
+      {
+        id: 'a-1-69-3',
+        text: 'Потому что HTTP/3 работает только в локальной сети',
+        isCorrect: false,
+      },
+      {
+        id: 'a-1-69-4',
+        text: 'Потому что HTTP/3 запрещает кеширование и экономит память',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'HTTP/2 мультиплексирует внутри одного TCP, но потери пакетов могут тормозить весь поток данных TCP. QUIC решает это иначе и часто выигрывает на сетях с потерями.',
+    chapterId: 'chapter-1-1',
+    partId: 'part-1',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-1-70',
+    type: 'single',
+    question:
+      'Какая причина наиболее точно объясняет, почему TLS handshake увеличивает время до первого байта (TTFB)?',
+    answers: [
+      {
+        id: 'a-1-70-1',
+        text: 'До отправки “полезного” HTTP нужно договориться о параметрах шифрования и проверить сертификат, что добавляет RTT',
+        isCorrect: true,
+      },
+      {
+        id: 'a-1-70-2',
+        text: 'TLS всегда требует загрузить весь HTML целиком до начала рендера',
+        isCorrect: false,
+      },
+      {
+        id: 'a-1-70-3',
+        text: 'TLS снижает скорость CPU, потому что включает GPU',
+        isCorrect: false,
+      },
+      {
+        id: 'a-1-70-4',
+        text: 'TLS отключает CDN',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Handshake — это дополнительные обмены. На высоком RTT (мобилка/дальние регионы) каждая дополнительная “туда‑обратно” заметна.',
+    chapterId: 'chapter-1-1',
+    partId: 'part-1',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-1-71',
+    type: 'multiple',
+    question:
+      'Какие утверждения корректны про многопроцессную архитектуру современных браузеров?',
+    answers: [
+      {
+        id: 'a-1-71-1',
+        text: 'Обычно есть отдельные процессы: browser process, renderer process и GPU process',
+        isCorrect: true,
+      },
+      {
+        id: 'a-1-71-2',
+        text: 'Renderer процесс исполняет JS приложения и занимается layout/paint для вкладки',
+        isCorrect: true,
+      },
+      {
+        id: 'a-1-71-3',
+        text: 'Все вкладки всегда принудительно рендерятся в одном процессе ради скорости',
+        isCorrect: false,
+      },
+      {
+        id: 'a-1-71-4',
+        text: 'Изоляция процессов повышает безопасность (sandbox) и снижает “blast radius” падения вкладки',
+        isCorrect: true,
+      },
+    ],
+    explanation:
+      'Процессная модель даёт устойчивость и безопасность. При этом количество процессов может варьироваться (site isolation, iframes, политика браузера).',
+    chapterId: 'chapter-1-2',
+    partId: 'part-1',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-1-72',
+    type: 'single',
+    question:
+      'Что такое “layout thrashing” и почему он опасен для производительности?',
+    answers: [
+      {
+        id: 'a-1-72-1',
+        text: 'Чередование чтения layout-свойств и записи стилей заставляет браузер многократно пересчитывать layout (reflow), что тормозит UI',
+        isCorrect: true,
+      },
+      {
+        id: 'a-1-72-2',
+        text: 'Это баг TCP, когда пакеты приходят не по порядку',
+        isCorrect: false,
+      },
+      {
+        id: 'a-1-72-3',
+        text: 'Это ситуация, когда CSS-in-JS генерирует слишком много классов',
+        isCorrect: false,
+      },
+      {
+        id: 'a-1-72-4',
+        text: 'Это когда браузер кэширует layout и перестаёт обновлять страницу',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Опасность в принудительных синхронных перерасчётах. Лечатся батчингом DOM-операций, чтением/записью отдельными фазами, использованием transform вместо top/left и т.д.',
+    chapterId: 'chapter-1-3',
+    partId: 'part-1',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-1-73',
+    type: 'single',
+    question:
+      'Почему transform/opacity обычно “дешевле” для анимаций, чем изменение top/left?',
+    answers: [
+      {
+        id: 'a-1-73-1',
+        text: 'transform/opacity чаще можно обработать на композиторе (GPU) без полного reflow/layout, а top/left меняют layout и вызывают reflow',
+        isCorrect: true,
+      },
+      {
+        id: 'a-1-73-2',
+        text: 'top/left запрещены в CSS-анимациях',
+        isCorrect: false,
+      },
+      {
+        id: 'a-1-73-3',
+        text: 'transform всегда уменьшает размер DOM и ускоряет сеть',
+        isCorrect: false,
+      },
+      {
+        id: 'a-1-73-4',
+        text: 'opacity обычно влияет на этап compositing (без layout), а top/left часто вызывает layout. Но поведение может зависеть от контекста (например, слои/contain/позиционирование)',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Изменение layout свойств заставляет браузер пересчитывать позиции. Композитинг часто может обойтись без полного цикла layout/paint.',
+    chapterId: 'chapter-1-2',
+    partId: 'part-1',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-1-74',
+    type: 'single',
+    question:
+      'Почему для кнопки в интерфейсе лучше использовать <button>, а не <div role="button">?',
+    answers: [
+      {
+        id: 'a-1-74-1',
+        text: '<button> имеет нативную семантику, фокус, клавиатурное поведение и корректную поддержку screen readers без ручной донастройки',
+        isCorrect: true,
+      },
+      {
+        id: 'a-1-74-2',
+        text: 'Потому что <div> не поддерживает CSS',
+        isCorrect: false,
+      },
+      {
+        id: 'a-1-74-3',
+        text: 'Потому что role="button" запрещён спецификацией ARIA',
+        isCorrect: false,
+      },
+      {
+        id: 'a-1-74-4',
+        text: '<button> даёт нативную семантику, фокус и клавиатурное поведение “из коробки”, а с div+role нужно вручную воспроизвести поведение (tabIndex, key handlers, aria-атрибуты) и легко ошибиться',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'ARIA — инструмент, когда нативного элемента нет. Если есть подходящий семантический элемент, он почти всегда лучше: меньше багов по доступности и меньше ручной работы.',
+    chapterId: 'chapter-1-4',
+    partId: 'part-1',
+    difficulty: 'easy',
+  },
+  {
+    id: 'q-1-75',
+    type: 'multiple',
+    question:
+      'Какие практики обычно улучшают доступность (a11y) без серьёзных затрат?',
+    answers: [
+      {
+        id: 'a-1-75-1',
+        text: 'Семантические теги (button, nav, main, header) вместо div-структур',
+        isCorrect: true,
+      },
+      {
+        id: 'a-1-75-2',
+        text: 'Поддержка клавиатуры: tab-навигация, видимый focus, Escape для модалок',
+        isCorrect: true,
+      },
+      {
+        id: 'a-1-75-3',
+        text: 'Осмысленные подписи: label для input, aria-label когда нет видимого текста',
+        isCorrect: true,
+      },
+      {
+        id: 'a-1-75-4',
+        text: 'Всегда добавлять как можно больше aria-* атрибутов “на всякий случай”',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Главное правило ARIA: не использовать, если можно использовать нативный элемент. Базовая a11y — это семантика, клавиатура, фокус и корректные подписи.',
+    chapterId: 'chapter-1-4',
+    partId: 'part-1',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-1-76',
+    type: 'single',
+    question:
+      'В чём ошибка, если ссылка визуально выглядит как кнопка, но размечена <a href="#"> и обработчик делает action без навигации?',
+    answers: [
+      {
+        id: 'a-1-76-1',
+        text: 'Это семантически неверно: действие без навигации должно быть кнопкой, иначе страдает доступность и поведение по умолчанию',
+        isCorrect: true,
+      },
+      {
+        id: 'a-1-76-2',
+        text: 'Это нормально: <a> универсален и должен использоваться для любых кликов',
+        isCorrect: false,
+      },
+      {
+        id: 'a-1-76-3',
+        text: 'Проблема только в CSS, семантика не влияет',
+        isCorrect: false,
+      },
+      {
+        id: 'a-1-76-4',
+        text: 'Проблема в том, что href="#" ускоряет загрузку страницы',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Ссылка — для перехода. Кнопка — для действия. Смешивание ломает ожидания пользователей и ассистивных технологий (и иногда историю/скролл из-за #).',
+    chapterId: 'chapter-1-4',
     partId: 'part-1',
     difficulty: 'hard',
   },

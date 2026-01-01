@@ -80,17 +80,17 @@ export const part6Questions: QuizQuestion[] = [
       },
       {
         id: 'a-6-3-2',
-        text: 'useState работает только с примитивными типами данных, useReducer только с объектами и массивами',
+        text: 'useReducer стоит выбирать всегда, когда состояние — объект: так легче гарантировать иммутабельность и избежать лишних ререндеров',
         isCorrect: false,
       },
       {
         id: 'a-6-3-3',
-        text: 'useState обновляет состояние асинхронно, useReducer выполняет обновления синхронно',
+        text: 'useReducer нужен, когда важно “сразу” получить актуальный state после dispatch, а useState даёт stale state внутри того же обработчика',
         isCorrect: false,
       },
       {
         id: 'a-6-3-4',
-        text: 'Нет разницы, это синонимы с одинаковым функционалом и поведением',
+        text: 'useReducer полезен, когда обновления зависят от предыдущего состояния и могут приходить “пачкой”: reducer снижает риск ошибок из‑за stale closures',
         isCorrect: false,
       },
     ],
@@ -149,12 +149,12 @@ export const part6Questions: QuizQuestion[] = [
       },
       {
         id: 'a-6-5-3',
-        text: 'useEffect работает быстрее, useLayoutEffect медленнее',
+        text: 'useLayoutEffect полезнее для визуальной стабильности, потому что выполняется до paint; useEffect может вызывать “мигание” — но это не значит, что useLayoutEffect безопасно ставить везде',
         isCorrect: false,
       },
       {
         id: 'a-6-5-4',
-        text: 'Нет разницы, это синонимы с одинаковым поведением',
+        text: 'useLayoutEffect стоит выбирать для эффектов, которые должны синхронно изменить layout (например, измерение и запись стилей), иначе возможен layout shift',
         isCorrect: false,
       },
     ],
@@ -316,12 +316,12 @@ export const part6Questions: QuizQuestion[] = [
       },
       {
         id: 'a-6-10-3',
-        text: 'Controlled: быстрее, Uncontrolled: медленнее',
+        text: 'Uncontrolled‑inputs удобнее, когда нужно минимизировать ререндеры на каждый ввод, но это усложняет синхронную валидацию “на лету”',
         isCorrect: false,
       },
       {
         id: 'a-6-10-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'В controlled‑формах проще делать валидацию/маски и зависимые поля, но uncontrolled часто легче интегрировать с нативными API формы',
         isCorrect: false,
       },
     ],
@@ -348,12 +348,12 @@ export const part6Questions: QuizQuestion[] = [
       },
       {
         id: 'a-6-11-3',
-        text: 'SSR быстрее, SSG медленнее, ISR среднее',
+        text: 'SSG хорошо работает, когда данные меняются редко: можно использовать CDN‑кэш и получить быстрый TTFB, но цена — сложнее актуализировать контент без ISR/ревалидации',
         isCorrect: false,
       },
       {
         id: 'a-6-11-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'SSR/SSG/ISR отличаются в первую очередь “когда формируется HTML”; кэширование возможно в любом подходе, но стратегия (и инвалидация) будет разной',
         isCorrect: false,
       },
     ],
@@ -444,12 +444,12 @@ export const part6Questions: QuizQuestion[] = [
       },
       {
         id: 'a-6-14-3',
-        text: 'useMemo быстрее, useCallback медленнее',
+        text: 'useMemo предотвращает ререндеры дочерних компонентов, а useCallback предотвращает “дорогие вычисления” в JSX',
         isCorrect: false,
       },
       {
         id: 'a-6-14-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'useCallback мемоизирует результат вычисления, а useMemo мемоизирует функцию-коллбек',
         isCorrect: false,
       },
     ],
@@ -508,12 +508,12 @@ export const part6Questions: QuizQuestion[] = [
       },
       {
         id: 'a-6-16-3',
-        text: 'React.lazy() быстрее, Suspense медленнее',
+        text: 'Suspense нужен именно для того, чтобы показать fallback при ленивой загрузке; без него lazy‑компонент не сможет корректно “подвесить” рендер',
         isCorrect: false,
       },
       {
         id: 'a-6-16-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'Suspense исторически применялся для lazy‑компонентов; data fetching через Suspense — отдельный режим и зависит от конкретных решений/фреймворка',
         isCorrect: false,
       },
     ],
@@ -631,7 +631,7 @@ export const part6Questions: QuizQuestion[] = [
       },
       {
         id: 'a-6-20-2',
-        text: 'Next.js быстрее React',
+        text: 'Next.js ускоряет приложение, потому что отключает reconciliation в React и обновляет DOM напрямую',
         isCorrect: false,
       },
       {
@@ -641,7 +641,7 @@ export const part6Questions: QuizQuestion[] = [
       },
       {
         id: 'a-6-20-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'React — это фреймворк с роутингом и SSR из коробки, а Next.js — библиотека только для UI-компонентов',
         isCorrect: false,
       },
     ],
@@ -732,12 +732,12 @@ export const part6Questions: QuizQuestion[] = [
       },
       {
         id: 'a-6-23-3',
-        text: 'useReducer быстрее, useState медленнее',
+        text: 'useReducer нужен, чтобы React мог “склеивать” (batch) обновления; с useState батчинга нет',
         isCorrect: false,
       },
       {
         id: 'a-6-23-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'useReducer гарантирует, что компонент будет ререндериться реже, чем при useState, независимо от логики обновлений',
         isCorrect: false,
       },
     ],
@@ -797,12 +797,12 @@ export const part6Questions: QuizQuestion[] = [
       },
       {
         id: 'a-6-25-3',
-        text: 'useLayoutEffect быстрее, useEffect медленнее',
+        text: 'useLayoutEffect нужен только для подписок (events), а useEffect — только для измерений DOM (getBoundingClientRect)',
         isCorrect: false,
       },
       {
         id: 'a-6-25-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'useLayoutEffect выполняется после отрисовки (paint), но до выполнения microtasks, поэтому он “не блокирует” UI',
         isCorrect: false,
       },
     ],
@@ -1016,7 +1016,7 @@ export const part6Questions: QuizQuestion[] = [
       },
       {
         id: 'a-6-32-2',
-        text: 'Redux Toolkit быстрее Redux',
+        text: 'Redux Toolkit быстрее Redux, потому что “встроенно” делает селекторы мемоизированными и React не ререндерится при изменении store',
         isCorrect: false,
       },
       {
@@ -1026,7 +1026,7 @@ export const part6Questions: QuizQuestion[] = [
       },
       {
         id: 'a-6-32-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'Redux Toolkit — отдельный state manager, несовместимый с Redux (нельзя использовать существующие reducers/actions)',
         isCorrect: false,
       },
     ],
@@ -1080,7 +1080,7 @@ export const part6Questions: QuizQuestion[] = [
       },
       {
         id: 'a-6-34-2',
-        text: 'Zustand быстрее Redux',
+        text: 'Zustand быстрее Redux, потому что подписчики всегда получают только изменённые поля (partial updates) без участия React',
         isCorrect: false,
       },
       {
@@ -1090,7 +1090,7 @@ export const part6Questions: QuizQuestion[] = [
       },
       {
         id: 'a-6-34-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'Zustand требует строго reducers/actions как в Redux, иначе обновления не будут работать корректно',
         isCorrect: false,
       },
     ],
@@ -1450,6 +1450,693 @@ export const part6Questions: QuizQuestion[] = [
     explanation:
       'React Compiler автоматически мемоизирует компоненты и значения, определяя, что нужно мемоизировать. Уменьшает необходимость в useMemo/useCallback. Пока в экспериментальной стадии, планируется в будущих версиях React.',
     chapterId: 'chapter-6-1',
+    partId: 'part-6',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-6-46',
+    type: 'single',
+    question:
+      'Почему в React StrictMode в dev-режиме эффекты (useEffect) могут выполняться дважды?',
+    answers: [
+      {
+        id: 'a-6-46-1',
+        text: 'Это проверка на корректность cleanup и идемпотентность эффектов: React “монтирует/размонтирует” компонент, чтобы выявить побочные эффекты',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-46-2',
+        text: 'Потому что StrictMode включает два потока JavaScript для параллельного рендера',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-46-3',
+        text: 'Потому что useEffect всегда выполняется дважды в React 18+ (и в продакшене тоже)',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-46-4',
+        text: 'Потому что StrictMode автоматически делает retries сетевых запросов внутри эффектов',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'StrictMode в dev помогает находить эффекты без корректного cleanup и неидемпотентные сайд-эффекты. В продакшене такое двойное выполнение обычно не происходит.',
+    chapterId: 'chapter-6-2',
+    partId: 'part-6',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-6-47',
+    type: 'single',
+    question:
+      'Что означает “батчинг” (batching) обновлений состояния в React 18, и какой практический эффект он даёт?',
+    answers: [
+      {
+        id: 'a-6-47-1',
+        text: 'React группирует несколько setState в один ререндер, уменьшая количество перерисовок и повышая производительность',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-47-2',
+        text: 'React всегда выполняет setState синхронно и сразу перерисовывает компонент после каждого вызова',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-47-3',
+        text: 'React переносит все обновления в Web Worker, чтобы не блокировать UI',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-47-4',
+        text: 'React “батчит” только запросы к серверу, но не обновления UI',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Батчинг снижает количество ререндеров. Практический нюанс: если новое значение зависит от предыдущего, лучше использовать функциональный апдейтер, чтобы не попасть на “устаревшее” значение.',
+    chapterId: 'chapter-6-2',
+    partId: 'part-6',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-6-48',
+    type: 'single',
+    question:
+      'Почему использование индекса массива как key в списке может привести к визуальным багам?',
+    answers: [
+      {
+        id: 'a-6-48-1',
+        text: 'При вставке/удалении элементов меняются ключи, и React может “переиспользовать” DOM/состояние не для того элемента, что ломает соответствие UI ↔ данные',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-48-2',
+        text: 'Потому что key влияет на CSS-специфичность и может менять стили',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-48-3',
+        text: 'Потому что key должен быть числом, а index — всегда строка',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-48-4',
+        text: 'Потому что index-key запрещён в React и вызывает runtime ошибку',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Key нужен для стабильной идентификации элементов при reconciliation. Индекс ок только для статичных списков без перестановок/вставок/удалений.',
+    chapterId: 'chapter-6-1',
+    partId: 'part-6',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-6-49',
+    type: 'single',
+    question: 'В каком случае useLayoutEffect предпочтительнее useEffect?',
+    answers: [
+      {
+        id: 'a-6-49-1',
+        text: 'Когда нужно синхронно измерить DOM и применить изменения до отрисовки (чтобы избежать “мерцания”/layout shift)',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-49-2',
+        text: 'Когда нужно выполнить сетевой запрос, чтобы он начался до рендера',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-49-3',
+        text: 'Когда нужно оптимизировать бандл и уменьшить размер JavaScript',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-49-4',
+        text: 'useLayoutEffect — инструмент для случаев, когда важно выполнить синхронные чтения/записи в DOM до paint; “по умолчанию” он может ухудшать отзывчивость, поэтому выбор должен быть осознанным',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'useLayoutEffect выполняется синхронно после мутаций DOM, но до paint. Его нельзя злоупотреблять: он может блокировать отрисовку и ухудшать отзывчивость.',
+    chapterId: 'chapter-6-2',
+    partId: 'part-6',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-6-50',
+    type: 'multiple',
+    question:
+      'Какие подходы помогают избежать stale closure в useEffect/setInterval сценариях?',
+    answers: [
+      {
+        id: 'a-6-50-1',
+        text: 'Использовать функциональные обновления состояния (setState(prev => ...))',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-50-2',
+        text: 'Хранить актуальное значение в useRef и читать из ref внутри коллбека',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-50-3',
+        text: 'Корректно указывать зависимости эффекта, чтобы коллбек пересоздавался при изменении значений',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-50-4',
+        text: 'Отключить StrictMode — stale closure исчезнет',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Stale closure — это не “баг React”, а результат замыкания на старые значения. Лечатся: зависимости, функциональные апдейты и ref для актуальных значений.',
+    chapterId: 'chapter-6-2',
+    partId: 'part-6',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-6-51',
+    type: 'single',
+    question: 'Что в первую очередь означает “controlled component” в React?',
+    answers: [
+      {
+        id: 'a-6-51-1',
+        text: 'Значение элемента формы хранится в state и обновляется через onChange, поэтому источник правды — React',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-51-2',
+        text: 'Controlled — это когда значение “контролируется” React (state), но DOM всё равно участвует: uncontrolled — просто переносит источник правды в DOM',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-51-3',
+        text: 'Компонент не может вызывать useEffect и useState',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-51-4',
+        text: 'Controlled никак не гарантирует оптимизацию: controlled‑инпуты часто ререндерятся чаще, если не продумать архитектуру формы',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Controlled — про управление значением через state. Uncontrolled — про чтение значения из DOM (ref) и defaultValue.',
+    chapterId: 'chapter-6-2',
+    partId: 'part-6',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-6-52',
+    type: 'single',
+    question:
+      'Какая самая частая проблема “derived state” (производного состояния) в React?',
+    answers: [
+      {
+        id: 'a-6-52-1',
+        text: 'Дублирование источника правды: состояние начинает рассинхронизироваться с props/данными, что приводит к багам',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-52-2',
+        text: 'Derived state иногда оправдан (например, если нужно “зафиксировать” снимок пропса при событии), но чаще приводит к рассинхронизации и усложняет обновления',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-52-3',
+        text: 'Derived state запрещён в React 19 и вызывает ошибку компиляции',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-52-4',
+        text: 'Derived state можно использовать только внутри useReducer',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Если значение можно вычислить из текущих props/state — чаще безопаснее вычислять его на лету (в рендере или через memo), чем хранить отдельным state.',
+    chapterId: 'chapter-6-1',
+    partId: 'part-6',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-6-53',
+    type: 'single',
+    question:
+      'Почему React.memo не предотвращает ререндер компонента, который читает часто меняющийся Context?',
+    answers: [
+      {
+        id: 'a-6-53-1',
+        text: 'Потому что memo сравнивает только props, а изменения Context — отдельный триггер ререндера',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-53-2',
+        text: 'Потому что memo работает только для компонентов без children',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-53-3',
+        text: 'Потому что Context обновляется только асинхронно и memo не успевает сравнить props',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-53-4',
+        text: 'Потому что memo отключает reconciliation',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Если контекст большой и часто меняется, помогают: разделение контекстов, селекторы (в сторонних решениях), вынос динамичного состояния ниже по дереву.',
+    chapterId: 'chapter-6-2',
+    partId: 'part-6',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-6-54',
+    type: 'single',
+    question: 'Что чаще всего вызывает hydration mismatch при SSR?',
+    answers: [
+      {
+        id: 'a-6-54-1',
+        text: 'Разный HTML на сервере и на клиенте из-за использования недетерминированных значений (Date.now, Math.random) или клиент-специфичных условий при рендере',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-54-2',
+        text: 'Наличие useEffect в компоненте — это всегда приводит к mismatch',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-54-3',
+        text: 'Использование TypeScript вместо JavaScript',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-54-4',
+        text: 'Переход на HTTP/2 вместо HTTP/1.1',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Hydration требует совпадения разметки. Всё, что меняет HTML между SSR и первым клиентским рендером, потенциально приводит к mismatch.',
+    chapterId: 'chapter-6-8',
+    partId: 'part-6',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-6-55',
+    type: 'multiple',
+    question:
+      'Какие ограничения типичны для React Server Components (в сравнении с Client Components)?',
+    answers: [
+      {
+        id: 'a-6-55-1',
+        text: 'Нельзя использовать интерактивные хуки вроде useState/useEffect (они требуют клиента)',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-55-2',
+        text: 'Нельзя обращаться к browser-only API (window, document)',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-55-3',
+        text: 'Можно напрямую читать из базы данных/файловой системы (это серверный контекст)',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-55-4',
+        text: 'Нельзя использовать props и children — они доступны только на клиенте',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'RSC выполняются на сервере и не отдают JS на клиент. Отсюда ограничения на интерактивность и доступ к browser API.',
+    chapterId: 'chapter-6-8',
+    partId: 'part-6',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-6-56',
+    type: 'single',
+    question:
+      'Что делает опция enabled в useQuery (TanStack Query) и какой типичный кейс её использования?',
+    answers: [
+      {
+        id: 'a-6-56-1',
+        text: 'Отключает автозапуск запроса, пока условие не станет истинным (например, пока нет id или токена)',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-56-2',
+        text: 'Включает запрос только на сервере (SSR), а на клиенте отключает',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-56-3',
+        text: 'Заставляет запрос выполняться строго синхронно',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-56-4',
+        text: 'Автоматически делает запрос “optimistic”',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'enabled полезен для “зависимых” запросов: не делаем запрос, пока не готовы входные данные (id, фильтры, выбранная сущность).',
+    chapterId: 'chapter-6-5',
+    partId: 'part-6',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-6-57',
+    type: 'single',
+    question: 'В чём практическая разница staleTime и gcTime в TanStack Query?',
+    answers: [
+      {
+        id: 'a-6-57-1',
+        text: 'staleTime — сколько данные считаются “свежими” (не требуют refetch), gcTime — когда неиспользуемые данные могут быть удалены из кэша',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-57-2',
+        text: 'staleTime управляет временем ответа сервера, gcTime управляет таймаутом HTTP-запроса',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-57-3',
+        text: 'staleTime работает только для mutations, gcTime — только для queries',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-57-4',
+        text: 'staleTime отвечает за “удаление” данных из кэша, а gcTime — за момент, когда данные становятся stale и требуют refetch',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'staleTime влияет на “устаревание” и поведение refetch, gcTime — на “сборку мусора” и размер кэша.',
+    chapterId: 'chapter-6-5',
+    partId: 'part-6',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-6-58',
+    type: 'multiple',
+    question:
+      'Какие пункты входят в “хороший” паттерн оптимистичных обновлений в TanStack Query?',
+    answers: [
+      {
+        id: 'a-6-58-1',
+        text: 'onMutate: отменить активные запросы по ключу (cancelQueries), чтобы не затереть оптимистичное состояние',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-58-2',
+        text: 'onMutate: сохранить предыдущее состояние из кэша (getQueryData) для возможного rollback',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-58-3',
+        text: 'onError: откатить кэш через setQueryData на сохранённое значение',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-58-4',
+        text: 'Всегда инвалидировать абсолютно все запросы приложения после мутации (invalidateQueries без фильтра)',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Оптимистичный UI — это скорость, но без rollback будет ломаться состояние при ошибках. Инвалидация должна быть точечной (по нужным ключам/предикату).',
+    chapterId: 'chapter-6-5',
+    partId: 'part-6',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-6-59',
+    type: 'single',
+    question:
+      'Зачем нужен параметр select в useQuery (TanStack Query) и какой эффект он даёт?',
+    answers: [
+      {
+        id: 'a-6-59-1',
+        text: 'Позволяет трансформировать данные и подписаться только на нужную часть результата, снижая лишние ререндеры',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-59-2',
+        text: 'Управляет тем, какие поля сервер вернёт (как GraphQL selection set)',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-59-3',
+        text: 'Заменяет queryKey и делает кэш автоматически уникальным',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-59-4',
+        text: 'Включает optimistic updates автоматически',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'select удобен для derived data и оптимизации подписок: компонент реагирует на изменение выбранного среза, а не всей структуры ответа.',
+    chapterId: 'chapter-6-5',
+    partId: 'part-6',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-6-60',
+    type: 'single',
+    question:
+      'Почему рекомендуется централизовать queryKey через фабрику ключей (queryKeys) вместо “строк по месту”?',
+    answers: [
+      {
+        id: 'a-6-60-1',
+        text: 'Чтобы инвалидация и группировка запросов были предсказуемыми и типобезопасными, а ключи — единообразными',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-60-2',
+        text: 'Потому что TanStack Query иначе не работает и выдает runtime ошибку',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-60-3',
+        text: 'Чтобы уменьшить размер бандла — фабрика ключей автоматически минифицирует строки',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-60-4',
+        text: 'Чтобы queries выполнялись синхронно',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Фабрика ключей даёт иерархию (entity → operation → params) и защищает от “плавающих” ключей, когда invalidateQueries не попадает в нужные записи.',
+    chapterId: 'chapter-6-5',
+    partId: 'part-6',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-6-61',
+    type: 'multiple',
+    question:
+      'Какие стратегии относятся к “точечной” инвалидации в TanStack Query?',
+    answers: [
+      {
+        id: 'a-6-61-1',
+        text: 'Инвалидировать только списки конкретной сущности (например, queryKeys.users.lists())',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-61-2',
+        text: 'Инвалидировать детальную запись конкретного id (queryKeys.users.detail(id))',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-61-3',
+        text: 'Использовать predicate, чтобы инвалидировать только часть ключей по условию',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-61-4',
+        text: 'Всегда делать invalidateQueries({ queryKey: ["*"] }) после любой мутации',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Точечная инвалидация уменьшает количество лишних запросов и сохраняет актуальный кэш для неизменённых данных.',
+    chapterId: 'chapter-6-5',
+    partId: 'part-6',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-6-62',
+    type: 'single',
+    question: 'Какой основной смысл useInfiniteQuery в TanStack Query?',
+    answers: [
+      {
+        id: 'a-6-62-1',
+        text: 'Управлять пагинацией через страницы/курсор, аккумулировать данные и управлять загрузкой следующей страницы',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-62-2',
+        text: 'Выполнять бесконечный цикл запросов без остановки для live-обновлений',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-62-3',
+        text: 'Заменять Service Worker для офлайн-кэша',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-62-4',
+        text: 'Автоматически преобразовывать REST API в GraphQL',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'useInfiniteQuery — стандартный инструмент для пагинации/ленивой подгрузки: он хранит pages/pageParams и даёт fetchNextPage/hasNextPage.',
+    chapterId: 'chapter-6-5',
+    partId: 'part-6',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-6-63',
+    type: 'single',
+    question:
+      'В Zustand почему “селекторы” считаются ключом к производительности?',
+    answers: [
+      {
+        id: 'a-6-63-1',
+        text: 'Потому что компонент подписывается на конкретный срез состояния и ререндерится только при изменении этого среза',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-63-2',
+        text: 'Потому что селекторы автоматически сериализуют store в localStorage',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-63-3',
+        text: 'Потому что Zustand переносит вычисления на сервер',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-63-4',
+        text: 'Потому что без селекторов Zustand не компилируется в production',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Если подписываться на весь store, ререндер будет при любом изменении. Селектор сужает подписку и уменьшает лишние обновления.',
+    chapterId: 'chapter-6-6',
+    partId: 'part-6',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-6-64',
+    type: 'single',
+    question:
+      'Какой типичный баг появляется, если в Zustand вы делаете const store = useStore() без селектора?',
+    answers: [
+      {
+        id: 'a-6-64-1',
+        text: 'Компонент будет ререндериться при изменении любого поля стора, даже если UI использует только одно поле',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-64-2',
+        text: 'Store перестанет обновляться и “замрёт”',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-64-3',
+        text: 'Произойдёт hydration mismatch в SSR из-за селектора',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-64-4',
+        text: 'Zustand начнёт автоматически делать optimistic updates',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Это не “логический баг”, но часто причина деградации производительности. Решение — селекторы и (при необходимости) shallow сравнение для объектов.',
+    chapterId: 'chapter-6-6',
+    partId: 'part-6',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-6-65',
+    type: 'single',
+    question: 'Чем Axios удобнее fetch в плане обработки ошибок HTTP 4xx/5xx?',
+    answers: [
+      {
+        id: 'a-6-65-1',
+        text: 'Axios по умолчанию отклоняет промис на 4xx/5xx, а fetch считает запрос “успешным” на уровне промиса и требует ручной проверки response.ok',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-65-2',
+        text: 'fetch не умеет делать GET-запросы, а Axios умеет',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-65-3',
+        text: 'Axios автоматически ускоряет сеть и уменьшает RTT',
+        isCorrect: false,
+      },
+      {
+        id: 'a-6-65-4',
+        text: 'fetch не поддерживает JSON, поэтому его нельзя использовать для API',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'У fetch важно помнить: network error → reject, а HTTP error → resolve, но response.ok=false. Axios упрощает это поведение, но тоже требует продуманной обработки.',
+    chapterId: 'chapter-6-7',
+    partId: 'part-6',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-6-66',
+    type: 'multiple',
+    question:
+      'Какие риски и нюансы есть у “глобального” refresh-token механизма через Axios интерсептор (401 → refresh → retry)?',
+    answers: [
+      {
+        id: 'a-6-66-1',
+        text: 'Нужно избежать гонок: несколько параллельных 401 могут вызвать несколько refresh-запросов, поэтому часто нужен lock/очередь',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-66-2',
+        text: 'Нужно аккуратно не уйти в бесконечный retry-цикл (маркер _retry / лимит)',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-66-3',
+        text: 'Нужно продумать поведение при падении refresh (logout, очистка состояния, редирект)',
+        isCorrect: true,
+      },
+      {
+        id: 'a-6-66-4',
+        text: 'Интерсепторы автоматически решают CSRF, поэтому дополнительные меры не нужны',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Интерсепторы удобны, но в продакшене важны гонки, дедлоки, лимиты повторов и согласованность состояния приложения при разлогине.',
+    chapterId: 'chapter-6-7',
     partId: 'part-6',
     difficulty: 'hard',
   },

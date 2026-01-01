@@ -1,4 +1,4 @@
-# Глава 21. Zod: runtime валидация и типизация
+# Глава 20. Zod: runtime валидация и типизация
 
 ## Введение
 
@@ -14,21 +14,22 @@ TypeScript обеспечивает типобезопасность **на эт
 
 ```typescript
 interface User {
-  id: number;
-  email: string;
-  age: number;
+  id: number
+  email: string
+  age: number
 }
 
 async function getUser(id: string): Promise<User> {
-  const response = await fetch(`/api/users/${id}`);
-  return response.json(); // ⚠️ Верим что API вернёт User
+  const response = await fetch(`/api/users/${id}`)
+  return response.json() // ⚠️ Верим что API вернёт User
 }
 
-const user = await getUser('123');
-user.email.toLowerCase(); // 💥 Может упасть, если email = null
+const user = await getUser('123')
+user.email.toLowerCase() // 💥 Может упасть, если email = null
 ```
 
 **API может вернуть:**
+
 - `null` вместо объекта
 - `string` вместо `number`
 - Отсутствующие поля
@@ -39,23 +40,23 @@ TypeScript не может это предотвратить.
 ### Решение: Runtime валидация с Zod
 
 ```typescript
-import { z } from 'zod';
+import { z } from 'zod'
 
 const UserSchema = z.object({
   id: z.number(),
   email: z.string().email(),
   age: z.number().positive(),
-});
+})
 
 // Автоматический вывод типа из схемы!
-type User = z.infer<typeof UserSchema>;
+type User = z.infer<typeof UserSchema>
 
 async function getUser(id: string): Promise<User> {
-  const response = await fetch(`/api/users/${id}`);
-  const data = await response.json();
-  
+  const response = await fetch(`/api/users/${id}`)
+  const data = await response.json()
+
   // Валидация runtime данных
-  return UserSchema.parse(data); // ✅ Выбросит ошибку если невалидно
+  return UserSchema.parse(data) // ✅ Выбросит ошибку если невалидно
 }
 ```
 
@@ -70,43 +71,43 @@ pnpm add zod
 ### Примитивные типы
 
 ```typescript
-import { z } from 'zod';
+import { z } from 'zod'
 
 // Строки
-const StringSchema = z.string();
-StringSchema.parse('hello'); // ✅
-StringSchema.parse(123); // ❌ ZodError
+const StringSchema = z.string()
+StringSchema.parse('hello') // ✅
+StringSchema.parse(123) // ❌ ZodError
 
 // Числа
-const NumberSchema = z.number();
-const PositiveSchema = z.number().positive();
-const IntSchema = z.number().int();
+const NumberSchema = z.number()
+const PositiveSchema = z.number().positive()
+const IntSchema = z.number().int()
 
 // Булевы
-const BooleanSchema = z.boolean();
+const BooleanSchema = z.boolean()
 
 // Даты
-const DateSchema = z.date();
-DateSchema.parse(new Date()); // ✅
-DateSchema.parse('2024-01-01'); // ❌
+const DateSchema = z.date()
+DateSchema.parse(new Date()) // ✅
+DateSchema.parse('2024-01-01') // ❌
 ```
 
 ### Валидация строк
 
 ```typescript
-const EmailSchema = z.string().email();
-const UrlSchema = z.string().url();
-const UuidSchema = z.string().uuid();
+const EmailSchema = z.string().email()
+const UrlSchema = z.string().url()
+const UuidSchema = z.string().uuid()
 
 // Кастомные паттерны
-const PhoneSchema = z.string().regex(/^\+?[1-9]\d{1,14}$/);
+const PhoneSchema = z.string().regex(/^\+?[1-9]\d{1,14}$/)
 
 // Длина
-const PasswordSchema = z.string().min(8).max(100);
+const PasswordSchema = z.string().min(8).max(100)
 
 // Transform
-const TrimmedSchema = z.string().trim();
-const LowercaseSchema = z.string().toLowerCase();
+const TrimmedSchema = z.string().trim()
+const LowercaseSchema = z.string().toLowerCase()
 ```
 
 ---
@@ -119,7 +120,7 @@ const AddressSchema = z.object({
   city: z.string(),
   zipCode: z.string().regex(/^\d{5}$/),
   country: z.string().default('USA'),
-});
+})
 
 const UserSchema = z.object({
   id: z.number(),
@@ -129,31 +130,31 @@ const UserSchema = z.object({
   address: AddressSchema,
   role: z.enum(['admin', 'user', 'guest']),
   createdAt: z.date(),
-});
+})
 
-type User = z.infer<typeof UserSchema>;
+type User = z.infer<typeof UserSchema>
 ```
 
 ### Partial, Pick, Omit
 
 ```typescript
 // Partial - все поля опциональны
-const PartialUserSchema = UserSchema.partial();
-type PartialUser = z.infer<typeof PartialUserSchema>;
+const PartialUserSchema = UserSchema.partial()
+type PartialUser = z.infer<typeof PartialUserSchema>
 
 // Pick - выбрать конкретные поля
 const UserCredentialsSchema = UserSchema.pick({
   email: true,
   password: true,
-});
+})
 
 // Omit - исключить поля
-const PublicUserSchema = UserSchema.omit({ password: true });
+const PublicUserSchema = UserSchema.omit({ password: true })
 
 // Extend - расширить схему
 const UserWithTokenSchema = UserSchema.extend({
   token: z.string(),
-});
+})
 ```
 
 ---
@@ -162,34 +163,34 @@ const UserWithTokenSchema = UserSchema.extend({
 
 ```typescript
 // Массив строк
-const StringArraySchema = z.array(z.string());
-StringArraySchema.parse(['a', 'b']); // ✅
-StringArraySchema.parse(['a', 1]); // ❌
+const StringArraySchema = z.array(z.string())
+StringArraySchema.parse(['a', 'b']) // ✅
+StringArraySchema.parse(['a', 1]) // ❌
 
 // Массив объектов
-const UsersSchema = z.array(UserSchema);
+const UsersSchema = z.array(UserSchema)
 
 // Валидация длины
-const TagsSchema = z.array(z.string()).min(1).max(5);
+const TagsSchema = z.array(z.string()).min(1).max(5)
 
 // Не пустой массив
-const NonEmptySchema = z.array(z.string()).nonempty();
+const NonEmptySchema = z.array(z.string()).nonempty()
 
 // Tuple (фиксированная длина)
-const CoordinatesSchema = z.tuple([z.number(), z.number()]);
-type Coordinates = z.infer<typeof CoordinatesSchema>; // [number, number]
+const CoordinatesSchema = z.tuple([z.number(), z.number()])
+type Coordinates = z.infer<typeof CoordinatesSchema> // [number, number]
 ```
 
 ### Record и Map
 
 ```typescript
 // Record<string, number>
-const ScoresSchema = z.record(z.string(), z.number());
-type Scores = z.infer<typeof ScoresSchema>;
+const ScoresSchema = z.record(z.string(), z.number())
+type Scores = z.infer<typeof ScoresSchema>
 // { [key: string]: number }
 
 // Map
-const UserMapSchema = z.map(z.string(), UserSchema);
+const UserMapSchema = z.map(z.string(), UserSchema)
 ```
 
 ---
@@ -199,14 +200,14 @@ const UserMapSchema = z.map(z.string(), UserSchema);
 ### Union (или)
 
 ```typescript
-const StringOrNumberSchema = z.union([z.string(), z.number()]);
+const StringOrNumberSchema = z.union([z.string(), z.number()])
 
-StringOrNumberSchema.parse('hello'); // ✅
-StringOrNumberSchema.parse(123); // ✅
-StringOrNumberSchema.parse(true); // ❌
+StringOrNumberSchema.parse('hello') // ✅
+StringOrNumberSchema.parse(123) // ✅
+StringOrNumberSchema.parse(true) // ❌
 
 // Синтаксический сахар
-const StringOrNumberSchema2 = z.string().or(z.number());
+const StringOrNumberSchema2 = z.string().or(z.number())
 ```
 
 ### Discriminated Union (tagged union)
@@ -215,26 +216,26 @@ const StringOrNumberSchema2 = z.string().or(z.number());
 const SuccessSchema = z.object({
   status: z.literal('success'),
   data: z.string(),
-});
+})
 
 const ErrorSchema = z.object({
   status: z.literal('error'),
   error: z.string(),
-});
+})
 
 const ResultSchema = z.discriminatedUnion('status', [
   SuccessSchema,
   ErrorSchema,
-]);
+])
 
-type Result = z.infer<typeof ResultSchema>;
+type Result = z.infer<typeof ResultSchema>
 // { status: 'success'; data: string } | { status: 'error'; error: string }
 
 function handleResult(result: Result) {
   if (result.status === 'success') {
-    console.log(result.data); // ✅ типизировано
+    console.log(result.data) // ✅ типизировано
   } else {
-    console.log(result.error); // ✅ типизировано
+    console.log(result.error) // ✅ типизировано
   }
 }
 ```
@@ -245,9 +246,9 @@ function handleResult(result: Result) {
 const TimestampsSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
-});
+})
 
-const UserWithTimestampsSchema = UserSchema.and(TimestampsSchema);
+const UserWithTimestampsSchema = UserSchema.and(TimestampsSchema)
 ```
 
 ---
@@ -303,20 +304,22 @@ export function LoginForm() {
 ### Сложные формы
 
 ```typescript
-const SignupSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  confirmPassword: z.string(),
-  age: z.number().int().min(18),
-  terms: z.literal(true, {
-    errorMap: () => ({ message: 'Необходимо согласие с условиями' }),
-  }),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: 'Пароли не совпадают',
-  path: ['confirmPassword'],
-});
+const SignupSchema = z
+  .object({
+    email: z.string().email(),
+    password: z.string().min(8),
+    confirmPassword: z.string(),
+    age: z.number().int().min(18),
+    terms: z.literal(true, {
+      errorMap: () => ({ message: 'Необходимо согласие с условиями' }),
+    }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Пароли не совпадают',
+    path: ['confirmPassword'],
+  })
 
-type SignupFormData = z.infer<typeof SignupSchema>;
+type SignupFormData = z.infer<typeof SignupSchema>
 ```
 
 ---
@@ -327,30 +330,30 @@ type SignupFormData = z.infer<typeof SignupSchema>;
 
 ```typescript
 // api/users.ts
-import { z } from 'zod';
-import { apiClient } from '@/lib/api/axios';
+import { z } from 'zod'
+import { apiClient } from '@/lib/api/axios'
 
 const UserSchema = z.object({
   id: z.number(),
   email: z.string().email(),
   name: z.string(),
   avatar: z.string().url().nullable(),
-});
+})
 
 const UsersResponseSchema = z.object({
   data: z.array(UserSchema),
   total: z.number(),
   page: z.number(),
-});
+})
 
-type User = z.infer<typeof UserSchema>;
-type UsersResponse = z.infer<typeof UsersResponseSchema>;
+type User = z.infer<typeof UserSchema>
+type UsersResponse = z.infer<typeof UsersResponseSchema>
 
 export async function getUsers(page = 1): Promise<UsersResponse> {
-  const { data } = await apiClient.get('/users', { params: { page } });
-  
+  const { data } = await apiClient.get('/users', { params: { page } })
+
   // Валидация ответа от API
-  return UsersResponseSchema.parse(data);
+  return UsersResponseSchema.parse(data)
 }
 
 // При невалидном ответе выбросится ZodError с детальным описанием
@@ -359,13 +362,13 @@ export async function getUsers(page = 1): Promise<UsersResponse> {
 ### Обработка ошибок
 
 ```typescript
-import { ZodError } from 'zod';
+import { ZodError } from 'zod'
 
 try {
-  const users = await getUsers(1);
+  const users = await getUsers(1)
 } catch (error) {
   if (error instanceof ZodError) {
-    console.error('Validation errors:', error.errors);
+    console.error('Validation errors:', error.errors)
     // [
     //   {
     //     path: ['data', 0, 'email'],
@@ -381,15 +384,15 @@ try {
 
 ```typescript
 async function getUserSafely(id: number) {
-  const { data } = await apiClient.get(`/users/${id}`);
-  
-  const result = UserSchema.safeParse(data);
-  
+  const { data } = await apiClient.get(`/users/${id}`)
+
+  const result = UserSchema.safeParse(data)
+
   if (result.success) {
-    return result.data; // ✅ Валидные данные
+    return result.data // ✅ Валидные данные
   } else {
-    console.error('Validation failed:', result.error);
-    return null;
+    console.error('Validation failed:', result.error)
+    return null
   }
 }
 ```
@@ -401,7 +404,8 @@ async function getUserSafely(id: number) {
 ### refine - кастомная логика
 
 ```typescript
-const PasswordSchema = z.string()
+const PasswordSchema = z
+  .string()
   .min(8)
   .refine((val) => /[A-Z]/.test(val), {
     message: 'Пароль должен содержать заглавную букву',
@@ -411,36 +415,38 @@ const PasswordSchema = z.string()
   })
   .refine((val) => /[!@#$%^&*]/.test(val), {
     message: 'Пароль должен содержать спецсимвол',
-  });
+  })
 ```
 
 ### superRefine - множественные ошибки
 
 ```typescript
-const SignupSchema = z.object({
-  username: z.string(),
-  email: z.string().email(),
-  password: z.string(),
-  confirmPassword: z.string(),
-}).superRefine((data, ctx) => {
-  // Проверка 1: пароли совпадают
-  if (data.password !== data.confirmPassword) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Пароли не совпадают',
-      path: ['confirmPassword'],
-    });
-  }
+const SignupSchema = z
+  .object({
+    username: z.string(),
+    email: z.string().email(),
+    password: z.string(),
+    confirmPassword: z.string(),
+  })
+  .superRefine((data, ctx) => {
+    // Проверка 1: пароли совпадают
+    if (data.password !== data.confirmPassword) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Пароли не совпадают',
+        path: ['confirmPassword'],
+      })
+    }
 
-  // Проверка 2: username не содержит email
-  if (data.username.includes('@')) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Username не должен содержать @',
-      path: ['username'],
-    });
-  }
-});
+    // Проверка 2: username не содержит email
+    if (data.username.includes('@')) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Username не должен содержать @',
+        path: ['username'],
+      })
+    }
+  })
 ```
 
 ---
@@ -451,22 +457,19 @@ const SignupSchema = z.object({
 
 ```typescript
 // Преобразование строки в число
-const NumberStringSchema = z.string().transform((val) => parseInt(val, 10));
+const NumberStringSchema = z.string().transform((val) => parseInt(val, 10))
 
-NumberStringSchema.parse('123'); // 123 (number)
+NumberStringSchema.parse('123') // 123 (number)
 
 // Преобразование даты
-const DateStringSchema = z.string().transform((val) => new Date(val));
+const DateStringSchema = z.string().transform((val) => new Date(val))
 
-DateStringSchema.parse('2024-01-01'); // Date object
+DateStringSchema.parse('2024-01-01') // Date object
 
 // Очистка данных
-const TrimmedEmailSchema = z.string()
-  .trim()
-  .toLowerCase()
-  .email();
+const TrimmedEmailSchema = z.string().trim().toLowerCase().email()
 
-TrimmedEmailSchema.parse('  USER@EXAMPLE.COM  ');
+TrimmedEmailSchema.parse('  USER@EXAMPLE.COM  ')
 // 'user@example.com'
 ```
 
@@ -476,17 +479,17 @@ TrimmedEmailSchema.parse('  USER@EXAMPLE.COM  ');
 // Преобразование пустых строк в null
 const OptionalStringSchema = z.preprocess(
   (val) => (val === '' ? null : val),
-  z.string().nullable()
-);
+  z.string().nullable(),
+)
 
-OptionalStringSchema.parse(''); // null
-OptionalStringSchema.parse('hello'); // 'hello'
+OptionalStringSchema.parse('') // null
+OptionalStringSchema.parse('hello') // 'hello'
 
 // Парсинг JSON
 const JSONSchema = z.preprocess(
   (val) => (typeof val === 'string' ? JSON.parse(val) : val),
-  z.object({ id: z.number() })
-);
+  z.object({ id: z.number() }),
+)
 ```
 
 ---
@@ -512,7 +515,7 @@ export const useUsers = () => {
     queryKey: ['users'],
     queryFn: async () => {
       const { data } = await apiClient.get('/users');
-      
+
       // Валидация ответа
       return UsersSchema.parse(data);
     },
@@ -547,9 +550,9 @@ function UsersList() {
 
 ```typescript
 interface Category {
-  id: number;
-  name: string;
-  subcategories: Category[];
+  id: number
+  name: string
+  subcategories: Category[]
 }
 
 const CategorySchema: z.ZodType<Category> = z.lazy(() =>
@@ -557,33 +560,35 @@ const CategorySchema: z.ZodType<Category> = z.lazy(() =>
     id: z.number(),
     name: z.string(),
     subcategories: z.array(CategorySchema),
-  })
-);
+  }),
+)
 ```
 
 ### Brand types с Zod
 
 ```typescript
-const UserIdSchema = z.string().uuid().brand<'UserId'>();
-const PostIdSchema = z.string().uuid().brand<'PostId'>();
+const UserIdSchema = z.string().uuid().brand<'UserId'>()
+const PostIdSchema = z.string().uuid().brand<'PostId'>()
 
-type UserId = z.infer<typeof UserIdSchema>;
-type PostId = z.infer<typeof PostIdSchema>;
+type UserId = z.infer<typeof UserIdSchema>
+type PostId = z.infer<typeof PostIdSchema>
 
-function getUser(id: UserId) { /* ... */ }
+function getUser(id: UserId) {
+  /* ... */
+}
 
-const userId = UserIdSchema.parse('123e4567-e89b-12d3-a456-426614174000');
-const postId = PostIdSchema.parse('223e4567-e89b-12d3-a456-426614174000');
+const userId = UserIdSchema.parse('123e4567-e89b-12d3-a456-426614174000')
+const postId = PostIdSchema.parse('223e4567-e89b-12d3-a456-426614174000')
 
-getUser(userId); // ✅
-getUser(postId); // ❌ Type error!
+getUser(userId) // ✅
+getUser(postId) // ❌ Type error!
 ```
 
 ### Environment Variables валидация
 
 ```typescript
 // env.ts
-import { z } from 'zod';
+import { z } from 'zod'
 
 const EnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']),
@@ -592,31 +597,31 @@ const EnvSchema = z.object({
   PORT: z.string().transform((val) => parseInt(val, 10)),
   DATABASE_URL: z.string().url(),
   REDIS_URL: z.string().url().optional(),
-});
+})
 
 // Валидация при старте приложения
-export const env = EnvSchema.parse(process.env);
+export const env = EnvSchema.parse(process.env)
 
 // Типизированные env переменные
-console.log(env.PORT); // number
-console.log(env.API_URL); // string (гарантированно URL)
+console.log(env.PORT) // number
+console.log(env.API_URL) // string (гарантированно URL)
 ```
 
 ---
 
 ## Сравнение: Zod vs Yup vs Joi
 
-| Критерий | Zod | Yup | Joi |
-|----------|-----|-----|-----|
-| TypeScript-first | ✅ | ⚠️ | ❌ |
-| Вывод типов | Автоматический | Ручной | Ручной |
-| Bundle size | ~8KB | ~15KB | ~150KB |
-| Трансформации | ✅ | ✅ | ✅ |
-| Async валидация | ✅ | ✅ | ✅ |
-| Браузер | ✅ | ✅ | ❌ (Node only) |
-| Производительность | ⚡⚡⚡ | ⚡⚡ | ⚡ |
+| Критерий           | Zod            | Yup    | Joi            |
+| ------------------ | -------------- | ------ | -------------- |
+| TypeScript-first   | ✅             | ⚠️     | ❌             |
+| Вывод типов        | Автоматический | Ручной | Ручной         |
+| Bundle size        | ~8KB           | ~15KB  | ~150KB         |
+| Трансформации      | ✅             | ✅     | ✅             |
+| Async валидация    | ✅             | ✅     | ✅             |
+| Браузер            | ✅             | ✅     | ❌ (Node only) |
+| Производительность | ⚡⚡⚡         | ⚡⚡   | ⚡             |
 
-**Выбор в 2025:** Zod — стандарт для TypeScript проектов.
+**Выбор в 2026:** Zod — стандарт для TypeScript проектов.
 
 ---
 
@@ -626,20 +631,22 @@ console.log(env.API_URL); // string (гарантированно URL)
 
 ```typescript
 // schemas/common.ts
-export const EmailSchema = z.string().email();
-export const PasswordSchema = z.string().min(8).max(100);
+export const EmailSchema = z.string().email()
+export const PasswordSchema = z.string().min(8).max(100)
 export const TimestampsSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
-});
+})
 
 // schemas/user.ts
-import { EmailSchema, TimestampsSchema } from './common';
+import { EmailSchema, TimestampsSchema } from './common'
 
-export const UserSchema = z.object({
-  id: z.number(),
-  email: EmailSchema,
-}).merge(TimestampsSchema);
+export const UserSchema = z
+  .object({
+    id: z.number(),
+    email: EmailSchema,
+  })
+  .merge(TimestampsSchema)
 ```
 
 ### 2. Используйте describe для документации
@@ -648,10 +655,10 @@ export const UserSchema = z.object({
 const UserSchema = z.object({
   email: z.string().email().describe('Электронная почта пользователя'),
   age: z.number().int().min(18).describe('Возраст должен быть 18+'),
-});
+})
 
 // Можно извлечь описание
-console.log(UserSchema.shape.email.description);
+console.log(UserSchema.shape.email.description)
 ```
 
 ### 3. Валидируйте на границах приложения
@@ -659,9 +666,9 @@ console.log(UserSchema.shape.email.description);
 ```typescript
 // ✅ Хорошо: валидация на входе
 async function createUser(input: unknown) {
-  const data = UserSchema.parse(input); // Валидация здесь
+  const data = UserSchema.parse(input) // Валидация здесь
   // Дальше работаем с типизированными данными
-  return db.users.create(data);
+  return db.users.create(data)
 }
 
 // ❌ Плохо: валидация внутри логики
@@ -675,16 +682,16 @@ async function createUser(input: User) {
 ```typescript
 // Для форм лучше safeParse
 function handleSubmit(formData: FormData) {
-  const result = UserSchema.safeParse(Object.fromEntries(formData));
-  
+  const result = UserSchema.safeParse(Object.fromEntries(formData))
+
   if (!result.success) {
     // Показываем ошибки пользователю
-    setErrors(result.error.flatten().fieldErrors);
-    return;
+    setErrors(result.error.flatten().fieldErrors)
+    return
   }
-  
+
   // Отправляем данные
-  await createUser(result.data);
+  await createUser(result.data)
 }
 ```
 
@@ -695,6 +702,7 @@ function handleSubmit(formData: FormData) {
 **Zod** решает критическую проблему TypeScript — отсутствие runtime валидации.
 
 **Ключевые преимущества:**
+
 - 🔒 **Type-safe** — автоматический вывод типов из схем
 - 🚀 **Производительный** — минимальный размер (8KB)
 - 🎯 **Композируемый** — легко создавать сложные схемы
@@ -702,6 +710,7 @@ function handleSubmit(formData: FormData) {
 - 📝 **DX** — отличная документация и типизация
 
 **Когда использовать:**
+
 - ✅ Валидация API ответов
 - ✅ Валидация форм (с React Hook Form)
 - ✅ Валидация env переменных
@@ -709,9 +718,9 @@ function handleSubmit(formData: FormData) {
 - ✅ Валидация конфигурационных файлов
 
 **Альтернативы:**
+
 - **Yup** — если нужна совместимость со старым кодом
 - **Joi** — только для Node.js приложений
 - **io-ts** — более функциональный подход
 
 В следующей части мы перейдём к **React и SPA** — изучим современные паттерны разработки с React 18+.
-

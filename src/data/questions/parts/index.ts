@@ -6,7 +6,6 @@ import { part5Questions } from './part-5'
 import { part6Questions } from './part-6'
 import { part7Questions } from './part-7'
 import { part8Questions } from './part-8'
-import { part9Questions } from './part-9'
 
 import type { QuizQuestion } from '@/shared/types/quiz.types'
 
@@ -22,5 +21,4 @@ export const allQuestions: QuizQuestion[] = [
   ...part6Questions,
   ...part7Questions,
   ...part8Questions,
-  ...part9Questions,
 ]

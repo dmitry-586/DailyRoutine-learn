@@ -1,728 +1,443 @@
-# Глава 28. SSR и современный React-стек
+# Глава 27. Axios и работа с HTTP
 
-Современный фронтенд — это уже не просто SPA, загружаемая одним JS-файлом. Сегодня важно понимать, где выполняется код, когда происходит рендер и какой код доезжает до браузера.
+## Введение
 
-На собеседованиях SSR — частый фильтр на уровень Middle+. Понимание SSR, SSG, гидратации и Server Components показывает, что ты мыслишь не только в рамках клиентского кода, но и понимаешь полный цикл работы приложения.
+В современной веб-разработке HTTP-запросы — это основа взаимодействия между клиентом и сервером. После изучения TanStack Query и Zustand, давайте рассмотрим, как эффективно организовать работу с HTTP через Axios — библиотеку, которая остаётся популярным выбором благодаря удобному API, автоматической обработке ошибок и мощным возможностям для настройки.
 
-В этой главе разберём:
-
-- проблемы классического SPA и как их решает SSR;
-- что такое гидратация и почему она важна;
-- Next.js и его эволюцию (Pages Router → App Router);
-- Server Components и их отличие от SSR;
-- типы рендеринга (SSR, SSG, ISR, CSR);
-- код-сплиттинг и оптимизацию бандла.
+В этой главе мы рассмотрим Axios (актуальная версия 1.7+), сравним его с `fetch`, изучим продвинутые возможности и паттерны использования с TypeScript и TanStack Query.
 
 ---
 
-## 28.1. Проблемы классического SPA
+## Fetch vs Axios: что выбрать?
 
-Классическое SPA (Single Page Application) имеет ряд ограничений, которые становятся критичными на медленных сетях и для SEO.
+### Нативный fetch
 
-### 1. Долгий Time To First Contentful Paint (TTFB)
+```typescript
+// Базовый GET запрос
+const response = await fetch('https://api.example.com/users')
+const data = await response.json()
 
-Пользователь видит пустой экран, пока:
+// POST с обработкой ошибок
+const response = await fetch('https://api.example.com/users', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({ name: 'John' }),
+})
 
-- загружается HTML (обычно минимальный);
-- загружается и парсится JavaScript;
-- выполняется JavaScript;
-- выполняются запросы к API;
-- рендерится контент.
+if (!response.ok) {
+  throw new Error(`HTTP error! status: ${response.status}`)
+}
 
-На медленных сетях это может занимать несколько секунд.
-
-**Пример временной шкалы:**
-
-```
-0ms    → Запрос страницы
-200ms  → HTML загружен (пустой <div id="root"></div>)
-500ms  → JavaScript начал загружаться
-1500ms → JavaScript загружен и парсится
-2000ms → JavaScript выполняется
-2500ms → Запрос к API
-3000ms → Данные получены
-3500ms → Контент отрендерен
+const data = await response.json()
 ```
 
-Пользователь **3.5 секунды** видит пустой экран!
+**Проблемы fetch:**
 
-### 2. Пустой HTML при первой загрузке
+- Не выбрасывает ошибки при HTTP 4xx/5xx (нужна ручная проверка `response.ok`)
+- Требует явного вызова `response.json()`
+- Нет встроенных интерсепторов
+- Сложнее настраивать таймауты
+- Нет автоматической отмены запросов
 
-Поисковые системы и социальные сети видят пустую страницу:
+### Axios
 
-```html
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>My App</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script src="/app.js"></script>
-  </body>
-</html>
-```
+```typescript
+import axios from 'axios'
 
-Контент появляется только после выполнения JavaScript.
+// Тот же запрос с Axios
+const { data } = await axios.get('https://api.example.com/users')
 
-**Проблема для SEO:**
-
-- поисковые роботы могут не дождаться выполнения JS;
-- социальные сети (Open Graph) видят пустую страницу;
-- требуется дополнительная настройка (pre-rendering, sitemap).
-
-### 3. Проблемы SEO
-
-Поисковые системы могут:
-
-- не индексировать контент, который появляется только после выполнения JS;
-- видеть пустую страницу при первом запросе;
-- требовать дополнительной настройки (pre-rendering, sitemap).
-
-**Пример:**
-
-```jsx
-// SPA: поисковик видит это
-<div id="root"></div>
-
-// А не это (контент появляется только после JS)
-<div>
-  <h1>Заголовок статьи</h1>
-  <p>Содержимое статьи...</p>
-</div>
-```
-
-### 4. Плохой UX на медленных сетях
-
-На медленных соединениях:
-
-- пользователь долго видит пустой экран;
-- интерактивность появляется только после загрузки всего JS;
-- плохой First Input Delay (FID) — задержка до первого взаимодействия.
-
-**Метрики Core Web Vitals страдают:**
-
-- **LCP (Largest Contentful Paint)** — долго до появления контента;
-- **FID (First Input Delay)** — долго до интерактивности;
-- **CLS (Cumulative Layout Shift)** — возможны сдвиги при загрузке.
-
-### 5. Долгая интерактивность (TTI)
-
-Time To Interactive (TTI) — время до полной интерактивности страницы — может быть очень долгим, особенно на мобильных устройствах.
-
-**Проблема:**
-
-- даже после появления контента страница может быть не интерактивной;
-- нужно дождаться загрузки всех обработчиков событий;
-- на слабых устройствах это особенно заметно.
-
----
-
-## 28.2. SSR (Server-Side Rendering): рендеринг на сервере
-
-SSR — это рендеринг React-приложения **на сервере** перед отправкой клиенту.
-
-### Как это работает
-
-1. **Клиент запрашивает страницу** — браузер отправляет HTTP-запрос на сервер.
-2. **Сервер рендерит React в HTML** — сервер выполняет React-код и генерирует HTML.
-3. **Клиент получает готовую разметку** — браузер получает HTML с контентом.
-4. **JS «гидратирует» приложение** — JavaScript загружается и «оживляет» HTML.
-
-### Простой пример SSR (концептуально)
-
-```javascript
-// server.js (упрощённо)
-import React from 'react'
-import ReactDOMServer from 'react-dom/server'
-import App from './App'
-
-app.get('/', (req, res) => {
-  const html = ReactDOMServer.renderToString(<App />)
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-      <head><title>My App</title></head>
-      <body>
-        <div id="root">${html}</div>
-        <script src="/app.js"></script>
-      </body>
-    </html>
-  `)
+// POST с автоматической обработкой
+const { data } = await axios.post('https://api.example.com/users', {
+  name: 'John',
 })
 ```
 
-Клиент получает HTML с контентом сразу, а не пустую страницу.
+**Преимущества Axios:**
 
-**Временная шкала SSR:**
-
-```
-0ms    → Запрос страницы
-200ms  → HTML загружен (с контентом!)
-500ms  → JavaScript начал загружаться
-1500ms → JavaScript загружен
-2000ms → Hydration завершена, страница интерактивна
-```
-
-Пользователь видит контент уже через **200ms** вместо 3500ms!
-
-### Hydration: оживление HTML
-
-**Hydration** — процесс, при котором React:
-
-- привязывает обработчики событий к существующим DOM-элементам;
-- делает HTML интерактивным;
-- восстанавливает состояние компонентов;
-- подключает клиентскую логику.
-
-**⚠️ Критически важно:** HTML, сгенерированный на сервере, должен **совпадать** с тем, что рендерится на клиенте. Несоответствие → hydration errors.
-
-### Пример hydration error
-
-```jsx
-// ❌ Проблема: разный HTML на сервере и клиенте
-function Component() {
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  // На сервере: <div>Server</div>
-  // На клиенте после hydration: <div>Client</div>
-  // → hydration error!
-  return <div>{mounted ? 'Client' : 'Server'}</div>
-}
-```
-
-**Почему возникает ошибка:**
-
-- React ожидает, что DOM на клиенте совпадёт с тем, что был на сервере;
-- при несовпадении React не может правильно «привязать» обработчики;
-- это приводит к ошибкам и неправильному поведению.
-
-**Решение:**
-
-```jsx
-// ✅ Используй useEffect для клиент-специфичного контента
-function Component() {
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  return (
-    <div>
-      <p>Always visible</p>
-      {mounted && <p>Client only</p>}
-    </div>
-  )
-}
-```
-
-**Или используй проверку на клиент:**
-
-```jsx
-function Component() {
-  if (typeof window === 'undefined') {
-    // Серверный рендер
-    return <div>Server</div>
-  }
-
-  // Клиентский рендер
-  return <div>Client</div>
-}
-```
-
-### Преимущества SSR
-
-- **быстрый First Contentful Paint** — пользователь сразу видит контент;
-- **лучше SEO** — поисковые системы видят полный HTML;
-- **работает без JavaScript** — базовый контент доступен даже при отключённом JS;
-- **лучший UX на медленных сетях** — контент появляется быстрее.
-
-### Недостатки SSR
-
-- **нагрузка на сервер** — каждый запрос требует рендеринга на сервере;
-- **сложнее архитектура** — нужен сервер, который может выполнять Node.js;
-- **проблемы с гидратацией** — нужно следить за совпадением серверного и клиентского HTML;
-- **медленнее Time To Interactive** — нужно дождаться загрузки JS для интерактивности.
-
-**Trade-off:**
-
-SSR улучшает First Contentful Paint, но может ухудшить Time To Interactive, если JavaScript большой.
+- Автоматический парсинг JSON
+- Выбрасывает ошибки при HTTP 4xx/5xx
+- Встроенные интерсепторы (request/response)
+- Простая настройка таймаутов
+- Автоматическая отмена дублирующихся запросов
+- Поддержка прогресса загрузки
+- Защита от XSRF из коробки
 
 ---
 
-## 28.3. Next.js: стандарт для SSR/SSG в React
+## Установка и базовая настройка
 
-Next.js — фреймворк для React, который предоставляет SSR, SSG и другие возможности из коробки.
+```bash
+npm install axios
+# или
+pnpm add axios
+```
 
-### Версии и эволюция
+### Создание экземпляра с настройками
 
-**Next.js 9-12: Pages Router**
+```typescript
+// src/lib/api/axios.ts
+import axios from 'axios'
 
-- файловая маршрутизация (`pages/about.js` → `/about`);
-- `getServerSideProps` для SSR;
-- `getStaticProps` для SSG;
-- `getStaticPaths` для динамических маршрутов.
+export const apiClient = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'https://api.example.com',
+  timeout: 10000, // 10 секунд
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
+```
 
-**Пример (Pages Router):**
+Теперь используем настроенный клиент:
 
-```jsx
-// pages/about.js
-export async function getServerSideProps() {
-  const data = await fetch('https://api.example.com/data')
-  return {
-    props: {
-      data: await data.json(),
-    },
-  }
+```typescript
+// Вместо полного URL
+const { data } = await apiClient.get('/users')
+// Запрос идёт на https://api.example.com/users
+```
+
+---
+
+## Интерсепторы: мощь Axios
+
+Интерсепторы позволяют перехватывать запросы и ответы для глобальной обработки.
+
+### Request Interceptor
+
+```typescript
+// Добавление токена авторизации ко всем запросам
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('auth_token')
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+
+    // Логирование запросов в dev-режиме
+    if (import.meta.env.DEV) {
+      console.log(`→ ${config.method?.toUpperCase()} ${config.url}`)
+    }
+
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  },
+)
+```
+
+### Response Interceptor
+
+```typescript
+// Глобальная обработка ошибок
+apiClient.interceptors.response.use(
+  (response) => {
+    // Любой статус 2xx попадает сюда
+    return response
+  },
+  async (error) => {
+    const originalRequest = error.config
+
+    // Обработка 401: обновление токена
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true
+
+      try {
+        const { data } = await axios.post('/auth/refresh', {
+          refreshToken: localStorage.getItem('refresh_token'),
+        })
+
+        localStorage.setItem('auth_token', data.accessToken)
+        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`
+
+        return apiClient(originalRequest) // Повторяем запрос
+      } catch (refreshError) {
+        // Не удалось обновить токен — редирект на логин
+        window.location.href = '/login'
+        return Promise.reject(refreshError)
+      }
+    }
+
+    // Обработка других ошибок
+    if (error.response?.status === 403) {
+      console.error('Access denied')
+    }
+
+    return Promise.reject(error)
+  },
+)
+```
+
+---
+
+## Типизация с TypeScript
+
+### Типизация запросов и ответов
+
+```typescript
+// types/api.ts
+export interface User {
+  id: number
+  name: string
+  email: string
+  role: 'admin' | 'user'
 }
 
-export default function About({ data }) {
-  return <div>{data.title}</div>
+export interface PaginatedResponse<T> {
+  data: T[]
+  total: number
+  page: number
+  perPage: number
+}
+
+export interface ApiError {
+  message: string
+  code: string
+  details?: Record<string, string[]>
 }
 ```
 
-**Next.js 13+: App Router**
+```typescript
+// api/users.ts
+import { apiClient } from '@/lib/api/axios'
+import type { User, PaginatedResponse, ApiError } from '@/types/api'
+import type { AxiosError } from 'axios'
 
-- новая система маршрутизации (`app/about/page.tsx`);
-- Server Components по умолчанию;
-- async компоненты;
-- улучшенная производительность.
-
-**Пример (App Router):**
-
-```tsx
-// app/about/page.tsx
-async function AboutPage() {
-  const data = await fetch('https://api.example.com/data')
-  const json = await data.json()
-
-  return <div>{json.title}</div>
-}
-```
-
-**Next.js 15+: Дальнейшие улучшения**
-
-- оптимизация производительности;
-- улучшенный кэширование;
-- новые API для работы с данными.
-
-**Next.js 16: Стабильные Server Components**
-
-- стабильные React Server Components (RSC);
-- улучшенная система кэширования;
-- оптимизированная работа с изображениями;
-- улучшенная поддержка TypeScript;
-- новые API для работы с данными;
-- улучшенная производительность сборки.
-
-### Типы рендеринга в Next.js
-
-#### SSR (Server-Side Rendering)
-
-**Когда:** на каждый запрос.
-
-**Особенности:**
-
-- страница рендерится на сервере при каждом запросе;
-- подходит для динамического контента;
-- данные всегда актуальные.
-
-**Пример (App Router):**
-
-```tsx
-// app/products/[id]/page.tsx
-async function ProductPage({ params }: { params: { id: string } }) {
-  const product = await fetch(`/api/products/${params.id}`)
-  const data = await product.json()
-
-  return <div>{data.name}</div>
-}
-```
-
-**Когда использовать:**
-
-- динамический контент, который меняется часто;
-- данные, которые должны быть актуальными при каждом запросе;
-- персонализированный контент.
-
-#### SSG (Static Site Generation)
-
-**Когда:** на этапе билда.
-
-**Особенности:**
-
-- страницы генерируются во время сборки;
-- подходит для статического контента (блог, документация);
-- быстрее, чем SSR (нет нагрузки на сервер при запросе).
-
-**Пример (App Router):**
-
-```tsx
-// app/blog/[slug]/page.tsx
-async function BlogPost({ params }: { params: { slug: string } }) {
-  const post = await getPost(params.slug)
-
-  return <article>{post.content}</article>
-}
-
-// Генерируется на этапе билда
-export async function generateStaticParams() {
-  const posts = await getAllPosts()
-  return posts.map((post) => ({ slug: post.slug }))
-}
-```
-
-**Когда использовать:**
-
-- статический контент (блог, документация, лендинги);
-- контент, который не меняется часто;
-- когда важна максимальная производительность.
-
-#### ISR (Incremental Static Regeneration)
-
-**Когда:** SSG + периодическое обновление.
-
-**Особенности:**
-
-- страница статическая, но может «переиздаваться» по расписанию или по запросу;
-- гибридный подход — статическая страница с возможностью обновления;
-- баланс между производительностью SSG и актуальностью SSR.
-
-**Пример:**
-
-```tsx
-// app/products/[id]/page.tsx
-async function ProductPage({ params }: { params: { id: string } }) {
-  const product = await fetch(`/api/products/${params.id}`, {
-    next: { revalidate: 3600 }, // пересобирать раз в час
+export const getUsers = async (page = 1, perPage = 20) => {
+  const { data } = await apiClient.get<PaginatedResponse<User>>('/users', {
+    params: { page, perPage },
   })
-  const data = await product.json()
-
-  return <div>{data.name}</div>
-}
-```
-
-**Аналогия:** как газета — она статична для читателя, но выпускается регулярно с новыми данными.
-
-**Когда использовать:**
-
-- контент, который меняется, но не критично часто;
-- баланс между производительностью и актуальностью;
-- каталоги товаров, статьи блога.
-
-#### CSR (Client-Side Rendering)
-
-**Когда:** на клиенте (классическое SPA).
-
-**Особенности:**
-
-- рендеринг происходит в браузере;
-- подходит для интерактивных частей приложения;
-- может комбинироваться с SSR/SSG.
-
-**Пример:**
-
-```tsx
-'use client' // Client Component
-
-function InteractiveComponent() {
-  const [count, setCount] = useState(0)
-
-  return <button onClick={() => setCount(count + 1)}>{count}</button>
-}
-```
-
-**Когда использовать:**
-
-- интерактивные части приложения;
-- данные, которые загружаются по требованию;
-- части страницы, которые не критичны для SEO.
-
-### Сравнение типов рендеринга
-
-| Тип | Когда рендерится        | Производительность | Актуальность данных      |
-| --- | ----------------------- | ------------------ | ------------------------ |
-| SSR | На каждый запрос        | Медленнее          | Всегда актуальные        |
-| SSG | На этапе билда          | Быстрее всего      | Могут устареть           |
-| ISR | На билде + периодически | Быстро             | Обновляются периодически |
-| CSR | На клиенте              | Зависит от сети    | Зависит от запросов      |
-
----
-
-## 28.4. Server Components: новый этап React
-
-React Server Components (RSC) — это компоненты, которые выполняются **только на сервере** и не попадают в клиентский JavaScript-бандл.
-
-### Идея Server Components
-
-- код выполняется на сервере;
-- не попадает в JS-бандл → уменьшает размер клиента;
-- прямой доступ к БД и файловой системе;
-- нет гидратации (только HTML).
-
-**Ключевое отличие от SSR:**
-
-- SSR отправляет HTML + JS, происходит гидратация;
-- Server Components отправляют только HTML, гидратации нет.
-
-### Отличия от SSR
-
-**SSR:**
-
-- HTML + JS отправляется клиенту;
-- происходит гидратация;
-- большой бандл (весь React-код);
-- полный JS на клиенте.
-
-**Server Components:**
-
-- только HTML отправляется клиенту;
-- нет гидратации;
-- меньший бандл (только Client Components);
-- только клиентские компоненты в JS.
-
-**Пример разницы в размере бандла:**
-
-```
-SSR:
-- app.js: 200KB (весь React-код)
-
-Server Components:
-- app.js: 50KB (только Client Components)
-```
-
-### Server Components в Next.js App Router
-
-В App Router компоненты по умолчанию являются **Server Components**. Client Components помечаются директивой `'use client'`.
-
-**Server Component:**
-
-```tsx
-// app/users/page.tsx (Server Component по умолчанию)
-async function UsersPage() {
-  // Прямой доступ к БД
-  const users = await db.users.findMany()
-
-  return (
-    <div>
-      {users.map((user) => (
-        <UserCard key={user.id} user={user} />
-      ))}
-    </div>
-  )
-}
-```
-
-**Client Component:**
-
-```tsx
-'use client' // Директива для Client Component
-
-import { useState } from 'react'
-
-function Counter() {
-  const [count, setCount] = useState(0)
-
-  return <button onClick={() => setCount(count + 1)}>{count}</button>
-}
-```
-
-### Ограничения Server Components
-
-Server Components **не могут:**
-
-- использовать хуки (`useState`, `useEffect` и т.д.);
-- использовать браузерные API (`window`, `document`, `localStorage`);
-- обрабатывать события (`onClick`, `onChange`);
-- использовать состояние.
-
-**Server Components могут:**
-
-- делать async/await;
-- обращаться к БД напрямую;
-- читать файлы;
-- использовать серверные API.
-
-### Когда использовать Server vs Client Components
-
-**Server Components:**
-
-- загрузка данных;
-- работа с БД;
-- статический контент;
-- части страницы, которые не требуют интерактивности.
-
-**Client Components:**
-
-- интерактивность (кнопки, формы);
-- состояние (`useState`, `useReducer`);
-- браузерные API;
-- обработка событий.
-
-**Правило:** используй Server Components по умолчанию, переходи на Client Components только когда нужна интерактивность.
-
-**Пример комбинации:**
-
-```tsx
-// Server Component
-async function ProductPage({ id }) {
-  const product = await getProduct(id)
-
-  return (
-    <div>
-      <h1>{product.name}</h1>
-      <p>{product.description}</p>
-      {/* Client Component для интерактивности */}
-      <AddToCartButton productId={product.id} />
-    </div>
-  )
+  return data
 }
 
-// Client Component
-;('use client')
-function AddToCartButton({ productId }) {
-  const [loading, setLoading] = useState(false)
+export const getUserById = async (id: number) => {
+  const { data } = await apiClient.get<User>(`/users/${id}`)
+  return data
+}
 
-  const handleClick = async () => {
-    setLoading(true)
-    await addToCart(productId)
-    setLoading(false)
+export const createUser = async (userData: Omit<User, 'id'>) => {
+  const { data } = await apiClient.post<User>('/users', userData)
+  return data
+}
+
+// Типизированная обработка ошибок
+export const updateUser = async (id: number, userData: Partial<User>) => {
+  try {
+    const { data } = await apiClient.patch<User>(`/users/${id}`, userData)
+    return data
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiError>
+
+    if (axiosError.response?.data) {
+      throw new Error(axiosError.response.data.message)
+    }
+
+    throw new Error('Неизвестная ошибка')
   }
-
-  return <button onClick={handleClick}>Add to Cart</button>
 }
 ```
 
 ---
 
-## 28.5. Код-сплиттинг и оптимизация бандла
+## Интеграция с TanStack Query
 
-### Проблема большого бандла
+Axios идеально работает с TanStack Query для управления серверным состоянием.
 
-Большой JavaScript-бандл приводит к:
+### Фабрика ключей
 
-- долгой загрузке;
-- плохому Time To Interactive;
-- плохому опыту на медленных сетях;
-- высокому потреблению трафика.
-
-**Пример:**
-
-```
-app.js: 2MB
-→ Загрузка на 3G: ~10 секунд
-→ Парсинг: ~2 секунды
-→ Выполнение: ~1 секунда
-Итого: ~13 секунд до интерактивности
-```
-
-### Dynamic import
-
-React предоставляет `lazy` для динамической загрузки компонентов:
-
-```jsx
-import { lazy, Suspense } from 'react'
-
-const Heavy = lazy(() => import('./Heavy'))
-
-function App() {
-  return (
-    <Suspense fallback={<Loader />}>
-      <Heavy />
-    </Suspense>
-  )
+```typescript
+// lib/api/query-keys.ts
+export const queryKeys = {
+  users: {
+    all: ['users'] as const,
+    lists: () => [...queryKeys.users.all, 'list'] as const,
+    list: (filters: string) => [...queryKeys.users.lists(), filters] as const,
+    details: () => [...queryKeys.users.all, 'detail'] as const,
+    detail: (id: number) => [...queryKeys.users.details(), id] as const,
+  },
+  posts: {
+    all: ['posts'] as const,
+    // ...
+  },
 }
 ```
 
-**Что происходит:**
+### Кастомные хуки
 
-- компонент `Heavy` загружается только когда он нужен;
-- создаётся отдельный чанк (chunk) для этого компонента;
-- `Suspense` показывает fallback во время загрузки.
+```typescript
+// hooks/useUsers.ts
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { apiClient } from '@/lib/api/axios'
+import { queryKeys } from '@/lib/api/query-keys'
+import type { User } from '@/types/api'
 
-**Результат:**
+export const useUsers = () => {
+  return useQuery({
+    queryKey: queryKeys.users.lists(),
+    queryFn: async () => {
+      const { data } = await apiClient.get<{ data: User[] }>('/users')
+      return data.data
+    },
+    staleTime: 5 * 60 * 1000, // 5 минут
+  })
+}
 
+export const useUser = (id: number) => {
+  return useQuery({
+    queryKey: queryKeys.users.detail(id),
+    queryFn: async () => {
+      const { data } = await apiClient.get<User>(`/users/${id}`)
+      return data
+    },
+  })
+}
+
+export const useCreateUser = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (userData: Omit<User, 'id'>) => {
+      const { data } = await apiClient.post<User>('/users', userData)
+      return data
+    },
+    onSuccess: () => {
+      // Инвалидируем список пользователей
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() })
+    },
+  })
+}
+
+export const useUpdateUser = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, ...userData }: Partial<User> & { id: number }) => {
+      const { data } = await apiClient.patch<User>(`/users/${id}`, userData)
+      return data
+    },
+    onMutate: async (updatedUser) => {
+      // Отменяем текущие запросы
+      await queryClient.cancelQueries({
+        queryKey: queryKeys.users.detail(updatedUser.id),
+      })
+
+      // Сохраняем предыдущее состояние
+      const previousUser = queryClient.getQueryData<User>(
+        queryKeys.users.detail(updatedUser.id),
+      )
+
+      // Оптимистичное обновление
+      if (previousUser) {
+        queryClient.setQueryData<User>(queryKeys.users.detail(updatedUser.id), {
+          ...previousUser,
+          ...updatedUser,
+        })
+      }
+
+      return { previousUser }
+    },
+    onError: (error, variables, context) => {
+      // Откат при ошибке
+      if (context?.previousUser) {
+        queryClient.setQueryData(
+          queryKeys.users.detail(variables.id),
+          context.previousUser,
+        )
+      }
+    },
+    onSettled: (data, error, variables) => {
+      // Всегда инвалидируем после завершения
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.users.detail(variables.id),
+      })
+    },
+  })
+}
 ```
-app.js: 500KB (основной код)
-heavy.chunk.js: 1.5MB (загружается по требованию)
-```
-
-### Route-based splitting
-
-В Next.js каждый роут автоматически становится отдельным чанком:
-
-```
-app/
-  page.tsx          → chunk-1.js (200KB)
-  about/
-    page.tsx        → chunk-2.js (150KB)
-  products/
-    page.tsx        → chunk-3.js (300KB)
-```
-
-Пользователь загружает только код для текущей страницы.
-
-**Преимущества:**
-
-- меньший начальный бандл;
-- быстрее загрузка первой страницы;
-- пользователь загружает только нужный код.
-
-### Оптимизация изображений
-
-Next.js предоставляет компонент `Image` для оптимизации изображений:
-
-```tsx
-import Image from 'next/image'
-;<Image src='/photo.jpg' width={500} height={300} alt='Description' />
-```
-
-**Что делает:**
-
-- автоматическая оптимизация размера;
-- lazy loading;
-- поддержка современных форматов (WebP, AVIF);
-- предотвращение Cumulative Layout Shift (CLS).
-
-**Результат:**
-
-```
-Без оптимизации:
-- photo.jpg: 2MB
-
-С оптимизацией:
-- photo-500x300.webp: 50KB
-```
-
-### Почему это важно
-
-- **меньший начальный JS-бандл** → быстрее загрузка;
-- **лучший Core Web Vitals** → выше рейтинг в поисковиках;
-- **лучший UX** → пользователь загружает только нужный код;
-- **экономия трафика** → особенно важно для мобильных пользователей.
 
 ---
 
-## 28.6. Мини‑самопроверка по главе
+## Best Practices
 
-Проверь, что ты можешь:
+### 1. Централизуйте настройки
 
-- объяснить проблемы классического SPA и как их решает SSR;
-- описать процесс SSR от запроса до отображения страницы;
-- объяснить, что такое hydration и почему важно совпадение серверного и клиентского HTML;
-- различать SSR, SSG, ISR и CSR и объяснить, когда что использовать;
-- описать эволюцию Next.js (Pages Router → App Router);
-- объяснить, что такое Server Components и чем они отличаются от SSR;
-- перечислить ограничения Server Components и когда их использовать;
-- объяснить, зачем нужен код-сплиттинг и как он работает.
+Создайте один экземпляр Axios для всего приложения:
 
-Если это получается связно, ты понимаешь современный React-стек и можешь работать с SSR, SSG и Server Components.
+```typescript
+// ❌ Плохо
+import axios from 'axios'
+await axios.get('https://api.example.com/users')
+
+// ✅ Хорошо
+import { apiClient } from '@/lib/api/axios'
+await apiClient.get('/users')
+```
+
+### 2. Используйте интерсепторы для сквозных задач
+
+```typescript
+// Добавление request ID для трейсинга
+apiClient.interceptors.request.use((config) => {
+  config.headers['X-Request-ID'] = crypto.randomUUID()
+  return config
+})
+```
+
+### 3. Типизируйте всё
+
+```typescript
+// ❌ Плохо
+const response = await apiClient.get('/users')
+const users = response.data // any
+
+// ✅ Хорошо
+const { data: users } = await apiClient.get<User[]>('/users')
+```
+
+### 4. Обрабатывайте ошибки последовательно
+
+```typescript
+// Используйте кастомные классы ошибок
+if (error instanceof ApiException) {
+  // Специфическая обработка
+}
+```
+
+### 5. Отменяйте запросы при размонтировании
+
+```typescript
+useEffect(() => {
+  const controller = new AbortController()
+
+  fetchData({ signal: controller.signal })
+
+  return () => controller.abort()
+}, [])
+```
 
 ---
 
-В следующей части мы сделаем шаг назад от конкретных технологий и посмотрим на архитектуру целиком: как структурировать проект, разделять ответственность, выбирать подходящий уровень сложности и не превращать кодовую базу в «большой шар грязи».
+## Заключение
+
+**Axios** остаётся мощным инструментом для работы с HTTP-запросами в 2026 году. В связке с TanStack Query и Zustand вы получаете полноценное решение для управления состоянием приложения:
+
+- **Axios** — для низкоуровневой работы с HTTP
+- **TanStack Query** — для управления серверным состоянием
+- **Zustand** — для управления клиентским состоянием
+
+**Когда использовать Axios:**
+
+- Сложные приложения с множеством API вызовов
+- Нужны интерсепторы для авторизации/логирования
+- Требуется прогресс загрузки файлов
+
+**Когда достаточно fetch:**
+
+- Простые приложения с 1-2 эндпоинтами
+- Не нужны продвинутые возможности
+- Критична минимизация bundle size
+
+В следующей главе мы рассмотрим **SSR и современный React-стек** с Next.js и Server Components.

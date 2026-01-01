@@ -1,10 +1,10 @@
-# Глава 26. TanStack Query: управление серверным состоянием
+# Глава 25. TanStack Query: управление серверным состоянием
 
 ## Введение
 
 **Server State** отличается от **Client State**: он асинхронный, может устареть, требует кеширования, синхронизации, фоновых обновлений. Управление им через useState/useEffect — антипаттерн.
 
-**TanStack Query** (ранее React Query) — это мощная библиотека для управления серверным состоянием. В 2025 году это стандарт для работы с API в React.
+**TanStack Query** (ранее React Query) — это мощная библиотека для управления серверным состоянием. В 2026 году это стандарт для работы с API в React.
 
 ---
 
@@ -14,12 +14,13 @@
 
 ```typescript
 // ✅ useState для UI состояния
-const [isOpen, setIsOpen] = useState(false);
-const [theme, setTheme] = useState('light');
-const [selectedTab, setSelectedTab] = useState('profile');
+const [isOpen, setIsOpen] = useState(false)
+const [theme, setTheme] = useState('light')
+const [selectedTab, setSelectedTab] = useState('profile')
 ```
 
 **Характеристики:**
+
 - Синхронный
 - Контролируется приложением
 - Не устаревает
@@ -29,18 +30,18 @@ const [selectedTab, setSelectedTab] = useState('profile');
 
 ```typescript
 // ❌ Плохо: useState для серверных данных
-const [users, setUsers] = useState([]);
-const [loading, setLoading] = useState(false);
-const [error, setError] = useState(null);
+const [users, setUsers] = useState([])
+const [loading, setLoading] = useState(false)
+const [error, setError] = useState(null)
 
 useEffect(() => {
-  setLoading(true);
+  setLoading(true)
   fetch('/api/users')
-    .then(r => r.json())
+    .then((r) => r.json())
     .then(setUsers)
     .catch(setError)
-    .finally(() => setLoading(false));
-}, []);
+    .finally(() => setLoading(false))
+}, [])
 
 // Проблемы:
 // - Нет кеширования
@@ -51,6 +52,7 @@ useEffect(() => {
 ```
 
 **Характеристики Server State:**
+
 - Асинхронный
 - Может устареть
 - Требует кеширования
@@ -175,25 +177,22 @@ export const queryKeys = {
   users: {
     all: ['users'] as const,
     lists: () => [...queryKeys.users.all, 'list'] as const,
-    list: (filters: string) => 
-      [...queryKeys.users.lists(), filters] as const,
+    list: (filters: string) => [...queryKeys.users.lists(), filters] as const,
     details: () => [...queryKeys.users.all, 'detail'] as const,
-    detail: (id: number) => 
-      [...queryKeys.users.details(), id] as const,
+    detail: (id: number) => [...queryKeys.users.details(), id] as const,
   },
   posts: {
     all: ['posts'] as const,
     lists: () => [...queryKeys.posts.all, 'list'] as const,
-    list: (filters: string) => 
-      [...queryKeys.posts.lists(), filters] as const,
+    list: (filters: string) => [...queryKeys.posts.lists(), filters] as const,
     details: () => [...queryKeys.posts.all, 'detail'] as const,
-    detail: (id: number) => 
-      [...queryKeys.posts.details(), id] as const,
+    detail: (id: number) => [...queryKeys.posts.details(), id] as const,
   },
-} as const;
+} as const
 ```
 
 **Преимущества:**
+
 - 🎯 Централизованное управление ключами
 - 🔄 Точечная инвалидация
 - 📦 Иерархическая структура
@@ -206,13 +205,13 @@ export const queryKeys = {
 const { data } = useQuery({
   queryKey: queryKeys.users.list('active'),
   queryFn: () => fetchUsers({ status: 'active' }),
-});
+})
 
 // Получение конкретного пользователя
 const { data: user } = useQuery({
   queryKey: queryKeys.users.detail(123),
   queryFn: () => fetchUser(123),
-});
+})
 ```
 
 ---
@@ -223,14 +222,14 @@ const { data: user } = useQuery({
 
 ```typescript
 // hooks/useUsers.ts
-import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api/axios';
-import { queryKeys } from '@/lib/api/query-keys';
+import { useQuery } from '@tanstack/react-query'
+import { apiClient } from '@/lib/api/axios'
+import { queryKeys } from '@/lib/api/query-keys'
 
 interface User {
-  id: number;
-  name: string;
-  email: string;
+  id: number
+  name: string
+  email: string
 }
 
 // Список пользователей
@@ -240,33 +239,33 @@ export const useUsers = (filters?: { status?: string }) => {
     queryFn: async () => {
       const { data } = await apiClient.get<User[]>('/users', {
         params: filters,
-      });
-      return data;
+      })
+      return data
     },
     staleTime: 5 * 60 * 1000, // Данные актуальны 5 минут
-  });
-};
+  })
+}
 
 // Конкретный пользователь
 export const useUser = (id: number) => {
   return useQuery({
     queryKey: queryKeys.users.detail(id),
     queryFn: async () => {
-      const { data } = await apiClient.get<User>(`/users/${id}`);
-      return data;
+      const { data } = await apiClient.get<User>(`/users/${id}`)
+      return data
     },
     enabled: !!id, // Запрос только если id существует
-  });
-};
+  })
+}
 
 // Использование
 function UsersList() {
-  const { data: users } = useUsers({ status: 'active' });
+  const { data: users } = useUsers({ status: 'active' })
   // ...
 }
 
 function UserProfile({ id }: { id: number }) {
-  const { data: user } = useUser(id);
+  const { data: user } = useUser(id)
   // ...
 }
 ```
@@ -328,35 +327,35 @@ function CreateUserForm() {
 
 ```typescript
 export const useUpdateUser = () => {
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async ({ id, ...data }: Partial<User> & { id: number }) => {
-      const response = await apiClient.patch<User>(`/users/${id}`, data);
-      return response.data;
+      const response = await apiClient.patch<User>(`/users/${id}`, data)
+      return response.data
     },
-    
+
     // Шаг 1: Отменяем активные запросы
     onMutate: async (updatedUser) => {
       await queryClient.cancelQueries({
         queryKey: queryKeys.users.detail(updatedUser.id),
-      });
+      })
 
       // Шаг 2: Сохраняем предыдущее состояние
       const previousUser = queryClient.getQueryData<User>(
-        queryKeys.users.detail(updatedUser.id)
-      );
+        queryKeys.users.detail(updatedUser.id),
+      )
 
       // Шаг 3: Оптимистичное обновление
       if (previousUser) {
-        queryClient.setQueryData<User>(
-          queryKeys.users.detail(updatedUser.id),
-          { ...previousUser, ...updatedUser }
-        );
+        queryClient.setQueryData<User>(queryKeys.users.detail(updatedUser.id), {
+          ...previousUser,
+          ...updatedUser,
+        })
       }
 
       // Возвращаем контекст для rollback
-      return { previousUser };
+      return { previousUser }
     },
 
     // Шаг 4: Откат при ошибке
@@ -364,8 +363,8 @@ export const useUpdateUser = () => {
       if (context?.previousUser) {
         queryClient.setQueryData(
           queryKeys.users.detail(variables.id),
-          context.previousUser
-        );
+          context.previousUser,
+        )
       }
     },
 
@@ -373,10 +372,10 @@ export const useUpdateUser = () => {
     onSettled: (data, error, variables) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.users.detail(variables.id),
-      });
+      })
     },
-  });
-};
+  })
+}
 ```
 
 ---
@@ -414,19 +413,17 @@ function UserCard({ user }: { user: User }) {
 
 ```typescript
 function UserProfile({ id }: { id: number }) {
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
 
   const { data: user } = useQuery({
     queryKey: queryKeys.users.detail(id),
     queryFn: () => fetchUser(id),
     initialData: () => {
       // Берём данные из списка пользователей
-      const users = queryClient.getQueryData<User[]>(
-        queryKeys.users.lists()
-      );
-      return users?.find(u => u.id === id);
+      const users = queryClient.getQueryData<User[]>(queryKeys.users.lists())
+      return users?.find((u) => u.id === id)
     },
-  });
+  })
 
   // Мгновенная отрисовка если данные были в списке
 }
@@ -440,22 +437,22 @@ function UserProfile({ id }: { id: number }) {
 
 ```typescript
 // ❌ Плохо: ререндер при любом изменении user
-const { data: user } = useUser(id);
-console.log(user.email); // Ререндер если изменился name
+const { data: user } = useUser(id)
+console.log(user.email) // Ререндер если изменился name
 
 // ✅ Хорошо: ререндер только при изменении email
 const { data: email } = useQuery({
   queryKey: queryKeys.users.detail(id),
   queryFn: () => fetchUser(id),
   select: (user) => user.email, // Селектор
-});
+})
 
 // Сложный селектор
 const { data: fullName } = useQuery({
   queryKey: queryKeys.users.detail(id),
   queryFn: () => fetchUser(id),
   select: (user) => `${user.firstName} ${user.lastName}`,
-});
+})
 ```
 
 ---
@@ -463,28 +460,28 @@ const { data: fullName } = useQuery({
 ## Точечная инвалидация
 
 ```typescript
-const queryClient = useQueryClient();
+const queryClient = useQueryClient()
 
 // ❌ Плохо: инвалидация всех пользователей
-queryClient.invalidateQueries({ queryKey: ['users'] });
+queryClient.invalidateQueries({ queryKey: ['users'] })
 
 // ✅ Хорошо: только списки
 queryClient.invalidateQueries({
   queryKey: queryKeys.users.lists(),
-});
+})
 
 // ✅ Хорошо: только конкретный пользователь
 queryClient.invalidateQueries({
   queryKey: queryKeys.users.detail(123),
-});
+})
 
 // ✅ Хорошо: с предикатом
 queryClient.invalidateQueries({
   predicate: (query) => {
-    const [entity, type] = query.queryKey;
-    return entity === 'users' && type === 'list';
+    const [entity, type] = query.queryKey
+    return entity === 'users' && type === 'list'
   },
-});
+})
 ```
 
 ---
@@ -498,35 +495,35 @@ const queryClient = new QueryClient({
     queries: {
       retry: (failureCount, error: any) => {
         // Не повторяем при 404
-        if (error?.response?.status === 404) return false;
-        
+        if (error?.response?.status === 404) return false
+
         // Не повторяем при 401/403
         if ([401, 403].includes(error?.response?.status)) {
-          window.location.href = '/login';
-          return false;
+          window.location.href = '/login'
+          return false
         }
 
         // Повторяем 2 раза для сетевых ошибок и 5xx
-        return failureCount < 2;
+        return failureCount < 2
       },
       retryDelay: (attemptIndex) => {
         // Exponential backoff: 1s, 2s, 4s
-        return Math.min(1000 * 2 ** attemptIndex, 30000);
+        return Math.min(1000 * 2 ** attemptIndex, 30000)
       },
     },
     mutations: {
       onError: (error: any) => {
         // Глобальная обработка ошибок мутаций
         if (error?.response?.status === 401) {
-          window.location.href = '/login';
+          window.location.href = '/login'
         }
-        
+
         // Показываем toast
-        toast.error(error?.response?.data?.message || 'Произошла ошибка');
+        toast.error(error?.response?.data?.message || 'Произошла ошибка')
       },
     },
   },
-});
+})
 ```
 
 ---
@@ -606,7 +603,7 @@ function InfiniteUsersList() {
       {data?.pages.map((page) =>
         page.users.map((user) => <UserCard key={user.id} {...user} />)
       )}
-      
+
       {hasNextPage && <div ref={ref}>Loading...</div>}
     </div>
   );
@@ -646,44 +643,44 @@ function UserPosts({ userId }: { userId: number }) {
 
 ```typescript
 // lib/api/axios.ts
-import axios from 'axios';
+import axios from 'axios'
 
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   timeout: 10000,
-});
+})
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token')
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    config.headers.Authorization = `Bearer ${token}`
   }
-  return config;
-});
+  return config
+})
 
 // lib/api/users.ts
 export const fetchUsers = async () => {
-  const { data } = await apiClient.get<User[]>('/users');
-  return data;
-};
+  const { data } = await apiClient.get<User[]>('/users')
+  return data
+}
 
 export const fetchUser = async (id: number) => {
-  const { data } = await apiClient.get<User>(`/users/${id}`);
-  return data;
-};
+  const { data } = await apiClient.get<User>(`/users/${id}`)
+  return data
+}
 
 export const createUser = async (userData: CreateUserDTO) => {
-  const { data } = await apiClient.post<User>('/users', userData);
-  return data;
-};
+  const { data } = await apiClient.post<User>('/users', userData)
+  return data
+}
 
 // hooks/useUsers.ts
 export const useUsers = () => {
   return useQuery({
     queryKey: queryKeys.users.lists(),
     queryFn: fetchUsers,
-  });
-};
+  })
+}
 ```
 
 ---
@@ -694,10 +691,10 @@ export const useUsers = () => {
 
 ```typescript
 // ❌ Плохо: магические строки
-useQuery({ queryKey: ['users'], queryFn: fetchUsers });
+useQuery({ queryKey: ['users'], queryFn: fetchUsers })
 
 // ✅ Хорошо: централизованные ключи
-useQuery({ queryKey: queryKeys.users.lists(), queryFn: fetchUsers });
+useQuery({ queryKey: queryKeys.users.lists(), queryFn: fetchUsers })
 ```
 
 ### 2. Кастомные хуки для каждого запроса
@@ -708,18 +705,19 @@ function Users() {
   const { data } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
-      const res = await fetch('/users');
-      return res.json();
+      const res = await fetch('/users')
+      return res.json()
     },
-  });
+  })
 }
 
 // ✅ Хорошо: кастомный хук
-export const useUsers = () => useQuery({
-  queryKey: queryKeys.users.lists(),
-  queryFn: fetchUsers,
-  staleTime: 5 * 60 * 1000,
-});
+export const useUsers = () =>
+  useQuery({
+    queryKey: queryKeys.users.lists(),
+    queryFn: fetchUsers,
+    staleTime: 5 * 60 * 1000,
+  })
 ```
 
 ### 3. Оптимистичные обновления для instant UX
@@ -732,10 +730,10 @@ export const useUsers = () => useQuery({
 
 ```typescript
 // ❌ Плохо: инвалидируем всё
-queryClient.invalidateQueries({ queryKey: ['users'] });
+queryClient.invalidateQueries({ queryKey: ['users'] })
 
 // ✅ Хорошо: только списки
-queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
+queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() })
 ```
 
 ### 5. Предзагрузка по событиям
@@ -751,13 +749,14 @@ onMouseEnter={() => queryClient.prefetchQuery(...)}
 
 **TanStack Query** — это стандарт для управления серверным состоянием в React:
 
-- 🚀 **Производительность** — автоматическое кеширование
-- 🔄 **Синхронизация** — фоновые обновления
-- 📦 **Оптимизация** — селекторы и dedupe
-- 🎯 **DX** — минимум бойлерплейта
-- 🛠️ **Devtools** — отладка из коробки
+- **Производительность** — автоматическое кеширование
+- **Синхронизация** — фоновые обновления
+- **Оптимизация** — селекторы и dedupe
+- **DX** — минимум бойлерплейта
+- **Devtools** — отладка из коробки
 
-**Ключевые паттерны (2025):**
+**Ключевые паттерны (2026):**
+
 1. **Фабрика ключей** — централизованные иерархические ключи
 2. **Кастомные хуки** — инкапсуляция запросов
 3. **Optimistic updates** — мгновенный UI
@@ -766,4 +765,3 @@ onMouseEnter={() => queryClient.prefetchQuery(...)}
 6. **Точечная инвалидация** — predicate для умной инвалидации
 
 В следующей главе мы рассмотрим **Zustand** — минималистичный state manager для клиентского состояния.
-

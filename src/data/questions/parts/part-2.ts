@@ -48,17 +48,17 @@ export const part2Questions: QuizQuestion[] = [
       },
       {
         id: 'a-2-2-2',
-        text: 'Flexbox работает только в старых браузерах, Grid — только в новых',
+        text: 'Flexbox — в первую очередь про распределение/выравнивание вдоль оси (1D), Grid — про сетку по двум осям (2D). Но в реальной верстке их часто комбинируют',
         isCorrect: false,
       },
       {
         id: 'a-2-2-3',
-        text: 'Flexbox для мобильных устройств, Grid для десктопов',
+        text: 'Grid удобно задаёт колонки/ряды и размещение по сетке, Flexbox — выравнивание элементов внутри строки/колонки. “Табличность” чаще именно про Grid, а не наоборот',
         isCorrect: false,
       },
       {
         id: 'a-2-2-4',
-        text: 'Нет разницы, это синонимы с одинаковым функционалом',
+        text: 'И Grid, и Flexbox умеют gap и выравнивание. Отличие не в “умеет/не умеет”, а в модели раскладки (1D vs 2D) и инструментах размещения',
         isCorrect: false,
       },
     ],
@@ -224,7 +224,7 @@ export const part2Questions: QuizQuestion[] = [
       },
       {
         id: 'a-2-7-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'border-box отличается тем, что width начинает включать ещё и margin (поэтому элементы “не вылезают”)',
         isCorrect: false,
       },
     ],
@@ -330,7 +330,7 @@ export const part2Questions: QuizQuestion[] = [
       },
       {
         id: 'a-2-10-4',
-        text: 'Нет разницы, все работают одинаково',
+        text: 'inline-block эквивалентен inline: width/height всё равно игнорируются, меняется только способ переноса строк',
         isCorrect: false,
       },
     ],
@@ -352,12 +352,12 @@ export const part2Questions: QuizQuestion[] = [
       },
       {
         id: 'a-2-11-2',
-        text: 'relative — для мобильных, absolute — для десктопов, fixed — для планшетов, sticky — устаревший',
+        text: 'absolute — относительно ближайшего positioned ancestor (или initial containing block), fixed — относительно viewport, но может “привязаться” к контейнеру из-за transform/filter/contain у предка',
         isCorrect: false,
       },
       {
         id: 'a-2-11-3',
-        text: 'Все работают одинаково, разница только в названии',
+        text: 'sticky “похоже” на fixed, но работает внутри scroll‑контейнера и имеет ограничения (нужны top/left, влияние overflow). Это не alias',
         isCorrect: false,
       },
       {
@@ -527,7 +527,7 @@ export const part2Questions: QuizQuestion[] = [
       },
       {
         id: 'a-2-16-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'Pseudo-elements описывают состояния (:hover), а pseudo-classes добавляют виртуальные элементы (::before)',
         isCorrect: false,
       },
     ],
@@ -683,17 +683,17 @@ export const part2Questions: QuizQuestion[] = [
       },
       {
         id: 'a-2-21-2',
-        text: 'transform и opacity быстрее компилируются',
+        text: 'transform/opacity обычно попадают в compositing и не требуют layout, поэтому анимации часто дешевле. Но каскад тут ни при чём: cascade/style recalculation и layout — разные этапы',
         isCorrect: false,
       },
       {
         id: 'a-2-21-3',
-        text: 'top/left работают только в старых браузерах',
+        text: 'Иногда браузер может оптимизировать, но в целом top/left чаще триггерят layout. transform/opacity обычно безопаснее для “дешёвых” анимаций',
         isCorrect: false,
       },
       {
         id: 'a-2-21-4',
-        text: 'Нет разницы, все работают одинаково',
+        text: 'Разница в том, какие этапы затрагиваются: transform/opacity часто обходятся без layout, а top/left обычно заставляют пересчитать layout',
         isCorrect: false,
       },
     ],
@@ -945,17 +945,17 @@ export const part2Questions: QuizQuestion[] = [
       },
       {
         id: 'a-2-29-2',
-        text: 'Первое для мобильных, второе для десктопов',
+        text: 'repeat(auto-fit, minmax(200px, 1fr)) всегда создаёт ровно 3 колонки, но не уже 200px',
         isCorrect: false,
       },
       {
         id: 'a-2-29-3',
-        text: 'Первое быстрее, второе медленнее',
+        text: 'auto-fit/minmax замедляет layout, потому что браузер пересчитывает количество колонок на каждом кадре (даже без анимаций)',
         isCorrect: false,
       },
       {
         id: 'a-2-29-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'auto-fit/minmax — это просто более современная запись того же самого, что и repeat(3, 1fr); поведение одинаковое',
         isCorrect: false,
       },
     ],
@@ -1046,12 +1046,12 @@ export const part2Questions: QuizQuestion[] = [
       },
       {
         id: 'a-2-32-3',
-        text: ':is() быстрее, :where() медленнее',
+        text: ':where() отличается от :is() в специфичности (0). Про “скорость” это почти никогда: производительность зависит от конкретных селекторов/DOM, а не от того, is/where',
         isCorrect: false,
       },
       {
         id: 'a-2-32-4',
-        text: 'Нет разницы, это синонимы',
+        text: ':is() берёт специфичность самой “тяжёлой” ветки, :where() всегда 0 — это ключевая разница для управления каскадом',
         isCorrect: false,
       },
     ],
@@ -1078,12 +1078,12 @@ export const part2Questions: QuizQuestion[] = [
       },
       {
         id: 'a-2-33-3',
-        text: 'CSS Variables медленнее, SCSS быстрее',
+        text: 'Наоборот: CSS Custom Properties участвуют в каскаде и наследуются (runtime), SCSS переменные — compile-time подстановка и не существуют в runtime',
         isCorrect: false,
       },
       {
         id: 'a-2-33-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'CSS Variables можно менять в runtime (style.setProperty) и они участвуют в каскаде; SCSS переменные исчезают после сборки',
         isCorrect: false,
       },
     ],
@@ -1270,7 +1270,7 @@ export const part2Questions: QuizQuestion[] = [
       },
       {
         id: 'a-2-39-2',
-        text: 'Миксины быстрее, функции медленнее',
+        text: 'SCSS функции могут возвращать CSS-блоки, а миксины — только значения (цвет/число), поэтому функции более универсальны',
         isCorrect: false,
       },
       {
@@ -1280,7 +1280,7 @@ export const part2Questions: QuizQuestion[] = [
       },
       {
         id: 'a-2-39-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'SCSS функции генерируют CSS-код, а миксины возвращают значения (числа/цвета) для подстановки в свойства',
         isCorrect: false,
       },
     ],
@@ -1307,12 +1307,12 @@ export const part2Questions: QuizQuestion[] = [
       },
       {
         id: 'a-2-40-3',
-        text: '@use быстрее, @import медленнее',
+        text: '@use компилируется в отдельный CSS-файл на каждый модуль, поэтому итоговый CSS почти всегда дублируется',
         isCorrect: false,
       },
       {
         id: 'a-2-40-4',
-        text: 'Нет разницы, это синонимы',
+        text: '@import безопаснее, потому что изолирует namespace и предотвращает конфликты, а @use делает всё глобальным',
         isCorrect: false,
       },
     ],
@@ -1366,17 +1366,17 @@ export const part2Questions: QuizQuestion[] = [
       },
       {
         id: 'a-2-42-2',
-        text: 'display: none для мобильных, visibility: hidden для десктопов',
+        text: 'visibility: hidden убирает элемент из layout, а display: none оставляет место, но скрывает визуально',
         isCorrect: false,
       },
       {
         id: 'a-2-42-3',
-        text: 'display: none быстрее, visibility: hidden медленнее',
+        text: 'visibility: hidden безопаснее для доступности, потому что screen readers автоматически игнорируют элемент, а display: none — нет',
         isCorrect: false,
       },
       {
         id: 'a-2-42-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'Оба полностью одинаковы: элемент скрыт, место не занимает и события не обрабатывает',
         isCorrect: false,
       },
     ],
@@ -1430,17 +1430,17 @@ export const part2Questions: QuizQuestion[] = [
       },
       {
         id: 'a-2-44-2',
-        text: 'rem для мобильных, em для десктопов',
+        text: 'em всегда считается от корневого размера (html), а rem — от размера шрифта текущего элемента',
         isCorrect: false,
       },
       {
         id: 'a-2-44-3',
-        text: 'rem быстрее, em медленнее',
+        text: 'em всегда стабильнее rem, потому что не зависит от корневого размера и не “ломает” масштабирование',
         isCorrect: false,
       },
       {
         id: 'a-2-44-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'Разница только в поддержке браузеров: em устарел, rem — современный эквивалент с тем же поведением',
         isCorrect: false,
       },
     ],
@@ -1467,12 +1467,12 @@ export const part2Questions: QuizQuestion[] = [
       },
       {
         id: 'a-2-45-3',
-        text: 'vw для мобильных, vh для десктопов',
+        text: 'vh рассчитывается как процент от ширины viewport, а vw — как процент от высоты viewport',
         isCorrect: false,
       },
       {
         id: 'a-2-45-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'vw и vh считаются от размеров родительского элемента, а не от окна браузера',
         isCorrect: false,
       },
     ],
@@ -1481,5 +1481,268 @@ export const part2Questions: QuizQuestion[] = [
     chapterId: 'chapter-2-1',
     partId: 'part-2',
     difficulty: 'easy',
+  },
+  {
+    id: 'q-2-46',
+    type: 'single',
+    question:
+      'Почему глобальный reset вида * { box-sizing: border-box } считается хорошей практикой?',
+    answers: [
+      {
+        id: 'a-2-46-1',
+        text: 'Потому что width/height начинают включать padding и border, и расчёты размеров становятся предсказуемыми (меньше “магии” бокс-модели)',
+        isCorrect: true,
+      },
+      {
+        id: 'a-2-46-2',
+        text: 'Потому что border-box уменьшает размер CSSOM и ускоряет парсинг CSS, так как браузеру не нужно хранить padding/border отдельно',
+        isCorrect: false,
+      },
+      {
+        id: 'a-2-46-3',
+        text: 'Потому что border-box запрещает margin и решает проблему коллапса',
+        isCorrect: false,
+      },
+      {
+        id: 'a-2-46-4',
+        text: 'Потому что иначе flexbox не работает',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'border-box делает ширину “как ожидают большинство”: заданная width включает padding и border. Это снижает количество багов в layout и упрощает поддержку.',
+    chapterId: 'chapter-2-1',
+    partId: 'part-2',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-2-47',
+    type: 'single',
+    question:
+      'Что сильнее влияет на победу правила в CSS, если правила из одного слоя и одинаковой важности: специфичность или порядок в файле?',
+    answers: [
+      {
+        id: 'a-2-47-1',
+        text: 'Специфичность; порядок важен только если специфичность одинаковая',
+        isCorrect: true,
+      },
+      {
+        id: 'a-2-47-2',
+        text: 'Всегда порядок в файле, специфичность не влияет',
+        isCorrect: false,
+      },
+      {
+        id: 'a-2-47-3',
+        text: '!important всегда проигрывает специфичности',
+        isCorrect: false,
+      },
+      {
+        id: 'a-2-47-4',
+        text: 'Побеждает правило с более коротким селектором',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Каскад: сначала важность (!important), затем специфичность, затем порядок. Порядок — только как тайбрейкер при равной специфичности.',
+    chapterId: 'chapter-2-1',
+    partId: 'part-2',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-2-48',
+    type: 'single',
+    question: 'В чём практический смысл :where() по сравнению с :is()?',
+    answers: [
+      {
+        id: 'a-2-48-1',
+        text: ':where() имеет специфичность 0, поэтому удобно для reset/base правил без “гонки специфичности”',
+        isCorrect: true,
+      },
+      {
+        id: 'a-2-48-2',
+        text: ':where() работает только в Safari, а :is() — в Chrome',
+        isCorrect: false,
+      },
+      {
+        id: 'a-2-48-3',
+        text: ':where() позволяет выбирать родителей как :has()',
+        isCorrect: false,
+      },
+      {
+        id: 'a-2-48-4',
+        text: ':where() и :is() отличаются только поддержкой браузеров: в остальном специфичность и поведение у них одинаковые',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      ':is() сохраняет специфичность самой “тяжёлой” части. :where() всегда 0 — это часто спасает большие кодовые базы от бесконечных переопределений.',
+    chapterId: 'chapter-2-2',
+    partId: 'part-2',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-2-49',
+    type: 'single',
+    question:
+      'Почему :has() называют “родительским селектором”, и какой риск при его использовании в больших проектах?',
+    answers: [
+      {
+        id: 'a-2-49-1',
+        text: 'Он позволяет стилить элемент в зависимости от наличия/состояния потомков; риск — потенциально дорогие селекторы при неосторожном применении',
+        isCorrect: true,
+      },
+      {
+        id: 'a-2-49-2',
+        text: 'Он нужен только для анимаций и не влияет на селекторы',
+        isCorrect: false,
+      },
+      {
+        id: 'a-2-49-3',
+        text: 'Он автоматически добавляет ARIA-атрибуты для доступности',
+        isCorrect: false,
+      },
+      {
+        id: 'a-2-49-4',
+        text: 'Он заменяет JavaScript во всех интерактивных сценариях без ограничений',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      ':has() делает CSS “реактивнее”, но, как и любые сложные селекторы, может быть дорогим при массовом применении. Использовать точечно и профилировать, если есть сомнения.',
+    chapterId: 'chapter-2-2',
+    partId: 'part-2',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-2-50',
+    type: 'single',
+    question:
+      'Почему CSS custom properties (переменные) удобнее для темизации, чем SCSS-переменные?',
+    answers: [
+      {
+        id: 'a-2-50-1',
+        text: 'CSS-переменные работают в runtime, наследуются и могут переопределяться в DOM/через атрибуты, а SCSS-переменные подставляются на этапе сборки',
+        isCorrect: true,
+      },
+      {
+        id: 'a-2-50-2',
+        text: 'SCSS-переменные не поддерживают цвета, а CSS-переменные поддерживают',
+        isCorrect: false,
+      },
+      {
+        id: 'a-2-50-3',
+        text: 'CSS-переменные делают bundle меньше автоматически',
+        isCorrect: false,
+      },
+      {
+        id: 'a-2-50-4',
+        text: 'SCSS-переменные запрещены в production',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Runtime-наследование и переопределение в DOM позволяют делать темы без пересборки CSS. Это особенно полезно для design system и динамических режимов.',
+    chapterId: 'chapter-2-2',
+    partId: 'part-2',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-2-51',
+    type: 'single',
+    question:
+      'Что такое CSS Cascade Layers (@layer) и какую проблему больших проектов они решают?',
+    answers: [
+      {
+        id: 'a-2-51-1',
+        text: 'Это механизм управления приоритетом групп правил через слои; помогает избежать хаоса “порядок подключения файлов решает всё”',
+        isCorrect: true,
+      },
+      {
+        id: 'a-2-51-2',
+        text: 'Это способ включить GPU-ускорение для CSS',
+        isCorrect: false,
+      },
+      {
+        id: 'a-2-51-3',
+        text: 'Это замена media queries',
+        isCorrect: false,
+      },
+      {
+        id: 'a-2-51-4',
+        text: 'Это новый способ писать CSS в JavaScript',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      '@layer добавляет “уровень” в каскад: вы можете заранее объявить порядок слоёв (reset/base/components/utilities) и сделать приоритеты предсказуемыми.',
+    chapterId: 'chapter-2-2',
+    partId: 'part-2',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-2-52',
+    type: 'single',
+    question:
+      'Почему 100vw иногда даёт горизонтальный скролл даже если “должно быть ровно по ширине экрана”?',
+    answers: [
+      {
+        id: 'a-2-52-1',
+        text: 'Потому что vw может учитывать ширину полосы прокрутки, и элемент становится чуть шире видимой области',
+        isCorrect: true,
+      },
+      {
+        id: 'a-2-52-2',
+        text: 'Потому что vw работает только в mobile Safari',
+        isCorrect: false,
+      },
+      {
+        id: 'a-2-52-3',
+        text: 'Потому что vw всегда равен ширине body, а не viewport',
+        isCorrect: false,
+      },
+      {
+        id: 'a-2-52-4',
+        text: 'Потому что vw запрещён с flexbox',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Частый собес-вопрос: 100vw ≠ 100% контейнера. Для полноэкранных блоков часто безопаснее использовать width: 100% или аккуратно работать с overflow.',
+    chapterId: 'chapter-2-1',
+    partId: 'part-2',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-2-53',
+    type: 'single',
+    question:
+      'Какое утверждение точнее про CSS Modules в плане изоляции стилей?',
+    answers: [
+      {
+        id: 'a-2-53-1',
+        text: 'CSS Modules обычно генерируют уникальные имена классов на этапе сборки, изолируя стили по компонентам',
+        isCorrect: true,
+      },
+      {
+        id: 'a-2-53-2',
+        text: 'CSS Modules изолируют стили на уровне браузера без сборщика (нативно)',
+        isCorrect: false,
+      },
+      {
+        id: 'a-2-53-3',
+        text: 'CSS Modules работают только если включить Shadow DOM',
+        isCorrect: false,
+      },
+      {
+        id: 'a-2-53-4',
+        text: 'CSS Modules запрещают использовать глобальные стили вообще',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Это фича сборщика: локальные классы становятся уникальными и не конфликтуют. Глобальные стили возможны через :global и соглашения.',
+    chapterId: 'chapter-2-2',
+    partId: 'part-2',
+    difficulty: 'medium',
   },
 ]

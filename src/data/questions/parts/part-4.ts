@@ -112,7 +112,7 @@ export const part4Questions: QuizQuestion[] = [
       },
       {
         id: 'a-4-4-2',
-        text: 'Unit-тесты быстрее, integration-тесты медленнее',
+        text: 'Integration-тесты часто дают больше уверенности, но могут стать более хрупкими из-за большего числа зависимостей и окружения (в т.ч. тайминги/сеть)',
         isCorrect: false,
       },
       {
@@ -122,7 +122,7 @@ export const part4Questions: QuizQuestion[] = [
       },
       {
         id: 'a-4-4-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'Разница только в среде запуска: unit-тесты запускаются в Node.js, а integration-тесты — только в браузере',
         isCorrect: false,
       },
     ],
@@ -225,12 +225,12 @@ export const part4Questions: QuizQuestion[] = [
       },
       {
         id: 'a-4-7-3',
-        text: 'dependencies быстрее, devDependencies медленнее',
+        text: 'В продакшене devDependencies обычно не устанавливают, но локально они нужны для сборки/линтинга; сами категории не “про скорость”, а про назначение',
         isCorrect: false,
       },
       {
         id: 'a-4-7-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'devDependencies — это зависимости, которые идут в продакшен, а dependencies устанавливаются только локально для разработки',
         isCorrect: false,
       },
     ],
@@ -322,12 +322,12 @@ export const part4Questions: QuizQuestion[] = [
       },
       {
         id: 'a-4-10-3',
-        text: 'npm быстрее, yarn и pnpm медленнее',
+        text: 'pnpm использует стор (content-addressable) и жёсткие ссылки/симлинки, поэтому может выявлять проблемы с “phantom dependencies”, которые у npm/yarn иногда “случайно работают”',
         isCorrect: false,
       },
       {
         id: 'a-4-10-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'npm/yarn/pnpm отличаются только названием: lockfile и алгоритм установки у них одинаковые',
         isCorrect: false,
       },
     ],
@@ -354,12 +354,12 @@ export const part4Questions: QuizQuestion[] = [
       },
       {
         id: 'a-4-11-3',
-        text: 'Vite быстрее только в продакшене',
+        text: 'Vite быстрее только когда проект на TypeScript, а на чистом JavaScript Webpack обычно быстрее',
         isCorrect: false,
       },
       {
         id: 'a-4-11-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'Vite в dev опирается на нативный ESM браузера и быстрый HMR; Webpack чаще требует бандлинга и поэтому медленнее стартует/рефрешится на больших проектах',
         isCorrect: false,
       },
     ],
@@ -592,5 +592,202 @@ export const part4Questions: QuizQuestion[] = [
     chapterId: 'chapter-4-2',
     partId: 'part-4',
     difficulty: 'medium',
+  },
+  {
+    id: 'q-4-19',
+    type: 'single',
+    question: 'Почему flaky E2E-тесты считаются особенно вредными для команды?',
+    answers: [
+      {
+        id: 'a-4-19-1',
+        text: 'Они подрывают доверие к тестам: команда перестаёт реагировать на падения, и CI теряет смысл как “сигнал”',
+        isCorrect: true,
+      },
+      {
+        id: 'a-4-19-2',
+        text: 'Потому что flaky тесты делают bundle больше',
+        isCorrect: false,
+      },
+      {
+        id: 'a-4-19-3',
+        text: 'Потому что flaky тесты нельзя запускать локально',
+        isCorrect: false,
+      },
+      {
+        id: 'a-4-19-4',
+        text: 'Иногда flaky сигналит о гонках/неустойчивом окружении; “лечить sleep” — плохая практика, лучше устранять первопричину и улучшать синхронизацию ожиданий',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Флейки повышают стоимость разработки: ретраи, ручные проверки, игнорирование CI. На собесе важно уметь назвать причины (тайминги, сеть, анимации) и методы стабилизации.',
+    chapterId: 'chapter-4-3',
+    partId: 'part-4',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-4-20',
+    type: 'multiple',
+    question:
+      'Какие практики чаще всего уменьшают флейки в E2E (Playwright/Cypress)?',
+    answers: [
+      {
+        id: 'a-4-20-1',
+        text: 'Ожидать состояния UI, а не “sleep”: использовать ожидания видимости/доступности элементов',
+        isCorrect: true,
+      },
+      {
+        id: 'a-4-20-2',
+        text: 'Стабилизировать селекторы: role/label/testid вместо глубоких CSS-селекторов',
+        isCorrect: true,
+      },
+      {
+        id: 'a-4-20-3',
+        text: 'Изолировать данные теста: чистая база/фикстуры, предсказуемая среда',
+        isCorrect: true,
+      },
+      {
+        id: 'a-4-20-4',
+        text: 'Всегда добавлять setTimeout(5000) перед каждым действием',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Флейки обычно из таймингов и нестабильных селекторов. “sleep” маскирует проблему и делает тесты медленнее.',
+    chapterId: 'chapter-4-3',
+    partId: 'part-4',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-4-21',
+    type: 'single',
+    question:
+      'Почему snapshot-тесты часто превращаются в “шум”, если ими злоупотреблять?',
+    answers: [
+      {
+        id: 'a-4-21-1',
+        text: 'Они ломаются при легитимных изменениях разметки и провоцируют “обновить снапшот не глядя”, что снижает ценность теста',
+        isCorrect: true,
+      },
+      {
+        id: 'a-4-21-2',
+        text: 'Потому что снапшоты делают SSR невозможным',
+        isCorrect: false,
+      },
+      {
+        id: 'a-4-21-3',
+        text: 'Потому что snapshot тесты не работают с TypeScript',
+        isCorrect: false,
+      },
+      {
+        id: 'a-4-21-4',
+        text: 'Snapshot может быть полезен для стабильного вывода (например, сериализация/разметка), но сам по себе не проверяет поведение пользователя и не заменяет e2e',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Снапшоты полезны точечно (например, стабильные компоненты/серилизация). Но в больших количествах они часто не проверяют смысл, а только “дифф разметки”.',
+    chapterId: 'chapter-4-3',
+    partId: 'part-4',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-4-22',
+    type: 'single',
+    question:
+      'Какой селектор в Testing Library считается предпочтительным и почему?',
+    answers: [
+      {
+        id: 'a-4-22-1',
+        text: 'getByRole (с name), потому что он ближе к тому, как пользователи и ассистивные технологии “видят” интерфейс',
+        isCorrect: true,
+      },
+      {
+        id: 'a-4-22-2',
+        text: 'getByTestId, потому что он самый быстрый',
+        isCorrect: false,
+      },
+      {
+        id: 'a-4-22-3',
+        text: 'getByClassName, потому что классы стабильны',
+        isCorrect: false,
+      },
+      {
+        id: 'a-4-22-4',
+        text: 'querySelector, потому что он максимально универсален',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Testing Library поощряет тестирование поведения, а не реализации. role/name завязаны на доступность и смысл элемента, а не на внутреннюю структуру.',
+    chapterId: 'chapter-4-3',
+    partId: 'part-4',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-4-23',
+    type: 'single',
+    question:
+      'Зачем нужны source maps и почему их иногда отключают в production?',
+    answers: [
+      {
+        id: 'a-4-23-1',
+        text: 'Они связывают минифицированный код с исходниками для дебага, но могут увеличивать размер артефактов и раскрывать исходный код (риск утечки)',
+        isCorrect: true,
+      },
+      {
+        id: 'a-4-23-2',
+        text: 'Source maps помогают отлаживать и разбирать стектрейсы. В production их иногда ограничивают/прячут из‑за утечки исходников и размеров, но они не “ускоряют” runtime',
+        isCorrect: false,
+      },
+      {
+        id: 'a-4-23-3',
+        text: 'Они нужны только для CSS, для JS не применяются',
+        isCorrect: false,
+      },
+      {
+        id: 'a-4-23-4',
+        text: 'Они автоматически исправляют ошибки в коде',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Частый компромисс: хранить sourcemaps отдельно (например, в Sentry), а не раздавать публично всем пользователям.',
+    chapterId: 'chapter-4-2',
+    partId: 'part-4',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-4-24',
+    type: 'single',
+    question:
+      'Почему peerDependencies важны для библиотек компонентов (например, React UI kit)?',
+    answers: [
+      {
+        id: 'a-4-24-1',
+        text: 'Чтобы не тащить дубликаты React/DOM в бандл и не получить конфликт версий/две копии React в приложении',
+        isCorrect: true,
+      },
+      {
+        id: 'a-4-24-2',
+        text: 'Чтобы ускорить установку npm в 10 раз',
+        isCorrect: false,
+      },
+      {
+        id: 'a-4-24-3',
+        text: 'Чтобы включить tree-shaking для CSS',
+        isCorrect: false,
+      },
+      {
+        id: 'a-4-24-4',
+        text: 'Чтобы запретить пользователю обновлять зависимости',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Две копии React в одном приложении — классическая боль (hooks/context начинают “ломаться”). peerDependencies помогает заставить приложение предоставить одну совместимую версию.',
+    chapterId: 'chapter-4-1',
+    partId: 'part-4',
+    difficulty: 'hard',
   },
 ]

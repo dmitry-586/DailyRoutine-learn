@@ -91,7 +91,7 @@ export default function PracticePage() {
         </div>
 
         {/* Navigation */}
-        <div className='fixed bottom-5 left-5 z-50'>
+        <div className='fixed bottom-4 left-4 z-50'>
           <Button
             onClick={() => {
               setSelectedPractice(null)
@@ -173,7 +173,7 @@ export default function PracticePage() {
       </div>
 
       {/* Navigation */}
-      <div className='fixed right-5 bottom-5 z-50'>
+      <div className='fixed right-4 bottom-4 z-50'>
         <Button
           onClick={() => router.push('/')}
           variant='glass-icon'

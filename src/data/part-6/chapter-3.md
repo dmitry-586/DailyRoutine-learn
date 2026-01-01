@@ -1,10 +1,10 @@
-# Глава 24. React Hook Form: производительные формы
+# Глава 23. React Hook Form: производительные формы
 
 ## Введение
 
 Формы — одна из самых сложных частей React-приложений. Нативные формы вызывают ререндеры при каждом вводе символа, сложны в валидации и управлении состоянием.
 
-**React Hook Form** решает эти проблемы через uncontrolled компоненты и минимальные ререндеры. В 2025 году это стандарт для форм в React.
+**React Hook Form** решает эти проблемы через uncontrolled компоненты и минимальные ререндеры. В 2026 году это стандарт для форм в React.
 
 ---
 
@@ -36,6 +36,7 @@ function LoginForm() {
 ```
 
 **Проблемы:**
+
 - 🐌 Ререндер всего компонента на каждый символ
 - 📦 Сложно масштабируется (большие формы)
 - 🔄 Дублирование кода для каждого поля
@@ -89,6 +90,7 @@ export function LoginForm() {
 ```
 
 **Преимущества:**
+
 - ✅ Нет ререндеров при вводе
 - ✅ Минимальный код
 - ✅ Типизация из коробки
@@ -230,11 +232,11 @@ export function SignupForm() {
 ```typescript
 const {
   formState: { errors, isSubmitting, isValid, isDirty },
-} = useForm();
+} = useForm()
 
 // errors - объект с ошибками для каждого поля
-errors.email?.message;
-errors.password?.message;
+errors.email?.message
+errors.password?.message
 
 // isSubmitting - форма отправляется
 // isValid - форма валидна
@@ -257,23 +259,20 @@ const {
 ### Серверные ошибки
 
 ```typescript
-const {
-  setError,
-  handleSubmit,
-} = useForm<LoginFormData>();
+const { setError, handleSubmit } = useForm<LoginFormData>()
 
 const onSubmit = async (data: LoginFormData) => {
   try {
-    await login(data);
+    await login(data)
   } catch (error) {
     if (error.code === 'INVALID_CREDENTIALS') {
       setError('email', {
         type: 'server',
         message: 'Неверный email или пароль',
-      });
+      })
     }
   }
-};
+}
 ```
 
 ---
@@ -313,15 +312,15 @@ function ProfileForm() {
 ### Подписка на изменения
 
 ```typescript
-const { watch } = useForm();
+const { watch } = useForm()
 
 useEffect(() => {
   const subscription = watch((value, { name, type }) => {
-    console.log('Changed field:', name, value);
-  });
+    console.log('Changed field:', name, value)
+  })
 
-  return () => subscription.unsubscribe();
-}, [watch]);
+  return () => subscription.unsubscribe()
+}, [watch])
 ```
 
 ---
@@ -427,18 +426,18 @@ const { register } = useForm({
   // mode: 'onChange', // При каждом изменении
   // mode: 'onTouched', // После первого blur
   // mode: 'all', // onChange + onBlur
-});
+})
 ```
 
 ### Отключение ререндеров
 
 ```typescript
 // ❌ watch вызывает ререндер
-const value = watch('email');
+const value = watch('email')
 
 // ✅ Используйте getValues без ререндера
-const { getValues } = useForm();
-const value = getValues('email');
+const { getValues } = useForm()
+const value = getValues('email')
 ```
 
 ### Изоляция форм
@@ -466,18 +465,18 @@ function PersonalInfoForm() {
 
 ## Сравнение: React Hook Form vs Formik
 
-| Критерий | React Hook Form | Formik |
-|----------|-----------------|--------|
-| Ререндеры | Минимальные | Много |
-| Bundle size | ~9KB | ~15KB |
-| Производительность | ⚡⚡⚡ | ⚡ |
-| TypeScript | Отличная | Хорошая |
-| Валидация | Zod, Yup, Joi | Yup |
-| Uncontrolled | ✅ | ❌ |
-| Field Arrays | ✅ | ✅ |
-| Ecosystem | Растёт | Зрелая |
+| Критерий           | React Hook Form | Formik  |
+| ------------------ | --------------- | ------- |
+| Ререндеры          | Минимальные     | Много   |
+| Bundle size        | ~9KB            | ~15KB   |
+| Производительность | ⚡⚡⚡          | ⚡      |
+| TypeScript         | Отличная        | Хорошая |
+| Валидация          | Zod, Yup, Joi   | Yup     |
+| Uncontrolled       | ✅              | ❌      |
+| Field Arrays       | ✅              | ✅      |
+| Ecosystem          | Растёт          | Зрелая  |
 
-**Выбор в 2025:** React Hook Form — стандарт.
+**Выбор в 2026:** React Hook Form — стандарт.
 
 ---
 
@@ -616,21 +615,21 @@ function SignupForm() {
 register('email', {
   required: true,
   pattern: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-});
+})
 
 // ✅ Хорошо: Zod resolver
 const schema = z.object({
   email: z.string().email(),
-});
+})
 
-useForm({ resolver: zodResolver(schema) });
+useForm({ resolver: zodResolver(schema) })
 ```
 
 ### 2. Типизируйте формы
 
 ```typescript
 // ✅ Всегда указывайте тип
-const { register } = useForm<LoginFormData>();
+const { register } = useForm<LoginFormData>()
 ```
 
 ### 3. Используйте defaultValues
@@ -641,7 +640,7 @@ const { register } = useForm({
     email: '',
     rememberMe: false,
   },
-});
+})
 ```
 
 ### 4. Разделяйте большие формы
@@ -655,7 +654,7 @@ function MegaForm() {
 // ✅ Хорошо: разделение на шаги
 function MultiStepForm() {
   const [step, setStep] = useState(1);
-  
+
   return (
     <>
       {step === 1 && <PersonalInfoStep />}
@@ -679,6 +678,7 @@ function MultiStepForm() {
 - 🔒 **Типизация** — отличная поддержка TypeScript
 
 **Ключевые паттерны:**
+
 1. Используйте `zodResolver` для валидации
 2. `Controller` для кастомных UI компонентов
 3. `useFieldArray` для динамических полей

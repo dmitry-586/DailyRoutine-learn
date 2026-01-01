@@ -44,7 +44,7 @@ export function ReaderNavigation({
   return (
     <>
       {/* Кнопка "Назад" слева внизу */}
-      <div className='fixed bottom-5 left-5 z-50'>
+      <div className='fixed bottom-4 left-4 z-50'>
         <Button
           onClick={handleBackToMenu}
           variant='glass-icon'
@@ -56,7 +56,7 @@ export function ReaderNavigation({
       </div>
 
       {/* Центральная навигация */}
-      <div className='fixed bottom-5 left-1/2 z-50 flex -translate-x-1/2 items-center'>
+      <div className='fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center'>
         <nav className='rounded-full bg-white/10 shadow-lg backdrop-blur-xl [backdrop-filter:blur(20px)_saturate(180%)]'>
           <div className='flex items-center gap-4 px-4 py-2'>
             <NavigationButton
@@ -85,7 +85,7 @@ export function ReaderNavigation({
       </div>
 
       {/* Кнопка "Тесты" справа внизу */}
-      <div className='fixed right-5 bottom-5 z-50'>
+      <div className='fixed right-4 bottom-4 z-50'>
         <Button
           onClick={handleGenerateTest}
           variant='glass-icon'

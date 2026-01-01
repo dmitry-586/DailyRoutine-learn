@@ -228,7 +228,7 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-7-2',
-        text: 'async/await работает быстрее, чем Promise.then()',
+        text: 'await не меняет природу microtasks: под капотом это промисы. Но он меняет “форму” кода: легко получить последовательное ожидание там, где в .then() вы бы запускали параллельно',
         isCorrect: false,
       },
       {
@@ -238,7 +238,7 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-7-4',
-        text: 'Нет разницы, это полностью идентичные способы работы с промисами',
+        text: 'async/await автоматически делает промисы “отменяемыми”, а Promise.then() — нет, поэтому await всегда безопаснее',
         isCorrect: false,
       },
     ],
@@ -361,7 +361,7 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-11-3',
-        text: 'Нет разницы, это синонимы',
+        text: 'event.target и event.currentTarget совпадают, если клик был по самому элементу-обработчику; но при клике по вложенным они отличаются даже при addEventListener',
         isCorrect: false,
       },
       {
@@ -484,7 +484,7 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-15-2',
-        text: 'all() быстрее, allSettled() медленнее',
+        text: 'Promise.all “дожидается” каждого промиса по очереди, а allSettled запускает их параллельно',
         isCorrect: false,
       },
       {
@@ -494,7 +494,7 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-15-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'Promise.allSettled отклоняется при первой ошибке так же, как Promise.all, просто формат результата другой',
         isCorrect: false,
       },
     ],
@@ -521,12 +521,12 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-16-3',
-        text: 'var быстрее, let/const медленнее',
+        text: 'let/const хранятся в heap и поэтому “тяжелее”, а var — на стеке, поэтому предпочтительнее в горячем коде',
         isCorrect: false,
       },
       {
         id: 'a-3-16-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'let и const поднимаются так же, как var: к ним можно обращаться до объявления (будет undefined)',
         isCorrect: false,
       },
     ],
@@ -580,7 +580,7 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-18-2',
-        text: '=== быстрее, == медленнее',
+        text: '== иногда используют осознанно для `value == null` (проверить и null, и undefined), но “в целом безопаснее” — нет: приведение типов часто даёт неожиданные результаты',
         isCorrect: false,
       },
       {
@@ -590,7 +590,7 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-18-4',
-        text: 'Нет разницы, это синонимы',
+        text: '== всегда сравнивает по ссылке, а === всегда сравнивает по значению',
         isCorrect: false,
       },
     ],
@@ -644,7 +644,7 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-20-2',
-        text: 'Примитивы быстрее, объекты медленнее',
+        text: 'Примитивы “immutable”, поэтому сравниваются по ссылке, а объекты — по значению',
         isCorrect: false,
       },
       {
@@ -654,7 +654,7 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-20-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'Объекты передаются по значению, если переменная объявлена через const',
         isCorrect: false,
       },
     ],
@@ -677,7 +677,7 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-21-2',
-        text: 'Стрелочные функции быстрее обычных',
+        text: 'Стрелочные функции захватывают this из внешней области (лексически). Это удобно в колбэках, но в качестве методов объекта часто неожиданно “ломает” this',
         isCorrect: false,
       },
       {
@@ -687,7 +687,7 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-21-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'Стрелочные функции отличаются только коротким синтаксисом: this/arguments и возможность new у них такие же, как у обычных',
         isCorrect: false,
       },
     ],
@@ -773,7 +773,7 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-24-2',
-        text: 'Все три делают одно и то же',
+        text: 'map/filter возвращают новый массив, а reduce возвращает аккумулятор (может быть чем угодно). Это важное отличие: reduce не “про массив на выходе”',
         isCorrect: false,
       },
       {
@@ -810,12 +810,12 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-25-3',
-        text: 'try быстрее, catch медленнее',
+        text: 'try/catch делает любой код “асинхронным”: ошибки превращаются в rejected Promise даже без async',
         isCorrect: false,
       },
       {
         id: 'a-3-25-4',
-        text: 'Нет разницы между catch и finally',
+        text: 'finally получает ошибку/результат как аргумент (как then/catch) и может “заменить” значение промиса, вернув другое',
         isCorrect: false,
       },
     ],
@@ -906,12 +906,12 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-28-3',
-        text: 'freeze() быстрее, seal() медленнее',
+        text: 'freeze/seal поверхностные. Частая ловушка: “freeze делает deep freeze” — нет, вложенные объекты остаются мутабельны, если их отдельно не заморозить',
         isCorrect: false,
       },
       {
         id: 'a-3-28-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'Object.seal полностью запрещает изменения, а Object.freeze запрещает только добавление новых свойств',
         isCorrect: false,
       },
     ],
@@ -938,12 +938,12 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-29-3',
-        text: 'stringify() быстрее, parse() медленнее',
+        text: 'JSON.stringify сохраняет методы/undefined/Symbol, поэтому это хороший способ “глубокого клонирования” любых объектов',
         isCorrect: false,
       },
       {
         id: 'a-3-29-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'JSON.parse сериализует объект в строку, а JSON.stringify парсит строку в объект',
         isCorrect: false,
       },
     ],
@@ -970,12 +970,12 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-30-3',
-        text: 'Set быстрее, Map медленнее',
+        text: 'Map как раз умеет ключи-объекты, в отличие от обычного объекта. Ловушка — думать, что ключи “только строки как в object”',
         isCorrect: false,
       },
       {
         id: 'a-3-30-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'Set и Map — это просто другие названия для Array и Object в современном JavaScript',
         isCorrect: false,
       },
     ],
@@ -1034,12 +1034,12 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-32-3',
-        text: 'call быстрее, apply медленнее, bind среднее',
+        text: 'bind меняет this только на один вызов, а дальше this снова становится прежним (в отличие от call/apply)',
         isCorrect: false,
       },
       {
         id: 'a-3-32-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'bind вызывает функцию сразу (как call/apply), просто возвращает её результат',
         isCorrect: false,
       },
     ],
@@ -1093,7 +1093,7 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-34-2',
-        text: 'Функции, которые выполняются быстрее обычных',
+        text: 'Функции, которые JavaScript-движок автоматически мемоизирует (кэширует результаты вызовов)',
         isCorrect: false,
       },
       {
@@ -1167,7 +1167,7 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-36-4',
-        text: 'Нет разницы, это синонимы',
+        text: '__proto__ — это свойство функции-конструктора, а prototype — свойство экземпляра объекта',
         isCorrect: false,
       },
     ],
@@ -1194,7 +1194,7 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-37-3',
-        text: 'Классы быстрее функций-конструкторов',
+        text: 'Классы создают “настоящие приватные поля” автоматически для всех свойств, поэтому их обычно выбирают из-за безопасности',
         isCorrect: false,
       },
       {
@@ -1231,7 +1231,7 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-38-4',
-        text: 'Методы, которые выполняются быстрее',
+        text: 'Методы, которые вызываются автоматически при создании экземпляра (как конструктор), поэтому не требуют явного вызова',
         isCorrect: false,
       },
     ],
@@ -1317,7 +1317,7 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-41-2',
-        text: 'innerHTML быстрее, textContent медленнее',
+        text: 'textContent безопаснее, потому что НЕ парсит HTML вообще. Он не “санитизирует”, а просто вставляет текст как текст',
         isCorrect: false,
       },
       {
@@ -1327,7 +1327,7 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-41-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'textContent тоже вставляет HTML, но автоматически удаляет <script>, поэтому безопасен как innerHTML',
         isCorrect: false,
       },
     ],
@@ -1354,12 +1354,12 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-42-3',
-        text: 'Capturing быстрее, bubbling медленнее',
+        text: 'capturing — просто другая фаза. Она не “выключает” bubbling автоматически и не является универсальным приёмом для производительности',
         isCorrect: false,
       },
       {
         id: 'a-3-42-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'Фаза capturing используется только для inline-обработчиков (onclick="..."), а addEventListener всегда работает на bubbling',
         isCorrect: false,
       },
     ],
@@ -1386,7 +1386,7 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-43-3',
-        text: 'Оба делают одно и то же',
+        text: 'preventDefault отменяет действие по умолчанию, но не влияет на всплытие. Для всплытия нужен stopPropagation/stopImmediatePropagation',
         isCorrect: false,
       },
       {
@@ -1514,12 +1514,12 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-47-3',
-        text: 'setTimeout быстрее, setInterval медленнее',
+        text: 'и setTimeout, и setInterval зависят от event loop и могут “дрейфовать” под нагрузкой. interval не гарантирует точность и может накапливать задержки',
         isCorrect: false,
       },
       {
         id: 'a-3-47-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'setInterval гарантирует точное выполнение “каждые N мс” независимо от нагрузки, а setTimeout нет',
         isCorrect: false,
       },
     ],
@@ -1546,12 +1546,12 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-48-3',
-        text: 'Promise.resolve() быстрее, Promise.reject() медленнее',
+        text: 'rejected промис можно обработать catch и продолжить цепочку. “Остановки навсегда” нет — цепочка зависит от обработчиков',
         isCorrect: false,
       },
       {
         id: 'a-3-48-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'Promise.reject создаёт выполненный промис, но с “пустым” значением, чтобы сработал finally',
         isCorrect: false,
       },
     ],
@@ -1642,12 +1642,12 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-51-3',
-        text: 'fetch быстрее, XMLHttpRequest медленнее',
+        text: 'fetch сам по себе не знает про React. Для отмены обычно используют AbortController, а не “автоматическую” отмену при размонтировании',
         isCorrect: false,
       },
       {
         id: 'a-3-51-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'fetch автоматически отклоняет промис на HTTP 4xx/5xx, поэтому response.ok проверять не нужно',
         isCorrect: false,
       },
     ],
@@ -1679,7 +1679,7 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-52-4',
-        text: 'Нет разницы с обычными Map и Set',
+        text: 'WeakMap/WeakSet “слабые” по ссылкам: ключи могут быть GC’нуты, если на них нет сильных ссылок. Это не TTL и не “автоочистка по времени”',
         isCorrect: false,
       },
     ],
@@ -1770,12 +1770,12 @@ export const part3Questions: QuizQuestion[] = [
       },
       {
         id: 'a-3-55-3',
-        text: 'rest быстрее, spread медленнее',
+        text: 'rest/spread — один синтаксис, но разные контексты. И в массивах, и в объектах есть и rest, и spread',
         isCorrect: false,
       },
       {
         id: 'a-3-55-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'rest распаковывает массив/объект, а spread собирает “остаток” в массив',
         isCorrect: false,
       },
     ],
@@ -1944,5 +1944,464 @@ export const part3Questions: QuizQuestion[] = [
     chapterId: 'chapter-3-1',
     partId: 'part-3',
     difficulty: 'easy',
+  },
+  {
+    id: 'q-3-61',
+    type: 'single',
+    question:
+      'Что выведет код и почему? function f(){ "use strict"; return this } console.log(f())',
+    answers: [
+      {
+        id: 'a-3-61-1',
+        text: 'undefined, потому что в strict mode this в обычном вызове функции равен undefined',
+        isCorrect: true,
+      },
+      {
+        id: 'a-3-61-2',
+        text: 'window, потому что this всегда указывает на глобальный объект',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-61-3',
+        text: 'ReferenceError, потому что this запрещён в strict mode',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-61-4',
+        text: 'null, потому что this по умолчанию null',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'this определяется в момент вызова. Обычный вызов fn() в strict mode даёт this = undefined (в нестрогом режиме это обычно globalThis/window).',
+    chapterId: 'chapter-3-2',
+    partId: 'part-3',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-3-62',
+    type: 'single',
+    question:
+      'Почему setTimeout(obj.method, 0) часто “теряет” this, и какой самый надёжный фикс?',
+    answers: [
+      {
+        id: 'a-3-62-1',
+        text: 'Передаётся ссылка на функцию без объекта слева, поэтому вызов становится fn(); фикс: bind(obj) или обёртка () => obj.method()',
+        isCorrect: true,
+      },
+      {
+        id: 'a-3-62-2',
+        text: 'setTimeout выполняет код в другом потоке и обнуляет контекст; фикс: добавить "use strict"',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-62-3',
+        text: 'Проблема в очереди microtasks; фикс: заменить setTimeout на Promise.then',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-62-4',
+        text: 'Проблема в стрелочных функциях; фикс: переписать метод на arrow',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Когда метод отрывают от объекта, он вызывается как обычная функция. bind фиксирует this навсегда, стрелочная обёртка сохраняет вызов как метод.',
+    chapterId: 'chapter-3-2',
+    partId: 'part-3',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-3-63',
+    type: 'single',
+    question:
+      'Что выведет код и почему? const obj = { a: 1, f: () => this.a }; console.log(obj.f())',
+    answers: [
+      {
+        id: 'a-3-63-1',
+        text: 'undefined (или значение из внешнего this), потому что стрелка не имеет собственного this и не привязывается к obj',
+        isCorrect: true,
+      },
+      {
+        id: 'a-3-63-2',
+        text: '1, потому что this всегда указывает на объект слева от точки',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-63-3',
+        text: 'TypeError, потому что стрелочные функции нельзя вызывать',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-63-4',
+        text: '0, потому что this в стрелке равен 0 по умолчанию',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Стрелочные функции “захватывают” this лексически и не получают this от способа вызова. Поэтому f не станет методом в смысле this.',
+    chapterId: 'chapter-3-2',
+    partId: 'part-3',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-3-64',
+    type: 'single',
+    question: 'Почему замыкание может привести к утечке памяти в браузере?',
+    answers: [
+      {
+        id: 'a-3-64-1',
+        text: 'Потому что функция удерживает ссылки на переменные из внешнего окружения, и они не могут быть собраны GC, пока живо замыкание',
+        isCorrect: true,
+      },
+      {
+        id: 'a-3-64-2',
+        text: 'Потому что замыкания запрещают сборку мусора полностью',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-64-3',
+        text: 'Потому что замыкания автоматически создают глобальные переменные',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-64-4',
+        text: 'Потому что замыкания работают только в strict mode и ломают GC',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Проблема не в замыкании как таковом, а в удержании больших объектов/DOM-ссылок через живую функцию-обработчик/таймер/кеш.',
+    chapterId: 'chapter-3-2',
+    partId: 'part-3',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-3-65',
+    type: 'multiple',
+    question: 'Какие утверждения про прототипную цепочку верны?',
+    answers: [
+      {
+        id: 'a-3-65-1',
+        text: 'Если свойство не найдено на объекте, JS ищет его по цепочке __proto__ (prototype chain)',
+        isCorrect: true,
+      },
+      {
+        id: 'a-3-65-2',
+        text: 'Object.create(proto) создаёт объект, у которого [[Prototype]] указывает на proto',
+        isCorrect: true,
+      },
+      {
+        id: 'a-3-65-3',
+        text: 'Стрелочные функции имеют собственное свойство prototype и подходят для new',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-65-4',
+        text: 'Методы, определённые в class, физически копируются в каждый инстанс',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'В class методы попадают в prototype, а не копируются в каждый объект. new работает с функциями-конструкторами (не со стрелками).',
+    chapterId: 'chapter-3-2',
+    partId: 'part-3',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-3-66',
+    type: 'single',
+    question: 'Что выведет код и почему? console.log(typeof null)',
+    answers: [
+      {
+        id: 'a-3-66-1',
+        text: '"object" — это исторический баг JavaScript',
+        isCorrect: true,
+      },
+      {
+        id: 'a-3-66-2',
+        text: '"null" — отдельный тип в JS',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-66-3',
+        text: '"undefined" — потому что null означает отсутствие значения',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-66-4',
+        text: '"boolean" — потому что null ложное значение',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'typeof null === "object" — известный баг с первых версий языка. Для проверки null обычно используют value === null.',
+    chapterId: 'chapter-3-1',
+    partId: 'part-3',
+    difficulty: 'easy',
+  },
+  {
+    id: 'q-3-67',
+    type: 'single',
+    question:
+      'Что выведет код? Promise.resolve().then(() => console.log(1)); setTimeout(() => console.log(2), 0); console.log(3)',
+    answers: [
+      {
+        id: 'a-3-67-1',
+        text: '3, 1, 2 (сначала синхронный код, потом microtasks, потом macrotasks)',
+        isCorrect: true,
+      },
+      {
+        id: 'a-3-67-2',
+        text: '1, 3, 2',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-67-3',
+        text: '3, 2, 1',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-67-4',
+        text: '2, 1, 3',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Синхронный код выполняется сразу. Promise.then — microtask и выполняется перед следующей macrotask (setTimeout).',
+    chapterId: 'chapter-3-4',
+    partId: 'part-3',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-3-68',
+    type: 'single',
+    question:
+      'Что произойдёт, если внутри then вы забыли return промиса/значения, но рассчитываете использовать результат дальше по цепочке?',
+    answers: [
+      {
+        id: 'a-3-68-1',
+        text: 'Следующий then получит undefined, потому что вы не вернули значение/промис из предыдущего then',
+        isCorrect: true,
+      },
+      {
+        id: 'a-3-68-2',
+        text: 'Promise автоматически “додумает” return и вернёт результат последнего выражения',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-68-3',
+        text: 'Это приведёт к синтаксической ошибке',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-68-4',
+        text: 'JavaScript выбросит TypeError только в strict mode',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Каждый then возвращает новый промис. Если callback ничего не вернул, в цепочку пойдёт undefined.',
+    chapterId: 'chapter-3-4',
+    partId: 'part-3',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-3-69',
+    type: 'single',
+    question:
+      'Чем Promise.all отличается от Promise.allSettled в контексте отказоустойчивости?',
+    answers: [
+      {
+        id: 'a-3-69-1',
+        text: 'Promise.all “падает” на первой ошибке, allSettled всегда ждёт завершения всех промисов и возвращает статусы',
+        isCorrect: true,
+      },
+      {
+        id: 'a-3-69-2',
+        text: 'Promise.all выполняет промисы последовательно, allSettled — параллельно',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-69-3',
+        text: 'allSettled существует только в Node.js, а в браузере нет',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-69-4',
+        text: 'Promise.allSettled завершится “раньше”, чем Promise.all, потому что не ждёт успешные промисы после первой ошибки',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'all подходит, когда “все обязательны”. allSettled — когда нужно собрать результаты даже при частичных ошибках (например, метрики/несколько независимых источников).',
+    chapterId: 'chapter-3-4',
+    partId: 'part-3',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-3-70',
+    type: 'multiple',
+    question:
+      'Какие проблемы чаще всего возникают при смешивании async/await и .then() в одном и том же участке кода?',
+    answers: [
+      {
+        id: 'a-3-70-1',
+        text: 'Потеря контроля над цепочкой: ошибки и return становятся менее очевидными, легко “забыть” await или return',
+        isCorrect: true,
+      },
+      {
+        id: 'a-3-70-2',
+        text: 'Гарантированный memory leak в любом браузере',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-70-3',
+        text: 'Двойное выполнение промиса из-за microtasks',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-70-4',
+        text: 'Сложнее читать и дебажить, особенно при нескольких then и вложенных await',
+        isCorrect: true,
+      },
+    ],
+    explanation:
+      'Это не “запрещено”, но часто ухудшает читаемость и повышает шанс пропустить return/await и сломать обработку ошибок.',
+    chapterId: 'chapter-3-4',
+    partId: 'part-3',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-3-71',
+    type: 'single',
+    question:
+      'Почему event delegation обычно лучше, чем навесить обработчик на каждый элемент списка?',
+    answers: [
+      {
+        id: 'a-3-71-1',
+        text: 'Меньше обработчиков → меньше памяти/нагрузки, и работает для динамически добавленных элементов из-за всплытия',
+        isCorrect: true,
+      },
+      {
+        id: 'a-3-71-2',
+        text: 'Потому что делегирование переводит события в microtasks',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-71-3',
+        text: 'делегирование использует bubbling: событие всё равно всплывает, просто вы ставите один обработчик выше и фильтруете target. Выигрыш — меньше обработчиков и проще динамические списки',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-71-4',
+        text: 'Потому что addEventListener запрещён на элементах',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'События всплывают вверх. Один обработчик на контейнере может обслуживать много дочерних элементов и новые элементы, добавленные позже.',
+    chapterId: 'chapter-3-3',
+    partId: 'part-3',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-3-72',
+    type: 'single',
+    question:
+      'Почему removeEventListener часто “не работает”, если обработчик был добавлен как анонимная функция?',
+    answers: [
+      {
+        id: 'a-3-72-1',
+        text: 'Потому что removeEventListener требует ту же самую ссылку на функцию, а анонимную функцию вы не можете передать повторно',
+        isCorrect: true,
+      },
+      {
+        id: 'a-3-72-2',
+        text: 'Потому что removeEventListener работает только в capturing phase',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-72-3',
+        text: 'Потому что обработчики событий нельзя удалять в JavaScript',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-72-4',
+        text: 'Потому что события хранятся в DOM и не связаны с функциями',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Нужно сохранять ссылку: const handler = () => {...}; el.addEventListener(..., handler); el.removeEventListener(..., handler).',
+    chapterId: 'chapter-3-3',
+    partId: 'part-3',
+    difficulty: 'easy',
+  },
+  {
+    id: 'q-3-73',
+    type: 'single',
+    question:
+      'В чём практическая опасность innerHTML при вставке пользовательского ввода?',
+    answers: [
+      {
+        id: 'a-3-73-1',
+        text: 'XSS: пользователь может вставить HTML/скрипт/inline-обработчики и выполнить произвольный JS в вашем origin',
+        isCorrect: true,
+      },
+      {
+        id: 'a-3-73-2',
+        text: 'innerHTML делает DOM “read-only” и ломает события',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-73-3',
+        text: 'innerHTML запрещён спецификацией HTML5',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-73-4',
+        text: 'innerHTML не работает в современных браузерах без polyfill',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'innerHTML интерпретирует строку как HTML. Без санитизации это прямой путь к XSS. Для текста используйте textContent.',
+    chapterId: 'chapter-3-3',
+    partId: 'part-3',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-3-74',
+    type: 'single',
+    question:
+      'В чём ключевая разница между HTMLCollection и NodeList в плане “живости” коллекции?',
+    answers: [
+      {
+        id: 'a-3-74-1',
+        text: 'HTMLCollection обычно “живая” (обновляется при изменениях DOM), NodeList чаще статичная (например, querySelectorAll)',
+        isCorrect: true,
+      },
+      {
+        id: 'a-3-74-2',
+        text: 'NodeList всегда живой, HTMLCollection всегда статичный',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-74-3',
+        text: 'Ключевое отличие — “живость”: HTMLCollection часто live, NodeList от querySelectorAll обычно snapshot. Методы — вторично',
+        isCorrect: false,
+      },
+      {
+        id: 'a-3-74-4',
+        text: 'HTMLCollection может содержать только текстовые узлы',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Важно на собесе: querySelectorAll даёт NodeList (обычно snapshot), а getElementsBy* часто возвращает live HTMLCollection. “Живость” может быть источником неожиданных багов.',
+    chapterId: 'chapter-3-3',
+    partId: 'part-3',
+    difficulty: 'hard',
   },
 ]

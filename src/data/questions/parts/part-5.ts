@@ -26,7 +26,7 @@ export const part5Questions: QuizQuestion[] = [
       },
       {
         id: 'a-5-1-4',
-        text: 'Нет разницы, это синонимы с полностью идентичным функционалом и поведением',
+        text: 'type поддерживает declaration merging и расширение через extends, а interface — нет',
         isCorrect: false,
       },
     ],
@@ -223,7 +223,7 @@ export const part5Questions: QuizQuestion[] = [
       },
       {
         id: 'a-5-7-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'unknown можно использовать так же свободно, как any: TypeScript не потребует проверок перед доступом к полям',
         isCorrect: false,
       },
     ],
@@ -794,12 +794,12 @@ export const part5Questions: QuizQuestion[] = [
       },
       {
         id: 'a-5-25-3',
-        text: 'Exclude быстрее, Extract медленнее',
+        text: 'Extract/Exclude — типовые (compile-time) инструменты, но в коде их часто используют “в паре” с runtime‑проверками/guards, чтобы после фильтрации получить более точный тип',
         isCorrect: false,
       },
       {
         id: 'a-5-25-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'Exclude/Extract чаще всего используют для объектов, но они прекрасно работают и для union примитивов (строки/числа/литералы) — ограничение не в “object”, а в типовой совместимости',
         isCorrect: false,
       },
     ],
@@ -858,12 +858,12 @@ export const part5Questions: QuizQuestion[] = [
       },
       {
         id: 'a-5-27-3',
-        text: 'ReturnType быстрее, Parameters медленнее',
+        text: 'Parameters/ReturnType — чисто типовые утилиты: они одинаково применимы и к async, и к sync функциям; отличие скорее в том, что для async часто дополнительно используют Awaited<ReturnType<...>>',
         isCorrect: false,
       },
       {
         id: 'a-5-27-4',
-        text: 'Нет разницы, это синонимы',
+        text: 'Parameters возвращает объединение (union) типов параметров, а ReturnType возвращает tuple параметров',
         isCorrect: false,
       },
     ],
@@ -1030,6 +1030,397 @@ export const part5Questions: QuizQuestion[] = [
     explanation:
       'satisfies проверяет соответствие типу, но сохраняет более узкий тип значения. Пример: const config = { theme: "dark" } satisfies Config → тип остаётся { theme: "dark" }, а не Config. Полезен для сохранения литеральных типов.',
     chapterId: 'chapter-5-4',
+    partId: 'part-5',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-5-33',
+    type: 'single',
+    question:
+      'Почему unknown в TypeScript безопаснее any при работе с внешними данными?',
+    answers: [
+      {
+        id: 'a-5-33-1',
+        text: 'unknown требует явного сужения/проверок перед использованием, поэтому не “протаскивает” небезопасные операции в runtime',
+        isCorrect: true,
+      },
+      {
+        id: 'a-5-33-2',
+        text: 'unknown автоматически валидирует JSON на соответствие интерфейсу',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-33-3',
+        text: 'unknown не добавляет runtime‑проверок сам по себе, но дисциплинирует код: вам придётся писать guards/валидацию, и вот эти проверки уже имеют runtime‑стоимость',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-33-4',
+        text: 'unknown всегда превращается в never при инференсе',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'any отключает проверку типов и позволяет делать что угодно. unknown, наоборот, заставляет проверять тип перед доступом к полям/вызовами — это полезно для данных из API/форм.',
+    chapterId: 'chapter-5-1',
+    partId: 'part-5',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-5-34',
+    type: 'single',
+    question:
+      'В чём практический смысл пользовательских type guards (user-defined type guards)?',
+    answers: [
+      {
+        id: 'a-5-34-1',
+        text: 'Они позволяют TypeScript сузить тип внутри ветки, потому что функция возвращает предикат вида value is T',
+        isCorrect: true,
+      },
+      {
+        id: 'a-5-34-2',
+        text: 'Они валидируют данные в runtime лучше Zod без библиотек',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-34-3',
+        text: 'Они автоматически генерируют OpenAPI спецификацию',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-34-4',
+        text: 'Они запрещены в strict режиме',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Type guard — это способ “объяснить” компилятору, что после проверки значение имеет более конкретный тип. Это повышает типобезопасность и убирает лишние касты.',
+    chapterId: 'chapter-5-2',
+    partId: 'part-5',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-5-35',
+    type: 'single',
+    question:
+      'Какой основной риск у “as Type” (type assertion) при работе с данными из API?',
+    answers: [
+      {
+        id: 'a-5-35-1',
+        text: 'Это не проверка в runtime: можно “заставить” компилятор поверить, но приложение упадёт, если данные не соответствуют типу',
+        isCorrect: true,
+      },
+      {
+        id: 'a-5-35-2',
+        text: 'Type assertion запрещает tree-shaking и увеличивает бандл',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-35-3',
+        text: 'Type assertion замедляет HTTP-запросы',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-35-4',
+        text: 'Type assertion автоматически сериализует типы в JSON',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Типы TypeScript существуют только во время компиляции. Для runtime-данных нужен валидатор (например, Zod), иначе “as” может скрыть реальные проблемы.',
+    chapterId: 'chapter-5-6',
+    partId: 'part-5',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-5-36',
+    type: 'single',
+    question:
+      'Какое утверждение точнее всего про распределительные conditional types?',
+    answers: [
+      {
+        id: 'a-5-36-1',
+        text: 'Conditional type распределяется по union, если проверяемый тип стоит “голым” (T extends U ? ... : ...)',
+        isCorrect: true,
+      },
+      {
+        id: 'a-5-36-2',
+        text: 'Conditional types часто “распределяются” по union, что может неожиданно раздувать результат; иногда это нужно отключать через обёртку в кортеж ([T] extends [U])',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-36-3',
+        text: 'Распределение происходит только для interface, но не для type',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-36-4',
+        text: 'Распределение включается только если использовать infer',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Классический пример: Extract/Exclude. Если нужно “отключить” распределение, часто оборачивают тип в кортеж: [T] extends [U] ? ... : ...',
+    chapterId: 'chapter-5-5',
+    partId: 'part-5',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-5-37',
+    type: 'single',
+    question:
+      'Зачем в TypeScript иногда используют “брендированные типы” (branded/nominal types)?',
+    answers: [
+      {
+        id: 'a-5-37-1',
+        text: 'Чтобы сделать типы несовместимыми при одинаковой структуре (например, UserId и PostId оба string), предотвращая логические ошибки',
+        isCorrect: true,
+      },
+      {
+        id: 'a-5-37-2',
+        text: 'Чтобы ускорить компиляцию за счёт уменьшения union',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-37-3',
+        text: 'Чтобы автоматически валидировать данные в runtime без библиотек',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-37-4',
+        text: 'Чтобы включить поддержку рефлексии типов в JavaScript',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'TypeScript структурный, поэтому одинаковые структуры совместимы. Брендирование добавляет “метку”, делая типы номинальными и защищая от путаницы идентификаторов.',
+    chapterId: 'chapter-5-5',
+    partId: 'part-5',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-5-38',
+    type: 'single',
+    question: 'Что возвращает z.infer<typeof Schema> в Zod?',
+    answers: [
+      {
+        id: 'a-5-38-1',
+        text: 'TypeScript-тип, соответствующий схеме, выведенный из Zod-схемы',
+        isCorrect: true,
+      },
+      {
+        id: 'a-5-38-2',
+        text: 'Runtime-валидатор, который можно вызывать как функцию',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-38-3',
+        text: 'JSON-schema для Swagger/OpenAPI',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-38-4',
+        text: 'Promise с типом данных, который вернёт API',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Zod-схема — runtime, а z.infer — compile-time тип из этой схемы. Это делает схему “единственным источником правды” для валидации и типов.',
+    chapterId: 'chapter-5-6',
+    partId: 'part-5',
+    difficulty: 'easy',
+  },
+  {
+    id: 'q-5-39',
+    type: 'single',
+    question:
+      'В чём практическая разница между Schema.parse и Schema.safeParse в Zod?',
+    answers: [
+      {
+        id: 'a-5-39-1',
+        text: 'parse бросает исключение при ошибке, safeParse возвращает объект результата { success, data/error } без throw',
+        isCorrect: true,
+      },
+      {
+        id: 'a-5-39-2',
+        text: 'safeParse валидирует только примитивы, а parse — любые схемы',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-39-3',
+        text: 'parse работает только в dev, а safeParse — только в prod',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-39-4',
+        text: 'parse не возвращает данные, он только проверяет',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'В UI/формах часто удобнее safeParse, чтобы показать ошибки без try/catch. В сервисном коде parse может быть ок, если вы централизованно ловите ошибки.',
+    chapterId: 'chapter-5-6',
+    partId: 'part-5',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-5-40',
+    type: 'single',
+    question: 'Когда в Zod стоит использовать preprocess вместо transform?',
+    answers: [
+      {
+        id: 'a-5-40-1',
+        text: 'Когда нужно привести входные данные к форме, подходящей для последующей валидации (например, пустую строку → null)',
+        isCorrect: true,
+      },
+      {
+        id: 'a-5-40-2',
+        text: 'Когда нужно ускорить компиляцию TypeScript',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-40-3',
+        text: 'Когда нужно изменить тип без изменения данных',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-40-4',
+        text: 'preprocess и transform — оба runtime. preprocess полезен именно ДО основной валидации (нормализовать вход), а transform — ПОСЛЕ успешной валидации (преобразовать результат), и это важно для корректных ошибок',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'preprocess запускается до основной валидации и помогает нормализовать вход. transform чаще применяют после успешной валидации для преобразования результата.',
+    chapterId: 'chapter-5-6',
+    partId: 'part-5',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-5-41',
+    type: 'multiple',
+    question:
+      'Какие преимущества даёт discriminatedUnion в Zod по сравнению с обычным union?',
+    answers: [
+      {
+        id: 'a-5-41-1',
+        text: 'Более предсказуемая и быстрая валидация за счёт “дискриминатора” (tag field)',
+        isCorrect: true,
+      },
+      {
+        id: 'a-5-41-2',
+        text: 'Более понятные ошибки валидации, потому что выбор ветки делается по tag',
+        isCorrect: true,
+      },
+      {
+        id: 'a-5-41-3',
+        text: 'Автоматическая генерация SQL-таблиц по схеме',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-41-4',
+        text: 'Гарантированная защита от XSS на фронтенде',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'Discriminated union (tagged union) выбирает ветку по полю-дискриминатору и обычно даёт более ясные ошибки и лучшее поведение, чем “перебор” вариантов в union.',
+    chapterId: 'chapter-5-6',
+    partId: 'part-5',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-5-42',
+    type: 'single',
+    question: 'Зачем в Zod нужен superRefine, если уже есть refine?',
+    answers: [
+      {
+        id: 'a-5-42-1',
+        text: 'superRefine позволяет добавлять несколько ошибок и “прикреплять” их к конкретным путям (полям), делая валидацию более точной',
+        isCorrect: true,
+      },
+      {
+        id: 'a-5-42-2',
+        text: 'superRefine включает strictNullChecks',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-42-3',
+        text: 'superRefine нужен только для массивов, а refine — только для объектов',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-42-4',
+        text: 'superRefine автоматически исправляет данные, если они невалидны',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'refine чаще про “одна проверка → одна ошибка”. superRefine даёт доступ к ctx и позволяет навешивать несколько issues на разные поля — важно для сложных форм.',
+    chapterId: 'chapter-5-6',
+    partId: 'part-5',
+    difficulty: 'hard',
+  },
+  {
+    id: 'q-5-43',
+    type: 'single',
+    question: 'Какой сценарий лучше всего оправдывает использование z.lazy?',
+    answers: [
+      {
+        id: 'a-5-43-1',
+        text: 'Рекурсивные структуры (деревья), где схема ссылается сама на себя',
+        isCorrect: true,
+      },
+      {
+        id: 'a-5-43-2',
+        text: 'Когда нужно сделать валидацию асинхронной: z.lazy включает async‑режим и даёт await внутри схемы',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-43-3',
+        text: 'Чтобы Zod начал работать в compile-time и не влиял на runtime',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-43-4',
+        text: 'Чтобы автоматически конвертировать JSON в классы',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'z.lazy откладывает создание схемы, что позволяет описывать рекурсивные типы (например, категорию с подкатегориями) без циклических ссылок при инициализации.',
+    chapterId: 'chapter-5-6',
+    partId: 'part-5',
+    difficulty: 'medium',
+  },
+  {
+    id: 'q-5-44',
+    type: 'single',
+    question: 'Что даёт .brand() в Zod и какая проблема это решает?',
+    answers: [
+      {
+        id: 'a-5-44-1',
+        text: 'Создаёт брендированный тип на уровне TypeScript (nominal typing), чтобы различать логически разные значения одинаковой структуры (например, разные id)',
+        isCorrect: true,
+      },
+      {
+        id: 'a-5-44-2',
+        text: 'Шифрует значения, чтобы их нельзя было украсть из памяти',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-44-3',
+        text: 'Ускоряет запросы к API за счёт кеширования',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-44-4',
+        text: 'Добавляет поле brand в runtime объект',
+        isCorrect: false,
+      },
+    ],
+    explanation:
+      'brand — это типовой “лейбл” для TS, а не runtime поле. Он помогает избежать путаницы между разными id/строками одинакового вида.',
+    chapterId: 'chapter-5-6',
     partId: 'part-5',
     difficulty: 'hard',
   },
