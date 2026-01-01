@@ -152,7 +152,7 @@ export function QuizStart({ onBack }: QuizStartProps) {
       </div>
 
       {/* Navigation */}
-      <div className='absolute bottom-5 left-5 z-50'>
+      <div className='fixed bottom-5 left-5 z-50'>
         <Button
           variant='glass-icon'
           onClick={onBack}
@@ -163,7 +163,7 @@ export function QuizStart({ onBack }: QuizStartProps) {
         </Button>
       </div>
 
-      <div className='absolute right-5 bottom-5 z-50'>
+      <div className='fixed right-5 bottom-5 z-50'>
         <Button
           variant='glass-icon'
           onClick={handleStart}

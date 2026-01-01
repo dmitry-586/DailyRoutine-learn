@@ -191,7 +191,7 @@ export function QuizSession({
       </div>
 
       {/* Navigation */}
-      <div className='absolute bottom-5 left-5 z-50'>
+      <div className='fixed bottom-5 left-5 z-50'>
         <Button
           variant='glass-icon'
           onClick={onBack}
@@ -202,7 +202,7 @@ export function QuizSession({
         </Button>
       </div>
 
-      <div className='absolute right-5 bottom-5 z-50 flex items-center gap-3'>
+      <div className='fixed right-5 bottom-5 z-50 flex items-center gap-3'>
         {currentIndex > 0 && (
           <Button
             variant='glass'
