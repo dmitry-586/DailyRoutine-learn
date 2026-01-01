@@ -27,6 +27,11 @@ export const partsConfig = [
         title: 'Глава 4. Семантика HTML и доступность',
         file: 'chapter-4.md',
       },
+      {
+        id: 'chapter-1-5',
+        title: 'Глава 5. Axios и работа с HTTP',
+        file: 'chapter-5.md',
+      },
     ],
   },
   {
@@ -36,18 +41,23 @@ export const partsConfig = [
     chapters: [
       {
         id: 'chapter-2-1',
-        title: 'Глава 5. Основы CSS',
+        title: 'Глава 6. Основы CSS',
         file: 'chapter-1.md',
       },
       {
         id: 'chapter-2-2',
-        title: 'Глава 6. Современная экосистема CSS',
+        title: 'Глава 7. Современная экосистема CSS',
         file: 'chapter-2.md',
       },
       {
         id: 'chapter-2-3',
-        title: 'Глава 7. Препроцессоры и инструменты',
+        title: 'Глава 8. Препроцессоры и инструменты',
         file: 'chapter-3.md',
+      },
+      {
+        id: 'chapter-2-4',
+        title: 'Глава 9. Tailwind CSS v4',
+        file: 'chapter-4.md',
       },
     ],
   },
@@ -58,22 +68,22 @@ export const partsConfig = [
     chapters: [
       {
         id: 'chapter-3-1',
-        title: 'Глава 8. Фундамент JavaScript: как язык устроен под капотом',
+        title: 'Глава 10. Фундамент JavaScript',
         file: 'chapter-1.md',
       },
       {
         id: 'chapter-3-2',
-        title: 'Глава 9. Функции, this, замыкания и прототипы',
+        title: 'Глава 11. Функции, this, замыкания и прототипы',
         file: 'chapter-2.md',
       },
       {
         id: 'chapter-3-3',
-        title: 'Глава 10. Работа с DOM без магии и тормозов',
+        title: 'Глава 12. Работа с DOM',
         file: 'chapter-3.md',
       },
       {
         id: 'chapter-3-4',
-        title: 'Глава 11. Асинхронность, Event Loop и промисы',
+        title: 'Глава 13. Асинхронность, Event Loop и промисы',
         file: 'chapter-4.md',
       },
     ],
@@ -85,18 +95,13 @@ export const partsConfig = [
     chapters: [
       {
         id: 'chapter-4-1',
-        title: 'Глава 13. NPM, package.json и зависимости',
+        title: 'Глава 14. NPM, сборщики и инструменты',
         file: 'chapter-1.md',
       },
       {
         id: 'chapter-4-2',
-        title: 'Глава 14. Сборщики',
-        file: 'chapter-2.md',
-      },
-      {
-        id: 'chapter-4-3',
         title: 'Глава 15. Тестирование',
-        file: 'chapter-3.md',
+        file: 'chapter-2.md',
       },
     ],
   },
@@ -125,6 +130,16 @@ export const partsConfig = [
         title: 'Глава 19. Практические аспекты TypeScript',
         file: 'chapter-4.md',
       },
+      {
+        id: 'chapter-5-5',
+        title: 'Глава 20. Продвинутые техники TypeScript',
+        file: 'chapter-5.md',
+      },
+      {
+        id: 'chapter-5-6',
+        title: 'Глава 21. Zod: runtime валидация и типизация',
+        file: 'chapter-6.md',
+      },
     ],
   },
   {
@@ -134,23 +149,38 @@ export const partsConfig = [
     chapters: [
       {
         id: 'chapter-6-1',
-        title: 'Глава 20. Основы React',
+        title: 'Глава 22. Основы React',
         file: 'chapter-1.md',
       },
       {
         id: 'chapter-6-2',
-        title: 'Глава 21. Хуки и управление состоянием',
+        title: 'Глава 23. Хуки и управление состоянием',
         file: 'chapter-2.md',
       },
       {
         id: 'chapter-6-3',
-        title: 'Глава 22. Архитектура больших приложений',
+        title: 'Глава 24. React Hook Form',
         file: 'chapter-3.md',
       },
       {
         id: 'chapter-6-4',
-        title: 'Глава 23. SSR и современный React-стек',
+        title: 'Глава 25. Архитектура больших приложений',
         file: 'chapter-4.md',
+      },
+      {
+        id: 'chapter-6-5',
+        title: 'Глава 26. TanStack Query',
+        file: 'chapter-5.md',
+      },
+      {
+        id: 'chapter-6-6',
+        title: 'Глава 27. Zustand',
+        file: 'chapter-6.md',
+      },
+      {
+        id: 'chapter-6-7',
+        title: 'Глава 28. SSR и современный React-стек',
+        file: 'chapter-7.md',
       },
     ],
   },
@@ -161,12 +191,12 @@ export const partsConfig = [
     chapters: [
       {
         id: 'chapter-7-1',
-        title: 'Глава 25. Паттерны проектирования',
+        title: 'Глава 29. Паттерны проектирования',
         file: 'chapter-1.md',
       },
       {
         id: 'chapter-7-2',
-        title: 'Глава 26. Архитектуры фронтенда',
+        title: 'Глава 30. Архитектуры фронтенда',
         file: 'chapter-2.md',
       },
     ],
@@ -178,25 +208,13 @@ export const partsConfig = [
     chapters: [
       {
         id: 'chapter-8-1',
-        title: 'Глава 27. Производительность',
+        title: 'Глава 31. Производительность',
         file: 'chapter-1.md',
       },
       {
         id: 'chapter-8-2',
-        title: 'Глава 28. Безопасность во фронтенде',
+        title: 'Глава 32. Безопасность во фронтенде',
         file: 'chapter-2.md',
-      },
-    ],
-  },
-  {
-    id: 'part-9',
-    title: 'Часть IX. Node.js',
-    folder: 'part-9',
-    chapters: [
-      {
-        id: 'chapter-9-1',
-        title: 'Глава 29. Основы Node.js',
-        file: 'chapter-1.md',
       },
     ],
   },
@@ -207,17 +225,17 @@ export const partsConfig = [
     chapters: [
       {
         id: 'chapter-10-1',
-        title: 'Глава 30. Алгоритмические задачи',
+        title: 'Глава 33. Алгоритмические задачи',
         file: 'chapter-1.md',
       },
       {
         id: 'chapter-10-2',
-        title: 'Глава 31. Поведенческое собеседование',
+        title: 'Глава 34. Поведенческое собеседование',
         file: 'chapter-2.md',
       },
       {
         id: 'chapter-10-3',
-        title: 'Глава 32. Итоговый чек-лист',
+        title: 'Глава 35. Итоговый чек-лист',
         file: 'chapter-3.md',
       },
     ],

@@ -1,909 +1,688 @@
-# Глава 22. Архитектура больших приложений
+# Глава 24. React Hook Form: производительные формы
 
-На этом этапе React перестаёт быть «набором компонентов» и становится платформой для построения сложных систем. Главный вызов больших SPA — управление состоянием, зависимостями и потоками данных.
+## Введение
 
-На собеседованиях эту главу используют, чтобы понять:
+Формы — одна из самых сложных частей React-приложений. Нативные формы вызывают ререндеры при каждом вводе символа, сложны в валидации и управлении состоянием.
 
-- мыслишь ли ты архитектурно;
-- умеешь ли масштабировать приложение;
-- понимаешь ли trade-off'ы разных подходов;
-- можешь ли выбрать правильный инструмент для задачи.
-
-В этой главе разберём:
-
-- Redux Toolkit и когда он оправдан;
-- альтернативные state-менеджеры (Zustand, MobX);
-- TanStack Query для server state;
-- архитектурные паттерны React;
-- как не превратить проект в «большой шар грязи».
+**React Hook Form** решает эти проблемы через uncontrolled компоненты и минимальные ререндеры. В 2025 году это стандарт для форм в React.
 
 ---
 
-## 22.1. Redux Toolkit: современный способ работы с Redux
+## Проблемы нативных форм
 
-Redux Toolkit (RTK) — современный и рекомендуемый способ использования Redux. Redux без RTK сегодня считается устаревшей практикой.
-
-### Ключевые идеи Redux
-
-Redux основан на трёх принципах:
-
-1. **Единое хранилище (single source of truth)** — всё состояние приложения хранится в одном объекте.
-2. **Иммутабельные обновления** — состояние нельзя изменять напрямую, только создавать новое.
-3. **Однонаправленный поток данных** — данные текут в одном направлении: Action → Reducer → Store → View.
-
-**Почему это важно:**
-
-- **Предсказуемость** — все изменения проходят через один механизм (reducer);
-- **Отладка** — можно отследить каждое изменение состояния;
-- **Time-travel debugging** — возможность откатывать изменения;
-- **Тестируемость** — reducers — чистые функции, легко тестировать.
-
-### Проблемы «старого» Redux
-
-Классический Redux имел проблемы:
-
-- **слишком много boilerplate** — нужно было писать action creators, action types, reducers отдельно;
-- **ручная иммутабельность** — нужно было вручную создавать новые объекты, избегая мутаций;
-- **сложные async-сценарии** — работа с асинхронностью требовала middleware (redux-thunk, redux-saga).
-
-**Пример старого подхода:**
-
-```javascript
-// action types
-const INCREMENT = 'INCREMENT'
-const DECREMENT = 'DECREMENT'
-
-// action creators
-function increment() {
-  return { type: INCREMENT }
-}
-
-// reducer
-function counterReducer(state = 0, action) {
-  switch (action.type) {
-    case INCREMENT:
-      return state + 1
-    case DECREMENT:
-      return state - 1
-    default:
-      return state
-  }
-}
-```
-
-Много кода для простой логики!
-
-RTK решает эти проблемы, предоставляя современные инструменты и лучшие практики из коробки.
-
-### createSlice: современный способ создания reducers
-
-`createSlice` объединяет action types, action creators и reducer в одном месте:
-
-```javascript
-import { createSlice } from '@reduxjs/toolkit'
-
-const counterSlice = createSlice({
-  name: 'counter',
-  initialState: { value: 0 },
-  reducers: {
-    increment(state) {
-      state.value++ // ✅ можно мутировать — Immer под капотом
-    },
-    decrement(state) {
-      state.value--
-    },
-    incrementByAmount(state, action) {
-      state.value += action.payload
-    },
-  },
-})
-
-export const { increment, decrement, incrementByAmount } = counterSlice.actions
-export default counterSlice.reducer
-```
-
-**Что происходит под капотом:**
-
-- RTK использует **Immer** — библиотеку, которая позволяет писать «мутабельный» код, но создаёт иммутабельные обновления;
-- автоматически генерируются action types (`counter/increment`, `counter/decrement`) и action creators;
-- код становится короче и понятнее.
-
-**Immer в действии:**
-
-```javascript
-// Ты пишешь:
-state.value++
-
-// Immer делает под капотом:
-return { ...state, value: state.value + 1 }
-```
-
-### Настройка store
-
-```javascript
-import { configureStore } from '@reduxjs/toolkit'
-import counterReducer from './counterSlice'
-
-export const store = configureStore({
-  reducer: {
-    counter: counterReducer,
-  },
-})
-
-export type RootState = ReturnType<typeof store.getState>
-export type AppDispatch = typeof store.dispatch
-```
-
-**Что даёт `configureStore`:**
-
-- автоматически настраивает Redux DevTools;
-- включает redux-thunk для async операций;
-- проверяет на мутации в development режиме;
-- оптимизирует производительность.
-
-### Использование в компонентах
-
-```jsx
-import { useSelector, useDispatch } from 'react-redux'
-import { increment } from './counterSlice'
-
-function Counter() {
-  const count = useSelector((state) => state.counter.value)
-  const dispatch = useDispatch()
-
-  return (
-    <div>
-      <p>Count: {count}</p>
-      <button onClick={() => dispatch(increment())}>+</button>
-    </div>
-  )
-}
-```
-
-**Типизированные хуки (TypeScript):**
+### Controlled компоненты = много ререндеров
 
 ```typescript
-import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
-import type { RootState, AppDispatch } from './store'
+// ❌ Плохо: ререндер на каждый символ
+function LoginForm() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-export const useAppDispatch = () => useDispatch<AppDispatch>()
-export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
-```
-
-### Async logic: createAsyncThunk
-
-Для асинхронных операций RTK предоставляет `createAsyncThunk`:
-
-```javascript
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-
-export const fetchUsers = createAsyncThunk('users/fetch', async () => {
-  const res = await fetch('/api/users')
-  if (!res.ok) {
-    throw new Error('Failed to fetch users')
-  }
-  return res.json()
-})
-
-const usersSlice = createSlice({
-  name: 'users',
-  initialState: {
-    items: [],
-    loading: false,
-    error: null,
-  },
-  reducers: {},
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchUsers.pending, (state) => {
-        state.loading = true
-        state.error = null
-      })
-      .addCase(fetchUsers.fulfilled, (state, action) => {
-        state.loading = false
-        state.items = action.payload
-      })
-      .addCase(fetchUsers.rejected, (state, action) => {
-        state.loading = false
-        state.error = action.error.message
-      })
-  },
-})
-```
-
-**В компоненте:**
-
-```jsx
-function UsersList() {
-  const { items, loading, error } = useSelector((state) => state.users)
-  const dispatch = useDispatch()
-
-  useEffect(() => {
-    dispatch(fetchUsers())
-  }, [dispatch])
-
-  if (loading) return <Spinner />
-  if (error) return <Error message={error} />
+  // Компонент ререндерится при каждом нажатии клавиши
   return (
-    <ul>
-      {items.map((user) => (
-        <li key={user.id}>{user.name}</li>
-      ))}
-    </ul>
-  )
+    <form>
+      <input
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <input
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+    </form>
+  );
 }
 ```
 
-**Что делает `createAsyncThunk`:**
-
-- автоматически создаёт три action: `pending`, `fulfilled`, `rejected`;
-- обрабатывает ошибки;
-- возвращает промис, который можно использовать для дополнительной логики.
-
-### Когда Redux оправдан
-
-Redux стоит использовать, когда:
-
-- **сложные бизнес-процессы** — много взаимосвязанного состояния;
-- **много источников данных** — данные приходят из разных API, WebSocket, localStorage;
-- **глобальное состояние** — состояние нужно в разных частях приложения;
-- **нужен time-travel debugging** — возможность откатывать изменения состояния;
-- **большая команда** — нужна предсказуемость и единообразие кода.
-
-### Когда Redux НЕ нужен
-
-Redux не нужен, если:
-
-- **простое локальное состояние** — достаточно `useState`;
-- **небольшие приложения** — избыточная сложность;
-- **только server state** — используй TanStack Query;
-- **нет проблем с проп-дриллингом** — Context API может быть достаточно.
-
-**Правило:** начинай с простого (`useState` → Context → Redux) и усложняй только когда это действительно нужно.
+**Проблемы:**
+- 🐌 Ререндер всего компонента на каждый символ
+- 📦 Сложно масштабируется (большие формы)
+- 🔄 Дублирование кода для каждого поля
+- ⚠️ Валидация требует много бойлерплейта
 
 ---
 
-## 22.2. Альтернативные state-менеджеры
+## Установка и базовое использование
 
-Redux — не единственный способ управления состоянием. Рассмотрим альтернативы.
+```bash
+pnpm add react-hook-form
+```
 
-### Zustand: минималистичный state manager
+### Простая форма
 
-Zustand — простой и лёгкий state manager без boilerplate:
+```typescript
+import { useForm } from 'react-hook-form';
 
-```javascript
-import { create } from 'zustand'
+interface LoginFormData {
+  email: string;
+  password: string;
+}
 
-const useStore = create((set) => ({
-  count: 0,
-  increment: () => set((state) => ({ count: state.count + 1 })),
-  decrement: () => set((state) => ({ count: state.count - 1 })),
-  reset: () => set({ count: 0 }),
-}))
+export function LoginForm() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>();
+
+  const onSubmit = (data: LoginFormData) => {
+    console.log(data); // { email: '...', password: '...' }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <input {...register('email')} placeholder="Email" />
+      {errors.email && <span>{errors.email.message}</span>}
+
+      <input
+        type="password"
+        {...register('password')}
+        placeholder="Password"
+      />
+      {errors.password && <span>{errors.password.message}</span>}
+
+      <button type="submit">Войти</button>
+    </form>
+  );
+}
+```
+
+**Преимущества:**
+- ✅ Нет ререндеров при вводе
+- ✅ Минимальный код
+- ✅ Типизация из коробки
+
+---
+
+## Встроенная валидация
+
+```typescript
+export function SignupForm() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignupFormData>();
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <input
+        {...register('email', {
+          required: 'Email обязателен',
+          pattern: {
+            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+            message: 'Некорректный email',
+          },
+        })}
+      />
+      {errors.email && <span>{errors.email.message}</span>}
+
+      <input
+        type="password"
+        {...register('password', {
+          required: 'Пароль обязателен',
+          minLength: {
+            value: 8,
+            message: 'Минимум 8 символов',
+          },
+        })}
+      />
+      {errors.password && <span>{errors.password.message}</span>}
+
+      <input
+        type="number"
+        {...register('age', {
+          required: 'Возраст обязателен',
+          min: {
+            value: 18,
+            message: 'Вам должно быть 18+',
+          },
+          valueAsNumber: true, // Преобразует в number
+        })}
+      />
+      {errors.age && <span>{errors.age.message}</span>}
+
+      <button type="submit">Зарегистрироваться</button>
+    </form>
+  );
+}
+```
+
+---
+
+## Интеграция с Zod
+
+React Hook Form + Zod = идеальная комбинация.
+
+```bash
+pnpm add @hookform/resolvers zod
+```
+
+```typescript
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const SignupSchema = z.object({
+  email: z.string().email('Некорректный email'),
+  password: z.string().min(8, 'Минимум 8 символов'),
+  confirmPassword: z.string(),
+  age: z.number().int().min(18, 'Вам должно быть 18+'),
+  terms: z.literal(true, {
+    errorMap: () => ({ message: 'Необходимо согласие' }),
+  }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'Пароли не совпадают',
+  path: ['confirmPassword'],
+});
+
+type SignupFormData = z.infer<typeof SignupSchema>;
+
+export function SignupForm() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignupFormData>({
+    resolver: zodResolver(SignupSchema),
+  });
+
+  const onSubmit = (data: SignupFormData) => {
+    // data гарантированно валиден
+    console.log(data);
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <input {...register('email')} />
+      {errors.email && <span>{errors.email.message}</span>}
+
+      <input type="password" {...register('password')} />
+      {errors.password && <span>{errors.password.message}</span>}
+
+      <input type="password" {...register('confirmPassword')} />
+      {errors.confirmPassword && (
+        <span>{errors.confirmPassword.message}</span>
+      )}
+
+      <input type="number" {...register('age', { valueAsNumber: true })} />
+      {errors.age && <span>{errors.age.message}</span>}
+
+      <label>
+        <input type="checkbox" {...register('terms')} />
+        Согласен с условиями
+      </label>
+      {errors.terms && <span>{errors.terms.message}</span>}
+
+      <button type="submit">Зарегистрироваться</button>
+    </form>
+  );
+}
+```
+
+---
+
+## Управление ошибками
+
+### Ошибки валидации
+
+```typescript
+const {
+  formState: { errors, isSubmitting, isValid, isDirty },
+} = useForm();
+
+// errors - объект с ошибками для каждого поля
+errors.email?.message;
+errors.password?.message;
+
+// isSubmitting - форма отправляется
+// isValid - форма валидна
+// isDirty - форма изменена
+```
+
+### Touched состояния
+
+```typescript
+const {
+  formState: { touchedFields, dirtyFields },
+} = useForm();
+
+// Показывать ошибку только после blur
+{touchedFields.email && errors.email && (
+  <span>{errors.email.message}</span>
+)}
+```
+
+### Серверные ошибки
+
+```typescript
+const {
+  setError,
+  handleSubmit,
+} = useForm<LoginFormData>();
+
+const onSubmit = async (data: LoginFormData) => {
+  try {
+    await login(data);
+  } catch (error) {
+    if (error.code === 'INVALID_CREDENTIALS') {
+      setError('email', {
+        type: 'server',
+        message: 'Неверный email или пароль',
+      });
+    }
+  }
+};
+```
+
+---
+
+## Watched значения и условная логика
+
+### watch для реактивности
+
+```typescript
+function ProfileForm() {
+  const { register, watch } = useForm();
+
+  const country = watch('country');
+
+  return (
+    <form>
+      <select {...register('country')}>
+        <option value="US">USA</option>
+        <option value="CA">Canada</option>
+        <option value="UK">UK</option>
+      </select>
+
+      {/* Условное поле в зависимости от country */}
+      {country === 'US' && (
+        <input {...register('state')} placeholder="State" />
+      )}
+
+      {/* Поле SSN только для USA */}
+      {country === 'US' && (
+        <input {...register('ssn')} placeholder="SSN" />
+      )}
+    </form>
+  );
+}
+```
+
+### Подписка на изменения
+
+```typescript
+const { watch } = useForm();
+
+useEffect(() => {
+  const subscription = watch((value, { name, type }) => {
+    console.log('Changed field:', name, value);
+  });
+
+  return () => subscription.unsubscribe();
+}, [watch]);
+```
+
+---
+
+## Динамические поля (Field Arrays)
+
+```typescript
+import { useForm, useFieldArray } from 'react-hook-form';
+
+interface FormData {
+  users: Array<{ name: string; email: string }>;
+}
+
+export function UsersForm() {
+  const { register, control, handleSubmit } = useForm<FormData>({
+    defaultValues: {
+      users: [{ name: '', email: '' }],
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'users',
+  });
+
+  return (
+    <form onSubmit={handleSubmit((data) => console.log(data))}>
+      {fields.map((field, index) => (
+        <div key={field.id}>
+          <input
+            {...register(`users.${index}.name`)}
+            placeholder="Name"
+          />
+          <input
+            {...register(`users.${index}.email`)}
+            placeholder="Email"
+          />
+          <button type="button" onClick={() => remove(index)}>
+            Удалить
+          </button>
+        </div>
+      ))}
+
+      <button
+        type="button"
+        onClick={() => append({ name: '', email: '' })}
+      >
+        Добавить пользователя
+      </button>
+
+      <button type="submit">Отправить</button>
+    </form>
+  );
+}
+```
+
+---
+
+## Controlled компоненты (Controller)
+
+Для кастомных UI библиотек (Radix, MUI, etc.).
+
+```typescript
+import { Controller, useForm } from 'react-hook-form';
+import { Select } from '@/components/ui/Select';
+
+export function SettingsForm() {
+  const { control, handleSubmit } = useForm();
+
+  return (
+    <form onSubmit={handleSubmit((data) => console.log(data))}>
+      <Controller
+        name="theme"
+        control={control}
+        defaultValue="light"
+        render={({ field }) => (
+          <Select
+            value={field.value}
+            onChange={field.onChange}
+            options={[
+              { value: 'light', label: 'Light' },
+              { value: 'dark', label: 'Dark' },
+            ]}
+          />
+        )}
+      />
+
+      <button type="submit">Сохранить</button>
+    </form>
+  );
+}
+```
+
+---
+
+## Оптимизация производительности
+
+### Режим валидации
+
+```typescript
+const { register } = useForm({
+  mode: 'onBlur', // Валидация при потере фокуса (default: onSubmit)
+  // mode: 'onChange', // При каждом изменении
+  // mode: 'onTouched', // После первого blur
+  // mode: 'all', // onChange + onBlur
+});
+```
+
+### Отключение ререндеров
+
+```typescript
+// ❌ watch вызывает ререндер
+const value = watch('email');
+
+// ✅ Используйте getValues без ререндера
+const { getValues } = useForm();
+const value = getValues('email');
+```
+
+### Изоляция форм
+
+```typescript
+// Разбейте большую форму на подформы
+function BigForm() {
+  return (
+    <>
+      <PersonalInfoForm />
+      <AddressForm />
+      <PaymentForm />
+    </>
+  );
+}
+
+// Каждая подформа изолирована
+function PersonalInfoForm() {
+  const { register } = useForm();
+  // Ререндер только этой части
+}
+```
+
+---
+
+## Сравнение: React Hook Form vs Formik
+
+| Критерий | React Hook Form | Formik |
+|----------|-----------------|--------|
+| Ререндеры | Минимальные | Много |
+| Bundle size | ~9KB | ~15KB |
+| Производительность | ⚡⚡⚡ | ⚡ |
+| TypeScript | Отличная | Хорошая |
+| Валидация | Zod, Yup, Joi | Yup |
+| Uncontrolled | ✅ | ❌ |
+| Field Arrays | ✅ | ✅ |
+| Ecosystem | Растёт | Зрелая |
+
+**Выбор в 2025:** React Hook Form — стандарт.
+
+---
+
+## Интеграция с TanStack Query
+
+```typescript
+import { useMutation } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const UserSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+});
+
+type UserFormData = z.infer<typeof UserSchema>;
+
+export function CreateUserForm() {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    formState: { errors },
+  } = useForm<UserFormData>({
+    resolver: zodResolver(UserSchema),
+  });
+
+  const createUser = useMutation({
+    mutationFn: (data: UserFormData) => apiClient.post('/users', data),
+    onSuccess: () => {
+      reset(); // Очистка формы
+    },
+    onError: (error: any) => {
+      // Обработка серверных ошибок
+      if (error.response?.data?.errors) {
+        Object.entries(error.response.data.errors).forEach(
+          ([field, message]) => {
+            setError(field as keyof UserFormData, {
+              type: 'server',
+              message: message as string,
+            });
+          }
+        );
+      }
+    },
+  });
+
+  const onSubmit = (data: UserFormData) => {
+    createUser.mutate(data);
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <input {...register('name')} />
+      {errors.name && <span>{errors.name.message}</span>}
+
+      <input {...register('email')} />
+      {errors.email && <span>{errors.email.message}</span>}
+
+      <button type="submit" disabled={createUser.isPending}>
+        {createUser.isPending ? 'Создание...' : 'Создать'}
+      </button>
+    </form>
+  );
+}
+```
+
+---
+
+## Переиспользуемые поля
+
+```typescript
+// components/FormField.tsx
+import { useFormContext } from 'react-hook-form';
+
+interface FormFieldProps {
+  name: string;
+  label: string;
+  type?: string;
+  placeholder?: string;
+}
+
+export function FormField({
+  name,
+  label,
+  type = 'text',
+  placeholder,
+}: FormFieldProps) {
+  const {
+    register,
+    formState: { errors },
+  } = useFormContext();
+
+  const error = errors[name];
+
+  return (
+    <div className="form-field">
+      <label htmlFor={name}>{label}</label>
+      <input
+        id={name}
+        type={type}
+        placeholder={placeholder}
+        {...register(name)}
+        className={error ? 'error' : ''}
+      />
+      {error && <span className="error-message">{error.message}</span>}
+    </div>
+  );
+}
 
 // Использование
-function Counter() {
-  const { count, increment, decrement } = useStore()
+function SignupForm() {
+  const methods = useForm();
 
   return (
-    <div>
-      <p>{count}</p>
-      <button onClick={increment}>+</button>
-      <button onClick={decrement}>-</button>
-    </div>
-  )
+    <FormProvider {...methods}>
+      <form onSubmit={methods.handleSubmit(onSubmit)}>
+        <FormField name="email" label="Email" type="email" />
+        <FormField name="password" label="Password" type="password" />
+        <button type="submit">Sign Up</button>
+      </form>
+    </FormProvider>
+  );
 }
 ```
-
-**Преимущества:**
-
-- минималистичный API — нет boilerplate;
-- отлично подходит для средних проектов;
-- простота использования;
-- маленький размер бандла.
-
-**Недостатки:**
-
-- меньше инструментов для отладки, чем у Redux;
-- может быть недостаточно для очень сложных приложений.
-
-**Когда использовать:**
-
-- средние проекты;
-- когда Redux избыточен;
-- нужна простота без потери функциональности.
-
-### MobX: реактивность
-
-MobX использует реактивность — состояние автоматически обновляет компоненты:
-
-```javascript
-import { makeAutoObservable } from 'mobx'
-import { observer } from 'mobx-react-lite'
-
-class CounterStore {
-  count = 0
-
-  constructor() {
-    makeAutoObservable(this)
-  }
-
-  increment() {
-    this.count++
-  }
-
-  decrement() {
-    this.count--
-  }
-}
-
-const store = new CounterStore()
-
-const Counter = observer(() => {
-  return (
-    <div>
-      <p>{store.count}</p>
-      <button onClick={() => store.increment()}>+</button>
-      <button onClick={() => store.decrement()}>-</button>
-    </div>
-  )
-})
-```
-
-**Преимущества:**
-
-- реактивность — меньше кода для обновлений;
-- быстро начать разработку;
-- подходит для динамичных интерфейсов;
-- объектно-ориентированный подход.
-
-**Недостатки:**
-
-- «магия» под капотом — сложнее отлаживать;
-- менее предсказуемо, чем Redux;
-- может быть избыточно для простых случаев.
-
-**Когда использовать:**
-
-- высокая динамика интерфейса;
-- быстрое прототипирование;
-- реактивные интерфейсы.
-
-### Recoil: атомарное состояние
-
-Recoil — экспериментальный state manager от Facebook, использующий атомарное состояние:
-
-```javascript
-import { atom, useRecoilState } from 'recoil'
-
-const countState = atom({
-  key: 'countState',
-  default: 0,
-})
-
-function Counter() {
-  const [count, setCount] = useRecoilState(countState)
-
-  return (
-    <div>
-      <p>{count}</p>
-      <button onClick={() => setCount(count + 1)}>+</button>
-    </div>
-  )
-}
-```
-
-**Особенности:**
-
-- атомарное состояние — мелкозернистые обновления;
-- плотная интеграция с React;
-- экспериментальный статус (может измениться).
-
-**Когда использовать:**
-
-- эксперименты;
-- атомарное состояние;
-- интеграция с React.
-
-### Сравнение state-менеджеров
-
-**Redux Toolkit:**
-
-- Когда использовать: сложная логика, большие команды, нужна предсказуемость.
-- Плюсы: предсказуемость, инструменты отладки, большая экосистема.
-- Минусы: много boilerplate (хотя RTK это решает), кривая обучения.
-
-**Zustand:**
-
-- Когда использовать: компактные приложения, средние проекты, нужна простота.
-- Плюсы: простота, минимализм, легко начать.
-- Минусы: меньше инструментов, может быть недостаточно для сложных случаев.
-
-**MobX:**
-
-- Когда использовать: высокая динамика, быстрое прототипирование, реактивные интерфейсы.
-- Плюсы: реактивность, меньше кода, быстро.
-- Минусы: сложнее отлаживать, менее предсказуемо.
-
-**Recoil:**
-
-- Когда использовать: эксперименты, атомарное состояние, интеграция с React.
-- Плюсы: атомарность, интеграция с React.
-- Минусы: экспериментальный, может измениться.
 
 ---
 
-## 22.3. TanStack Query: управление server state
+## Best Practices
 
-TanStack Query (ранее React Query) — это **не state manager**, а инструмент для работы с **server state**.
+### 1. Всегда используйте resolver для валидации
 
-### Server state vs Client state
+```typescript
+// ❌ Плохо: встроенная валидация
+register('email', {
+  required: true,
+  pattern: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+});
 
-**Server state:**
+// ✅ Хорошо: Zod resolver
+const schema = z.object({
+  email: z.string().email(),
+});
 
-- данные, приходящие с сервера (API, БД);
-- кэшируются;
-- могут устаревать;
-- требуют синхронизации с сервером;
-- нужна обработка loading/error состояний.
-
-**Client state:**
-
-- локальное состояние UI (открыт ли модал, выбранная вкладка);
-- не синхронизируется с сервером;
-- управляется через `useState`/`useReducer`.
-
-**Важно:** эти типы состояния требуют разных подходов. Не стоит хранить server state в Redux или Context.
-
-### Базовое использование
-
-```javascript
-import { useQuery } from '@tanstack/react-query'
-
-function UsersList() {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['users'],
-    queryFn: fetchUsers,
-    staleTime: 5000, // данные считаются свежими 5 секунд
-  })
-
-  if (isLoading) return <Spinner />
-  if (error) return <Error message={error.message} />
-  return (
-    <ul>
-      {data.map((user) => (
-        <li key={user.id}>{user.name}</li>
-      ))}
-    </ul>
-  )
-}
+useForm({ resolver: zodResolver(schema) });
 ```
 
-**Настройка QueryClient:**
+### 2. Типизируйте формы
 
-```jsx
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+```typescript
+// ✅ Всегда указывайте тип
+const { register } = useForm<LoginFormData>();
+```
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5000,
-      refetchOnWindowFocus: false,
-    },
+### 3. Используйте defaultValues
+
+```typescript
+const { register } = useForm({
+  defaultValues: {
+    email: '',
+    rememberMe: false,
   },
-})
+});
+```
 
-function App() {
+### 4. Разделяйте большие формы
+
+```typescript
+// ❌ Плохо: одна гигантская форма
+function MegaForm() {
+  // 50 полей...
+}
+
+// ✅ Хорошо: разделение на шаги
+function MultiStepForm() {
+  const [step, setStep] = useState(1);
+  
   return (
-    <QueryClientProvider client={queryClient}>
-      <UsersList />
-    </QueryClientProvider>
-  )
+    <>
+      {step === 1 && <PersonalInfoStep />}
+      {step === 2 && <AddressStep />}
+      {step === 3 && <PaymentStep />}
+    </>
+  );
 }
 ```
-
-### Что решает TanStack Query
-
-- **кэширование запросов** — данные кэшируются автоматически;
-- **автоматический refetch** — обновление данных при фокусе окна, переподключении сети;
-- **loading / error states** — встроенная обработка состояний загрузки и ошибок;
-- **дедупликацию запросов** — одинаковые запросы выполняются один раз;
-- **оптимистичные обновления** — обновление UI до получения ответа сервера;
-- **инвалидацию кэша** — обновление кэша после мутаций.
-
-### Мутации
-
-```javascript
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-
-function CreateUser() {
-  const queryClient = useQueryClient()
-
-  const mutation = useMutation({
-    mutationFn: createUser,
-    onSuccess: () => {
-      // инвалидируем кэш после успешного создания
-      queryClient.invalidateQueries({ queryKey: ['users'] })
-    },
-  })
-
-  return (
-    <button onClick={() => mutation.mutate({ name: 'John' })}>
-      Create User
-    </button>
-  )
-}
-```
-
-### Паттерны TanStack Query
-
-**1. Фабрика ключей:**
-
-Централизуй создание ключей через `queryKeys.ts`:
-
-```javascript
-// queryKeys.ts
-export const queryKeys = {
-  users: ['users'] as const,
-  user: (id: string) => ['users', id] as const,
-  posts: (userId: string) => ['users', userId, 'posts'] as const,
-}
-```
-
-**2. Кастомные хуки:**
-
-Инкапсулируй каждый запрос в хук:
-
-```javascript
-function useUsers() {
-  return useQuery({
-    queryKey: queryKeys.users,
-    queryFn: fetchUsers,
-  })
-}
-
-function useUser(id: string) {
-  return useQuery({
-    queryKey: queryKeys.user(id),
-    queryFn: () => fetchUser(id),
-    enabled: !!id, // запрос выполнится только если id есть
-  })
-}
-```
-
-**3. Оптимистичные обновления:**
-
-```javascript
-const mutation = useMutation({
-  mutationFn: updateUser,
-  onMutate: async (newUser) => {
-    // отменяем текущие запросы
-    await queryClient.cancelQueries({ queryKey: queryKeys.users })
-
-    // сохраняем предыдущее состояние
-    const previousUsers = queryClient.getQueryData(queryKeys.users)
-
-    // оптимистично обновляем
-    queryClient.setQueryData(queryKeys.users, (old) =>
-      old.map((user) => (user.id === newUser.id ? newUser : user)),
-    )
-
-    return { previousUsers }
-  },
-  onError: (err, newUser, context) => {
-    // откатываем при ошибке
-    queryClient.setQueryData(queryKeys.users, context.previousUsers)
-  },
-})
-```
-
-**4. Предзагрузка:**
-
-```javascript
-// при наведении на ссылку
-function UserLink({ userId }) {
-  const queryClient = useQueryClient()
-
-  const handleMouseEnter = () => {
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.user(userId),
-      queryFn: () => fetchUser(userId),
-    })
-  }
-
-  return (
-    <Link to={`/users/${userId}`} onMouseEnter={handleMouseEnter}>
-      User
-    </Link>
-  )
-}
-```
-
-**5. Селекторы:**
-
-Подписка только на нужные данные:
-
-```javascript
-function UserCount() {
-  // компонент перерендерится только при изменении длины массива
-  const { data: count } = useQuery({
-    queryKey: queryKeys.users,
-    queryFn: fetchUsers,
-    select: (data) => data.length, // подписка только на длину
-  })
-
-  return <div>Users: {count}</div>
-}
-```
-
-### Когда использовать TanStack Query
-
-**Почти всегда, если есть API.** TanStack Query идеален для работы с server state и должен быть первым выбором для запросов к серверу.
 
 ---
 
-## 22.4. Архитектурные паттерны React
-
-Архитектурные паттерны помогают структурировать код и делать его более поддерживаемым. В React есть несколько устоявшихся паттернов, которые решают конкретные задачи.
-
-### Render Props
-
-Render Props — паттерн, где компонент принимает функцию как проп и вызывает её для рендеринга:
-
-```jsx
-<DataProvider>{(data) => <List data={data} />}</DataProvider>
-```
-
-**Реализация:**
-
-```jsx
-function DataProvider({ children }) {
-  const [data, setData] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    fetch('/api/data')
-      .then((res) => res.json())
-      .then((data) => {
-        setData(data)
-        setLoading(false)
-      })
-      .catch((err) => {
-        setError(err)
-        setLoading(false)
-      })
-  }, [])
-
-  return children({ data, loading, error })
-}
-```
-
-**Использование:**
-
-```jsx
-function App() {
-  return (
-    <DataProvider>
-      {({ data, loading, error }) => {
-        if (loading) return <Spinner />
-        if (error) return <Error message={error.message} />
-        return <List items={data} />
-      }}
-    </DataProvider>
-  )
-}
-```
-
-**Когда использовать:**
-
-- когда нужно передать несколько значений из компонента;
-- для переиспользуемой логики с гибким рендерингом.
-
-**Использование сегодня:** редко, но важно знать для понимания паттернов. Часто заменяется хуками.
-
-### HOC (Higher-Order Components)
-
-HOC — функция, которая принимает компонент и возвращает новый компонент:
-
-```jsx
-const withAuth = (Component) => (props) =>
-  isAuth ? <Component {...props} /> : <Login />
-
-const ProtectedPage = withAuth(Page)
-```
-
-**Минусы:**
-
-- сложная вложенность (`withAuth(withTheme(withRouter(Component)))`);
-- проблемы с типами в TypeScript;
-- сложнее отлаживать.
-
-**Сегодня:** заменяется хуками. Но важно понимать паттерн для работы с legacy кодом.
-
-**Современная альтернатива (хуки):**
-
-```jsx
-function useAuth() {
-  const [isAuth, setIsAuth] = useState(false)
-  // логика авторизации
-  return { isAuth }
-}
-
-function ProtectedPage() {
-  const { isAuth } = useAuth()
-  if (!isAuth) return <Login />
-  return <Page />
-}
-```
-
-### Compound Components
-
-Compound Components — паттерн, где компоненты работают вместе через контекст:
-
-```jsx
-<Tabs>
-  <Tabs.List>
-    <Tabs.Tab>Tab 1</Tabs.Tab>
-    <Tabs.Tab>Tab 2</Tabs.Tab>
-  </Tabs.List>
-  <Tabs.Panel>Content 1</Tabs.Panel>
-  <Tabs.Panel>Content 2</Tabs.Panel>
-</Tabs>
-```
-
-**Реализация:**
-
-```jsx
-const TabsContext = createContext()
-
-function Tabs({ children, defaultTab }) {
-  const [activeTab, setActiveTab] = useState(defaultTab)
-
-  return (
-    <TabsContext.Provider value={{ activeTab, setActiveTab }}>
-      {children}
-    </TabsContext.Provider>
-  )
-}
-
-function TabsList({ children }) {
-  return <div className='tabs-list'>{children}</div>
-}
-
-function TabsTab({ id, children }) {
-  const { activeTab, setActiveTab } = useContext(TabsContext)
-
-  return (
-    <button
-      className={activeTab === id ? 'active' : ''}
-      onClick={() => setActiveTab(id)}
-    >
-      {children}
-    </button>
-  )
-}
-
-Tabs.List = TabsList
-Tabs.Tab = TabsTab
-Tabs.Panel = TabsPanel
-```
-
-**Использование:** в UI-библиотеках (Radix UI, Headless UI). Позволяет создавать гибкие API компонентов.
-
-### Практические рекомендации
-
-**1. Разделяй server и client state:**
-
-- server state → TanStack Query;
-- client state → `useState`/`useReducer`/Context/Redux.
-
-**2. Не храни всё в Redux:**
-
-- только глобальное состояние, которое нужно в разных частях приложения;
-- локальное состояние — в компонентах.
-
-**3. Начинай с простого:**
-
-- `useState` → Context → Redux;
-- усложняй только когда это действительно нужно.
-
-**4. Архитектура — это эволюция:**
-
-- не нужно сразу строить сложную архитектуру;
-- добавляй сложность по мере роста проекта.
-
-**5. Используй TanStack Query для server state:**
-
-- почти всегда, если есть API;
-- не храни server state в Redux или Context.
-
-**6. Локальное состояние — в компонентах:**
-
-- не поднимай состояние выше, чем нужно;
-- используй Context только когда действительно нужно избежать проп-дриллинга.
-
-**7. Глобальное состояние — только когда нужно:**
-
-- не создавай глобальное состояние «на будущее»;
-- добавляй только когда появляется реальная необходимость.
-
----
-
-## 22.5. Структура проекта и организация кода
-
-Правильная структура проекта критична для масштабирования. Рассмотрим основные подходы.
-
-### Feature-Sliced Design (FSD)
-
-FSD — методология организации кода, популярная в React-проектах:
-
-```
-src/
-  app/           # Инициализация приложения
-  pages/         # Страницы приложения
-  widgets/       # Крупные блоки (Header, Sidebar)
-  features/      # Бизнес-логика (Auth, Cart)
-  entities/      # Бизнес-сущности (User, Product)
-  shared/        # Переиспользуемый код (UI, utils)
-```
-
-**Принципы:**
-
-- изоляция фич друг от друга;
-- явные зависимости (верхние слои зависят от нижних);
-- переиспользование через shared.
-
-### Модульная структура
-
-Альтернативный подход для небольших проектов:
-
-```
-src/
-  components/    # UI компоненты
-  features/      # Функциональность
-  hooks/         # Кастомные хуки
-  utils/         # Утилиты
-  types/         # TypeScript типы
-  api/           # API клиенты
-```
-
-### Правила организации
-
-**1. Колокация:**
-
-- держи связанный код рядом (компонент + стили + типы);
-- не разноси по папкам то, что используется вместе.
-
-**2. Явные зависимости:**
-
-- избегай циклических зависимостей;
-- верхние слои зависят от нижних, не наоборот.
-
-**3. Переиспользование:**
-
-- shared — для действительно общего кода;
-- не создавай shared «на будущее».
-
----
-
-## 22.6. Мини‑самопроверка по главе
-
-Проверь, что ты можешь:
-
-- объяснить, когда нужен Redux, а когда нет, и привести примеры;
-- описать преимущества Redux Toolkit над классическим Redux;
-- сравнить Redux, Zustand и MobX и объяснить, когда что использовать;
-- объяснить разницу между server state и client state;
-- описать, что решает TanStack Query и когда его использовать;
-- показать пример использования TanStack Query с мутациями и инвалидацией;
-- объяснить паттерны TanStack Query (фабрика ключей, кастомные хуки, оптимистичные обновления);
-- описать паттерны Render Props, HOC и Compound Components;
-- объяснить, почему архитектура — это эволюция, а не догма;
-- описать принципы организации кода в больших проектах.
-
-Если это получается связно, ты понимаешь архитектурные подходы и можешь выбрать правильный инструмент для задачи.
-
----
-
-В следующей главе мы выйдем за рамки чистого клиентского React и посмотрим на то, как он работает вместе с сервером: SSR, SSG, гидратация и современные фреймворки вроде Next.js.
+## Заключение
+
+**React Hook Form** — это современный стандарт для форм в React:
+
+- ⚡ **Производительность** — минимальные ререндеры
+- 🎯 **Простота** — меньше кода, чем у конкурентов
+- 🔧 **Гибкость** — встроенная валидация или Zod/Yup
+- 📦 **Размер** — всего 9KB
+- 🔒 **Типизация** — отличная поддержка TypeScript
+
+**Ключевые паттерны:**
+1. Используйте `zodResolver` для валидации
+2. `Controller` для кастомных UI компонентов
+3. `useFieldArray` для динамических полей
+4. `setError` для серверных ошибок
+5. Разделяйте большие формы на компоненты
+
+В следующей главе мы рассмотрим **архитектуру больших React-приложений** и паттерны масштабирования.

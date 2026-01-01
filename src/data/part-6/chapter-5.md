@@ -1,352 +1,769 @@
-# Глава 24. Практикум по React и архитектуре
+# Глава 26. TanStack Query: управление серверным состоянием
 
-Эта глава — **чистая практика**. Здесь нет новых концепций, только задачи и сценарии, которые помогают закрепить материал глав 18–21:
+## Введение
 
-- основы React: компоненты, props, состояние;
-- хуки: useState, useEffect, useMemo, useCallback;
-- управление состоянием: Context, Redux, TanStack Query;
-- архитектурные паттерны;
-- SSR и современный React-стек.
+**Server State** отличается от **Client State**: он асинхронный, может устареть, требует кеширования, синхронизации, фоновых обновлений. Управление им через useState/useEffect — антипаттерн.
 
-Рекомендуемый формат работы:
-
-1. Прочитай условие, **предскажи результат** или набросай решение в голове.
-2. Запиши решение в редакторе.
-3. Запусти код и проверь результат.
-4. Если результат отличается — разберись, **на каком шаге твоё понимание React расходится с реальным поведением**.
+**TanStack Query** (ранее React Query) — это мощная библиотека для управления серверным состоянием. В 2025 году это стандарт для работы с API в React.
 
 ---
 
-## 24.1. Основы React: компоненты и состояние
+## Server State vs Client State
 
-### Задание 1: Понимание Virtual DOM
+### Client State
 
-Напиши компонент, который выводит список элементов. Добавь кнопку для добавления нового элемента. Объясни:
-
-- сколько раз перерендерится компонент при добавлении элемента;
-- какие части DOM реально обновятся;
-- как `key` помогает React определить, что изменилось.
-
-### Задание 2: Условный рендеринг
-
-Создай компонент `UserProfile`, который:
-
-- показывает форму входа, если пользователь не авторизован;
-- показывает профиль пользователя, если авторизован;
-- использует тернарный оператор для условного рендеринга.
-
-### Задание 3: Список с ключами
-
-Создай компонент списка задач с возможностью удаления. Сначала используй индекс как `key`, затем замени на ID. Объясни, почему второй вариант лучше.
-
-### Задание 4: Контролируемый vs неконтролируемый
-
-Создай два варианта формы входа:
-
-1. Контролируемый — значения в `useState`.
-2. Неконтролируемый — значения через `ref`.
-
-Объясни, в каких случаях какой вариант предпочтительнее.
-
-### Задание 5: Исправление ошибок
-
-Найди и исправь ошибки в коде:
-
-```jsx
-function App() {
-  const [data, setData] = useState(null)
-
-  fetch('/api/data')
-    .then((res) => res.json())
-    .then(setData)
-
-  return <div>{data.name}</div>
-}
+```typescript
+// ✅ useState для UI состояния
+const [isOpen, setIsOpen] = useState(false);
+const [theme, setTheme] = useState('light');
+const [selectedTab, setSelectedTab] = useState('profile');
 ```
 
-Объясни, почему код не работает и как его исправить.
+**Характеристики:**
+- Синхронный
+- Контролируется приложением
+- Не устаревает
+- Не требует кеширования
+
+### Server State
+
+```typescript
+// ❌ Плохо: useState для серверных данных
+const [users, setUsers] = useState([]);
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState(null);
+
+useEffect(() => {
+  setLoading(true);
+  fetch('/api/users')
+    .then(r => r.json())
+    .then(setUsers)
+    .catch(setError)
+    .finally(() => setLoading(false));
+}, []);
+
+// Проблемы:
+// - Нет кеширования
+// - Нет фоновых обновлений
+// - Нет повторных запросов при ошибке
+// - Нет optimistic updates
+// - Много бойлерплейта
+```
+
+**Характеристики Server State:**
+- Асинхронный
+- Может устареть
+- Требует кеширования
+- Требует синхронизации
+- Требует фоновых обновлений
 
 ---
 
-## 24.2. Хуки и управление состоянием
+## Установка и настройка
 
-### Задание 6: Исправление useEffect
+```bash
+pnpm add @tanstack/react-query
+```
 
-Найди и исправь ошибки в коде:
+### QueryClientProvider
 
-```jsx
-function UserProfile({ userId }) {
-  const [user, setUser] = useState(null)
+```typescript
+// app/layout.tsx
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
-  useEffect(() => {
-    fetch(`/api/users/${userId}`)
-      .then((res) => res.json())
-      .then(setUser)
-  }, [])
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 минут
+      gcTime: 10 * 60 * 1000, // 10 минут (ранее cacheTime)
+      retry: 2,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
-  return <div>{user.name}</div>
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <QueryClientProvider client={queryClient}>
+      {children}
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
+  );
 }
 ```
 
-### Задание 7: Счётчик с интервалом
+---
 
-Создай компонент счётчика, который автоматически увеличивается каждую секунду. Добавь кнопки для запуска и остановки. Убедись, что интервал правильно очищается.
+## useQuery: получение данных
 
-### Задание 8: Кастомный хук useLocalStorage
+### Базовое использование
 
-Создай кастомный хук `useLocalStorage`, который:
+```typescript
+import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '@/lib/api/axios';
 
-- сохраняет значение в localStorage;
-- синхронизируется между вкладками;
-- возвращает значение и функцию для обновления.
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
 
-### Задание 9: Оптимизация с useMemo и useCallback
+export function UsersList() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
+      const { data } = await apiClient.get<User[]>('/users');
+      return data;
+    },
+  });
 
-Дан компонент:
-
-```jsx
-function ExpensiveList({ items, onItemClick }) {
-  const sorted = items.sort((a, b) => a.price - b.price)
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
 
   return (
     <ul>
-      {sorted.map((item) => (
-        <ListItem key={item.id} item={item} onClick={onItemClick} />
+      {data?.map((user) => (
+        <li key={user.id}>{user.name}</li>
       ))}
     </ul>
-  )
+  );
 }
 ```
 
-Оптимизируй его с помощью `useMemo` и `useCallback`. Объясни, почему это помогает.
+### Состояния запроса
 
-### Задание 10: Форма с useReducer
+```typescript
+const {
+  data,
+  error,
+  isLoading,      // Первая загрузка
+  isFetching,     // Любая загрузка (включая фоновую)
+  isSuccess,      // Успешно загружено
+  isError,        // Произошла ошибка
+  refetch,        // Функция для ручного обновления
+  status,         // 'pending' | 'error' | 'success'
+  fetchStatus,    // 'fetching' | 'paused' | 'idle'
+} = useQuery({
+  queryKey: ['users'],
+  queryFn: fetchUsers,
+});
 
-Создай форму входа с валидацией, используя `useReducer` для управления состоянием. Форма должна иметь поля: email, password, и кнопку отправки.
+// Показываем скелетон при первой загрузке
+if (isLoading) return <Skeleton />;
+
+// Показываем данные + индикатор фоновой загрузки
+return (
+  <div>
+    {isFetching && <Spinner />}
+    {data?.map(user => <UserCard key={user.id} {...user} />)}
+  </div>
+);
+```
 
 ---
 
-## 24.3. Архитектура и state management
+## Фабрика ключей (Query Keys)
 
-### Задание 11: Выбор state manager
+**Query Key** — это уникальный идентификатор запроса.
 
-Опиши, какой state manager ты бы выбрал для следующих сценариев и почему:
+### Иерархическая структура
 
-1. Небольшое приложение с формой входа и профилем пользователя.
-2. Большое e-commerce приложение с корзиной, каталогом, фильтрами.
-3. Дашборд с реальным временем (WebSocket) и множеством виджетов.
-
-**Решение должно включать:**
-
-- обоснование выбора;
-- описание trade-off'ов;
-- альтернативные варианты и почему они не подходят.
-
-### Задание 12: Redux Toolkit slice
-
-Создай Redux Toolkit slice для управления корзиной покупок:
-
-- добавление товара;
-- удаление товара;
-- изменение количества;
-- очистка корзины.
-
-**Требования:**
-
-- используй `createSlice`;
-- добавь типизацию (TypeScript);
-- создай компонент для отображения корзины.
-
-### Задание 13: TanStack Query с мутациями
-
-Создай компонент списка пользователей с TanStack Query:
-
-- загрузка списка;
-- создание нового пользователя (мутация);
-- обновление пользователя (мутация);
-- удаление пользователя (мутация);
-- инвалидация кэша после мутаций.
-
-**Требования:**
-
-- используй фабрику ключей;
-- создай кастомные хуки для запросов;
-- добавь оптимистичные обновления для обновления пользователя.
-
-### Задание 14: Compound Components
-
-Создай компонент `Accordion` используя паттерн Compound Components:
-
-```jsx
-<Accordion>
-  <Accordion.Item>
-    <Accordion.Header>Title 1</Accordion.Header>
-    <Accordion.Panel>Content 1</Accordion.Panel>
-  </Accordion.Item>
-  <Accordion.Item>
-    <Accordion.Header>Title 2</Accordion.Header>
-    <Accordion.Panel>Content 2</Accordion.Panel>
-  </Accordion.Item>
-</Accordion>
+```typescript
+// lib/api/query-keys.ts
+export const queryKeys = {
+  users: {
+    all: ['users'] as const,
+    lists: () => [...queryKeys.users.all, 'list'] as const,
+    list: (filters: string) => 
+      [...queryKeys.users.lists(), filters] as const,
+    details: () => [...queryKeys.users.all, 'detail'] as const,
+    detail: (id: number) => 
+      [...queryKeys.users.details(), id] as const,
+  },
+  posts: {
+    all: ['posts'] as const,
+    lists: () => [...queryKeys.posts.all, 'list'] as const,
+    list: (filters: string) => 
+      [...queryKeys.posts.lists(), filters] as const,
+    details: () => [...queryKeys.posts.all, 'detail'] as const,
+    detail: (id: number) => 
+      [...queryKeys.posts.details(), id] as const,
+  },
+} as const;
 ```
 
-**Требования:**
+**Преимущества:**
+- 🎯 Централизованное управление ключами
+- 🔄 Точечная инвалидация
+- 📦 Иерархическая структура
+- 🔒 Типобезопасность
 
-- используй Context для передачи состояния;
-- только один элемент может быть открыт одновременно;
-- добавь анимацию открытия/закрытия.
+### Использование
 
-### Задание 15: Архитектурное решение
+```typescript
+// Получение списка пользователей
+const { data } = useQuery({
+  queryKey: queryKeys.users.list('active'),
+  queryFn: () => fetchUsers({ status: 'active' }),
+});
 
-Дан проект с следующими требованиями:
+// Получение конкретного пользователя
+const { data: user } = useQuery({
+  queryKey: queryKeys.users.detail(123),
+  queryFn: () => fetchUser(123),
+});
+```
 
-- список товаров с фильтрацией;
-- корзина покупок;
-- профиль пользователя;
-- история заказов;
-- уведомления в реальном времени.
+---
 
-Опиши архитектуру: какие инструменты используешь, где хранишь состояние, как организуешь код. Объясни свои решения.
+## Кастомные хуки
 
-**Решение должно включать:**
+Инкапсулируйте каждый запрос в отдельный хук.
 
-- выбор state manager'ов для разных типов состояния;
-- структуру папок;
-- описание потоков данных;
-- обоснование каждого решения.
+```typescript
+// hooks/useUsers.ts
+import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '@/lib/api/axios';
+import { queryKeys } from '@/lib/api/query-keys';
 
-### Задание 16: Миграция с Context на Redux
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
 
-Дан компонент, использующий Context:
+// Список пользователей
+export const useUsers = (filters?: { status?: string }) => {
+  return useQuery({
+    queryKey: queryKeys.users.list(JSON.stringify(filters)),
+    queryFn: async () => {
+      const { data } = await apiClient.get<User[]>('/users', {
+        params: filters,
+      });
+      return data;
+    },
+    staleTime: 5 * 60 * 1000, // Данные актуальны 5 минут
+  });
+};
 
-```jsx
-const CartContext = createContext()
+// Конкретный пользователь
+export const useUser = (id: number) => {
+  return useQuery({
+    queryKey: queryKeys.users.detail(id),
+    queryFn: async () => {
+      const { data } = await apiClient.get<User>(`/users/${id}`);
+      return data;
+    },
+    enabled: !!id, // Запрос только если id существует
+  });
+};
 
-function CartProvider({ children }) {
-  const [items, setItems] = useState([])
+// Использование
+function UsersList() {
+  const { data: users } = useUsers({ status: 'active' });
+  // ...
+}
 
-  const addItem = (item) => {
-    setItems([...items, item])
-  }
+function UserProfile({ id }: { id: number }) {
+  const { data: user } = useUser(id);
+  // ...
+}
+```
+
+---
+
+## useMutation: изменение данных
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+interface CreateUserDTO {
+  name: string;
+  email: string;
+}
+
+export const useCreateUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (userData: CreateUserDTO) => {
+      const { data } = await apiClient.post<User>('/users', userData);
+      return data;
+    },
+    onSuccess: () => {
+      // Инвалидация списка пользователей
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.users.lists(),
+      });
+    },
+  });
+};
+
+// Использование
+function CreateUserForm() {
+  const createUser = useCreateUser();
+
+  const onSubmit = (data: CreateUserDTO) => {
+    createUser.mutate(data);
+  };
 
   return (
-    <CartContext.Provider value={{ items, addItem }}>
-      {children}
-    </CartContext.Provider>
-  )
+    <form onSubmit={handleSubmit(onSubmit)}>
+      {/* ... */}
+      <button disabled={createUser.isPending}>
+        {createUser.isPending ? 'Создание...' : 'Создать'}
+      </button>
+      {createUser.isError && <div>{createUser.error.message}</div>}
+    </form>
+  );
 }
 ```
 
-Мигрируй его на Redux Toolkit. Объясни, почему миграция оправдана или нет.
+---
+
+## Optimistic Updates
+
+Обновляем UI до получения ответа от сервера для мгновенного UX.
+
+```typescript
+export const useUpdateUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...data }: Partial<User> & { id: number }) => {
+      const response = await apiClient.patch<User>(`/users/${id}`, data);
+      return response.data;
+    },
+    
+    // Шаг 1: Отменяем активные запросы
+    onMutate: async (updatedUser) => {
+      await queryClient.cancelQueries({
+        queryKey: queryKeys.users.detail(updatedUser.id),
+      });
+
+      // Шаг 2: Сохраняем предыдущее состояние
+      const previousUser = queryClient.getQueryData<User>(
+        queryKeys.users.detail(updatedUser.id)
+      );
+
+      // Шаг 3: Оптимистичное обновление
+      if (previousUser) {
+        queryClient.setQueryData<User>(
+          queryKeys.users.detail(updatedUser.id),
+          { ...previousUser, ...updatedUser }
+        );
+      }
+
+      // Возвращаем контекст для rollback
+      return { previousUser };
+    },
+
+    // Шаг 4: Откат при ошибке
+    onError: (error, variables, context) => {
+      if (context?.previousUser) {
+        queryClient.setQueryData(
+          queryKeys.users.detail(variables.id),
+          context.previousUser
+        );
+      }
+    },
+
+    // Шаг 5: Инвалидация после завершения
+    onSettled: (data, error, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.users.detail(variables.id),
+      });
+    },
+  });
+};
+```
 
 ---
 
-## 24.4. SSR и современный React-стек
+## Предзагрузка данных
 
-### Задание 17: Проблемы SPA
+### prefetchQuery - перед навигацией
 
-Опиши проблемы классического SPA на примере конкретного приложения (например, интернет-магазина). Объясни, как SSR решает каждую проблему.
+```typescript
+function UserCard({ user }: { user: User }) {
+  const queryClient = useQueryClient();
 
-**Решение должно включать:**
+  const handleMouseEnter = () => {
+    // Предзагрузка данных при наведении
+    queryClient.prefetchQuery({
+      queryKey: queryKeys.users.detail(user.id),
+      queryFn: () => fetchUser(user.id),
+    });
+  };
 
-- описание каждой проблемы с конкретными примерами;
-- объяснение, как SSR решает проблему;
-- сравнение метрик (TTFB, FCP, TTI) до и после SSR.
+  return (
+    <Link
+      to={`/users/${user.id}`}
+      onMouseEnter={handleMouseEnter}
+    >
+      {user.name}
+    </Link>
+  );
+}
 
-### Задание 18: Hydration error
+// Когда пользователь перейдёт, данные уже в кэше!
+```
 
-Дан код с hydration error:
+### initialData - из списка
 
-```tsx
-function Component() {
-  const [mounted, setMounted] = useState(false)
+```typescript
+function UserProfile({ id }: { id: number }) {
+  const queryClient = useQueryClient();
+
+  const { data: user } = useQuery({
+    queryKey: queryKeys.users.detail(id),
+    queryFn: () => fetchUser(id),
+    initialData: () => {
+      // Берём данные из списка пользователей
+      const users = queryClient.getQueryData<User[]>(
+        queryKeys.users.lists()
+      );
+      return users?.find(u => u.id === id);
+    },
+  });
+
+  // Мгновенная отрисовка если данные были в списке
+}
+```
+
+---
+
+## Селекторы для оптимизации
+
+Подписываемся только на нужную часть данных.
+
+```typescript
+// ❌ Плохо: ререндер при любом изменении user
+const { data: user } = useUser(id);
+console.log(user.email); // Ререндер если изменился name
+
+// ✅ Хорошо: ререндер только при изменении email
+const { data: email } = useQuery({
+  queryKey: queryKeys.users.detail(id),
+  queryFn: () => fetchUser(id),
+  select: (user) => user.email, // Селектор
+});
+
+// Сложный селектор
+const { data: fullName } = useQuery({
+  queryKey: queryKeys.users.detail(id),
+  queryFn: () => fetchUser(id),
+  select: (user) => `${user.firstName} ${user.lastName}`,
+});
+```
+
+---
+
+## Точечная инвалидация
+
+```typescript
+const queryClient = useQueryClient();
+
+// ❌ Плохо: инвалидация всех пользователей
+queryClient.invalidateQueries({ queryKey: ['users'] });
+
+// ✅ Хорошо: только списки
+queryClient.invalidateQueries({
+  queryKey: queryKeys.users.lists(),
+});
+
+// ✅ Хорошо: только конкретный пользователь
+queryClient.invalidateQueries({
+  queryKey: queryKeys.users.detail(123),
+});
+
+// ✅ Хорошо: с предикатом
+queryClient.invalidateQueries({
+  predicate: (query) => {
+    const [entity, type] = query.queryKey;
+    return entity === 'users' && type === 'list';
+  },
+});
+```
+
+---
+
+## Глобальная обработка ошибок
+
+```typescript
+// app/layout.tsx
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error: any) => {
+        // Не повторяем при 404
+        if (error?.response?.status === 404) return false;
+        
+        // Не повторяем при 401/403
+        if ([401, 403].includes(error?.response?.status)) {
+          window.location.href = '/login';
+          return false;
+        }
+
+        // Повторяем 2 раза для сетевых ошибок и 5xx
+        return failureCount < 2;
+      },
+      retryDelay: (attemptIndex) => {
+        // Exponential backoff: 1s, 2s, 4s
+        return Math.min(1000 * 2 ** attemptIndex, 30000);
+      },
+    },
+    mutations: {
+      onError: (error: any) => {
+        // Глобальная обработка ошибок мутаций
+        if (error?.response?.status === 401) {
+          window.location.href = '/login';
+        }
+        
+        // Показываем toast
+        toast.error(error?.response?.data?.message || 'Произошла ошибка');
+      },
+    },
+  },
+});
+```
+
+---
+
+## Infinite Query (бесконечные списки)
+
+```typescript
+export const useInfiniteUsers = () => {
+  return useInfiniteQuery({
+    queryKey: queryKeys.users.lists(),
+    queryFn: async ({ pageParam = 1 }) => {
+      const { data } = await apiClient.get<{
+        users: User[];
+        nextPage: number | null;
+      }>('/users', {
+        params: { page: pageParam },
+      });
+      return data;
+    },
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialPageParam: 1,
+  });
+};
+
+// Использование
+function InfiniteUsersList() {
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteUsers();
+
+  return (
+    <div>
+      {data?.pages.map((page, i) => (
+        <div key={i}>
+          {page.users.map((user) => (
+            <UserCard key={user.id} {...user} />
+          ))}
+        </div>
+      ))}
+
+      {hasNextPage && (
+        <button
+          onClick={() => fetchNextPage()}
+          disabled={isFetchingNextPage}
+        >
+          {isFetchingNextPage ? 'Loading...' : 'Load More'}
+        </button>
+      )}
+    </div>
+  );
+}
+```
+
+### С intersection observer
+
+```typescript
+function InfiniteUsersList() {
+  const { ref, inView } = useInView();
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteUsers();
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    if (inView && hasNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, hasNextPage, fetchNextPage]);
 
-  return <div>{mounted ? <ClientOnly /> : <ServerOnly />}</div>
+  return (
+    <div>
+      {data?.pages.map((page) =>
+        page.users.map((user) => <UserCard key={user.id} {...user} />)
+      )}
+      
+      {hasNextPage && <div ref={ref}>Loading...</div>}
+    </div>
+  );
 }
 ```
 
-Исправь код так, чтобы избежать hydration error. Объясни, почему возникает ошибка и как твоё решение её исправляет.
+---
 
-**Требования:**
+## Dependent Queries
 
-- код должен работать без hydration errors;
-- объяснение должно включать, почему React требует совпадения HTML;
-- покажи несколько способов решения проблемы.
+```typescript
+function UserPosts({ userId }: { userId: number }) {
+  // Сначала загружаем пользователя
+  const { data: user } = useUser(userId);
 
-### Задание 19: Выбор типа рендеринга
+  // Затем его посты (только если user загружен)
+  const { data: posts } = useQuery({
+    queryKey: queryKeys.posts.list(`userId:${userId}`),
+    queryFn: () => fetchUserPosts(userId),
+    enabled: !!user, // Зависимый запрос
+  });
 
-Для следующих страниц выбери тип рендеринга (SSR, SSG, ISR, CSR) и объясни свой выбор:
-
-1. Главная страница интернет-магазина с каталогом товаров.
-2. Страница товара с динамическим ID.
-3. Личный кабинет пользователя.
-4. Блог со статьями.
-5. Форма обратной связи.
-
-**Решение должно включать:**
-
-- обоснование выбора для каждой страницы;
-- описание trade-off'ов;
-- альтернативные варианты и почему они не подходят.
-
-### Задание 20: Server vs Client Components
-
-Создай структуру Next.js App Router для страницы продукта:
-
-- Server Component для загрузки данных о продукте;
-- Client Component для корзины покупок;
-- Server Component для списка похожих товаров;
-- Client Component для отзывов с возможностью добавления.
-
-Объясни, почему ты выбрал Server или Client для каждого компонента.
-
-**Требования:**
-
-- код должен быть рабочим;
-- объяснение для каждого компонента;
-- покажи, как компоненты взаимодействуют друг с другом.
-
-### Задание 21: Оптимизация бандла
-
-Дан большой компонент `HeavyComponent`, который используется только на одной странице. Оптимизируй загрузку с помощью dynamic import и Suspense. Объясни, как это влияет на размер начального бандла.
-
-**Требования:**
-
-- покажи код до и после оптимизации;
-- объясни, как работает dynamic import;
-- опиши, как это влияет на метрики производительности.
-
-### Задание 22: ISR с revalidation
-
-Создай страницу блога с использованием ISR:
-
-- страницы генерируются на этапе билда;
-- обновляются каждые 60 секунд;
-- поддерживают on-demand revalidation через API route.
-
-**Требования:**
-
-- используй `generateStaticParams` для генерации страниц;
-- настрой `revalidate` для периодического обновления;
-- создай API route для on-demand revalidation.
+  return (
+    <div>
+      <h1>{user?.name}</h1>
+      {posts?.map((post) => (
+        <PostCard key={post.id} {...post} />
+      ))}
+    </div>
+  );
+}
+```
 
 ---
 
-## Как использовать этот практикум дальше
+## Интеграция с Axios
 
-- Возвращайся к этим задачам через 1–2 недели и реши их **ещё раз** без подсказок.
-- Если какая‑то задача вызывает трудности — вернись к соответствующей главе (18–21) и перечитай именно тот раздел, который связан с проблемой.
-- Придумай к каждому блоку **ещё по 1–2 своих варианта задач**:
-  - дополнительный пример на хуки;
-  - ещё один кейс с state management;
-  - свой сценарий SSR/SSG.
+```typescript
+// lib/api/axios.ts
+import axios from 'axios';
 
-Цель этого раздела — не зазубрить синтаксис, а натренировать **правильное понимание React**: понимать, _почему_ компоненты ведут себя именно так, и как использовать React для построения надёжных интерфейсов.
+export const apiClient = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+  timeout: 10000,
+});
+
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// lib/api/users.ts
+export const fetchUsers = async () => {
+  const { data } = await apiClient.get<User[]>('/users');
+  return data;
+};
+
+export const fetchUser = async (id: number) => {
+  const { data } = await apiClient.get<User>(`/users/${id}`);
+  return data;
+};
+
+export const createUser = async (userData: CreateUserDTO) => {
+  const { data } = await apiClient.post<User>('/users', userData);
+  return data;
+};
+
+// hooks/useUsers.ts
+export const useUsers = () => {
+  return useQuery({
+    queryKey: queryKeys.users.lists(),
+    queryFn: fetchUsers,
+  });
+};
+```
 
 ---
 
-> **Разбор решений** ко всем заданиям находится в следующей главе.
+## Best Practices
+
+### 1. Фабрика ключей обязательна
+
+```typescript
+// ❌ Плохо: магические строки
+useQuery({ queryKey: ['users'], queryFn: fetchUsers });
+
+// ✅ Хорошо: централизованные ключи
+useQuery({ queryKey: queryKeys.users.lists(), queryFn: fetchUsers });
+```
+
+### 2. Кастомные хуки для каждого запроса
+
+```typescript
+// ❌ Плохо: inline запросы в компонентах
+function Users() {
+  const { data } = useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
+      const res = await fetch('/users');
+      return res.json();
+    },
+  });
+}
+
+// ✅ Хорошо: кастомный хук
+export const useUsers = () => useQuery({
+  queryKey: queryKeys.users.lists(),
+  queryFn: fetchUsers,
+  staleTime: 5 * 60 * 1000,
+});
+```
+
+### 3. Оптимистичные обновления для instant UX
+
+```typescript
+// Используйте onMutate + setQueryData для мгновенного UI
+```
+
+### 4. Точечная инвалидация
+
+```typescript
+// ❌ Плохо: инвалидируем всё
+queryClient.invalidateQueries({ queryKey: ['users'] });
+
+// ✅ Хорошо: только списки
+queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
+```
+
+### 5. Предзагрузка по событиям
+
+```typescript
+// Prefetch при наведении курсора
+onMouseEnter={() => queryClient.prefetchQuery(...)}
+```
+
+---
+
+## Заключение
+
+**TanStack Query** — это стандарт для управления серверным состоянием в React:
+
+- 🚀 **Производительность** — автоматическое кеширование
+- 🔄 **Синхронизация** — фоновые обновления
+- 📦 **Оптимизация** — селекторы и dedupe
+- 🎯 **DX** — минимум бойлерплейта
+- 🛠️ **Devtools** — отладка из коробки
+
+**Ключевые паттерны (2025):**
+1. **Фабрика ключей** — централизованные иерархические ключи
+2. **Кастомные хуки** — инкапсуляция запросов
+3. **Optimistic updates** — мгновенный UI
+4. **Предзагрузка** — prefetchQuery перед навигацией
+5. **Селекторы** — оптимизация ререндеров
+6. **Точечная инвалидация** — predicate для умной инвалидации
+
+В следующей главе мы рассмотрим **Zustand** — минималистичный state manager для клиентского состояния.
+
