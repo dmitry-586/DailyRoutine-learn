@@ -163,7 +163,7 @@ export function ReadingCarousel({ content }: ReadingCarouselProps) {
       )}
 
       <div className='flex-1 touch-pan-x overflow-hidden' ref={emblaRef}>
-        <div className='flex h-full will-change-transform'>
+        <div className='flex h-full' style={{ willChange: 'transform' }}>
           {allChapters.map((chapter, index) => (
             <div
               key={chapter.id}

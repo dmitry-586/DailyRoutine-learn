@@ -25,9 +25,10 @@ export function useEmblaCarouselLogic(
     loop: false,
     align: 'start',
     skipSnaps: false,
-    duration: 25,
+    duration: 30,
     containScroll: 'trimSnaps',
-    dragThreshold: 8,
+    dragThreshold: 10,
+    inViewThreshold: 0.7,
     watchDrag: (_emblaApi, event) => {
       if (event instanceof MouseEvent) {
         return false

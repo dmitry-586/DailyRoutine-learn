@@ -13,9 +13,9 @@ export interface ChapterCacheEntry {
   content?: string
 }
 
-const NEIGHBOR_PREFETCH_DELAY_MS = 220
+const NEIGHBOR_PREFETCH_DELAY_MS = 150
 const STORAGE_KEY_PREFIX = 'reader:chapter:'
-const CACHE_VERSION = 'v6'
+const CACHE_VERSION = 'v9'
 
 const getStorageKey = (chapterId: string) =>
   `${STORAGE_KEY_PREFIX}${CACHE_VERSION}:${chapterId}`
@@ -112,6 +112,7 @@ export function useChapterContent({
   }, [chapters, currentIndex, loadChapter])
 
   useEffect(() => {
+    // Предзагрузка соседних глав
     const neighbors = [currentIndex - 1, currentIndex + 1]
       .map((index) => chapters[index])
       .filter(Boolean) as ChapterMeta[]
@@ -119,12 +120,50 @@ export function useChapterContent({
     if (!neighbors.length) return
 
     const timer = setTimeout(() => {
-      neighbors.forEach((chapter) => {
-        void loadChapter(chapter)
-      })
+      // Используем requestIdleCallback для загрузки в фоне без блокировки UI
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        ;(
+          window as Window & { requestIdleCallback: typeof requestIdleCallback }
+        ).requestIdleCallback(
+          () => {
+            neighbors.forEach((chapter) => {
+              void loadChapter(chapter)
+            })
+          },
+          { timeout: 2000 },
+        )
+      } else {
+        // Fallback для браузеров без requestIdleCallback
+        neighbors.forEach((chapter) => {
+          void loadChapter(chapter)
+        })
+      }
     }, NEIGHBOR_PREFETCH_DELAY_MS)
 
     return () => clearTimeout(timer)
+  }, [chapters, currentIndex, loadChapter])
+
+  // Агрессивная предзагрузка при простое
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const prefetchAhead = () => {
+      const ahead = [currentIndex + 2, currentIndex + 3]
+        .map((index) => chapters[index])
+        .filter(Boolean) as ChapterMeta[]
+
+      ahead.forEach((chapter) => {
+        const cached = cacheRef.current[chapter.id]
+        if (!cached || cached.status === 'idle') {
+          void loadChapter(chapter)
+        }
+      })
+    }
+
+    // Предзагружаем еще 2 главы вперед при простое
+    const idleTimer = setTimeout(prefetchAhead, 3000)
+
+    return () => clearTimeout(idleTimer)
   }, [chapters, currentIndex, loadChapter])
 
   return { cache, loadChapter }

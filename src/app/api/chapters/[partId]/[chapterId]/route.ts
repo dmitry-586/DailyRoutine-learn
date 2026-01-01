@@ -8,6 +8,10 @@ export const dynamic = 'force-dynamic'
 
 const CONTENT_DIR = join(process.cwd(), 'src/data')
 
+// Кэш для markdown контента (в памяти сервера)
+const contentCache = new Map<string, { content: string; timestamp: number }>()
+const CACHE_TTL = 1000 * 60 * 10 // 10 минут
+
 interface ResolvedChapter {
   chapter: ChapterMeta
   filePath: string
@@ -50,12 +54,31 @@ export async function GET(
   }
 
   try {
+    const cacheKey = `${partId}:${chapterId}`
+    const cached = contentCache.get(cacheKey)
+    const now = Date.now()
+
+    // Проверяем кэш
+    if (cached && now - cached.timestamp < CACHE_TTL) {
+      return NextResponse.json({
+        id: resolved.chapter.id,
+        title: resolved.chapter.title,
+        content: cached.content,
+        cached: true,
+      })
+    }
+
+    // Читаем markdown
     const content = await readFile(resolved.filePath, 'utf-8')
+
+    // Сохраняем в кэш
+    contentCache.set(cacheKey, { content, timestamp: now })
 
     return NextResponse.json({
       id: resolved.chapter.id,
       title: resolved.chapter.title,
       content,
+      cached: false,
     })
   } catch (error) {
     return NextResponse.json(
