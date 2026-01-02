@@ -35,17 +35,9 @@ export function useEmblaCarouselLogic(
       }
 
       if (event instanceof TouchEvent) {
-        let el = event.target as HTMLElement | null
-        while (el) {
-          const style = window.getComputedStyle(el)
-          if (
-            style.overflowX === 'auto' ||
-            style.overflowY === 'auto' ||
-            style.overflow === 'auto'
-          ) {
-            return false
-          }
-          el = el.parentElement
+        const pre = (event.target as HTMLElement)?.closest('pre')
+        if (pre) {
+          return false
         }
       }
 
