@@ -33,6 +33,22 @@ export function useEmblaCarouselLogic(
       if (event instanceof MouseEvent) {
         return false
       }
+
+      if (event instanceof TouchEvent) {
+        let el = event.target as HTMLElement | null
+        while (el) {
+          const style = window.getComputedStyle(el)
+          if (
+            style.overflowX === 'auto' ||
+            style.overflowY === 'auto' ||
+            style.overflow === 'auto'
+          ) {
+            return false
+          }
+          el = el.parentElement
+        }
+      }
+
       return true
     },
     startIndex: options.initialIndex ?? 0,
