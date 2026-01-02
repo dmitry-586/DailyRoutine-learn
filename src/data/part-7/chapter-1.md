@@ -1,210 +1,688 @@
-# Глава 29. Паттерны проектирования
+# Глава 22. React Hook Form: производительные формы
 
-Паттерны проектирования — это не «классика ради классики», а язык общения между разработчиками. На собеседованиях важно не заученное определение, а понимание:
+## Введение
 
-- какую проблему решает паттерн
-- какие есть альтернативы
-- какие у него ограничения
+Формы — одна из самых сложных частей React-приложений. Нативные формы вызывают ререндеры при каждом вводе символа, сложны в валидации и управлении состоянием.
+
+**React Hook Form** решает эти проблемы через uncontrolled компоненты и минимальные ререндеры. В 2026 году это стандарт для форм в React.
 
 ---
 
-## 25.1. SOLID-принципы
+## Проблемы нативных форм
 
-SOLID — набор принципов объектно-ориентированного проектирования, применимых и во фронтенде.
-
-### S — Single Responsibility
-
-Модуль должен иметь одну причину для изменения.
-
-**Плохо:**
+### Controlled компоненты = много ререндеров
 
 ```typescript
-class UserService {
-  fetchUser() {}
-  renderUser() {}
+// ❌ Плохо: ререндер на каждый символ
+function LoginForm() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  // Компонент ререндерится при каждом нажатии клавиши
+  return (
+    <form>
+      <input
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <input
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+    </form>
+  );
 }
 ```
 
-**Хорошо:**
+**Проблемы:**
 
-- сервис для данных
-- компонент для UI
-
-### O — Open / Closed
-
-Сущности должны быть открыты для расширения, но закрыты для изменения.
-
-### L — Liskov Substitution
-
-Подтипы должны корректно заменять базовый тип.
-
-### I — Interface Segregation
-
-Много маленьких интерфейсов лучше одного большого.
-
-### D — Dependency Inversion
-
-Зависеть от абстракций, а не от реализаций.
+- 🐌 Ререндер всего компонента на каждый символ
+- 📦 Сложно масштабируется (большие формы)
+- 🔄 Дублирование кода для каждого поля
+- ⚠️ Валидация требует много бойлерплейта
 
 ---
 
-## 25.2. Классические паттерны
+## Установка и базовое использование
 
-### Singleton
+```bash
+pnpm add react-hook-form
+```
 
-Гарантирует один экземпляр.
+### Простая форма
 
 ```typescript
-class Store {
-  private static instance: Store
-  static getInstance() {
-    if (!Store.instance) {
-      Store.instance = new Store()
+import { useForm } from 'react-hook-form';
+
+interface LoginFormData {
+  email: string;
+  password: string;
+}
+
+export function LoginForm() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>();
+
+  const onSubmit = (data: LoginFormData) => {
+    console.log(data); // { email: '...', password: '...' }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <input {...register('email')} placeholder="Email" />
+      {errors.email && <span>{errors.email.message}</span>}
+
+      <input
+        type="password"
+        {...register('password')}
+        placeholder="Password"
+      />
+      {errors.password && <span>{errors.password.message}</span>}
+
+      <button type="submit">Войти</button>
+    </form>
+  );
+}
+```
+
+**Преимущества:**
+
+- ✅ Нет ререндеров при вводе
+- ✅ Минимальный код
+- ✅ Типизация из коробки
+
+---
+
+## Встроенная валидация
+
+```typescript
+export function SignupForm() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignupFormData>();
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <input
+        {...register('email', {
+          required: 'Email обязателен',
+          pattern: {
+            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+            message: 'Некорректный email',
+          },
+        })}
+      />
+      {errors.email && <span>{errors.email.message}</span>}
+
+      <input
+        type="password"
+        {...register('password', {
+          required: 'Пароль обязателен',
+          minLength: {
+            value: 8,
+            message: 'Минимум 8 символов',
+          },
+        })}
+      />
+      {errors.password && <span>{errors.password.message}</span>}
+
+      <input
+        type="number"
+        {...register('age', {
+          required: 'Возраст обязателен',
+          min: {
+            value: 18,
+            message: 'Вам должно быть 18+',
+          },
+          valueAsNumber: true, // Преобразует в number
+        })}
+      />
+      {errors.age && <span>{errors.age.message}</span>}
+
+      <button type="submit">Зарегистрироваться</button>
+    </form>
+  );
+}
+```
+
+---
+
+## Интеграция с Zod
+
+React Hook Form + Zod = идеальная комбинация.
+
+```bash
+pnpm add @hookform/resolvers zod
+```
+
+```typescript
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const SignupSchema = z.object({
+  email: z.string().email('Некорректный email'),
+  password: z.string().min(8, 'Минимум 8 символов'),
+  confirmPassword: z.string(),
+  age: z.number().int().min(18, 'Вам должно быть 18+'),
+  terms: z.literal(true, {
+    errorMap: () => ({ message: 'Необходимо согласие' }),
+  }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'Пароли не совпадают',
+  path: ['confirmPassword'],
+});
+
+type SignupFormData = z.infer<typeof SignupSchema>;
+
+export function SignupForm() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignupFormData>({
+    resolver: zodResolver(SignupSchema),
+  });
+
+  const onSubmit = (data: SignupFormData) => {
+    // data гарантированно валиден
+    console.log(data);
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <input {...register('email')} />
+      {errors.email && <span>{errors.email.message}</span>}
+
+      <input type="password" {...register('password')} />
+      {errors.password && <span>{errors.password.message}</span>}
+
+      <input type="password" {...register('confirmPassword')} />
+      {errors.confirmPassword && (
+        <span>{errors.confirmPassword.message}</span>
+      )}
+
+      <input type="number" {...register('age', { valueAsNumber: true })} />
+      {errors.age && <span>{errors.age.message}</span>}
+
+      <label>
+        <input type="checkbox" {...register('terms')} />
+        Согласен с условиями
+      </label>
+      {errors.terms && <span>{errors.terms.message}</span>}
+
+      <button type="submit">Зарегистрироваться</button>
+    </form>
+  );
+}
+```
+
+---
+
+## Управление ошибками
+
+### Ошибки валидации
+
+```typescript
+const {
+  formState: { errors, isSubmitting, isValid, isDirty },
+} = useForm()
+
+// errors - объект с ошибками для каждого поля
+errors.email?.message
+errors.password?.message
+
+// isSubmitting - форма отправляется
+// isValid - форма валидна
+// isDirty - форма изменена
+```
+
+### Touched состояния
+
+```typescript
+const {
+  formState: { touchedFields, dirtyFields },
+} = useForm();
+
+// Показывать ошибку только после blur
+{touchedFields.email && errors.email && (
+  <span>{errors.email.message}</span>
+)}
+```
+
+### Серверные ошибки
+
+```typescript
+const { setError, handleSubmit } = useForm<LoginFormData>()
+
+const onSubmit = async (data: LoginFormData) => {
+  try {
+    await login(data)
+  } catch (error) {
+    if (error.code === 'INVALID_CREDENTIALS') {
+      setError('email', {
+        type: 'server',
+        message: 'Неверный email или пароль',
+      })
     }
-    return Store.instance
   }
 }
 ```
 
-⚠️ Во фронтенде часто заменяется контекстом React.
+---
 
-### Factory
+## Watched значения и условная логика
 
-Создаёт объекты без знания конкретного класса.
+### watch для реактивности
 
 ```typescript
-function createUser(type: 'admin' | 'user') {
-  return type === 'admin' ? new Admin() : new User()
+function ProfileForm() {
+  const { register, watch } = useForm();
+
+  const country = watch('country');
+
+  return (
+    <form>
+      <select {...register('country')}>
+        <option value="US">USA</option>
+        <option value="CA">Canada</option>
+        <option value="UK">UK</option>
+      </select>
+
+      {/* Условное поле в зависимости от country */}
+      {country === 'US' && (
+        <input {...register('state')} placeholder="State" />
+      )}
+
+      {/* Поле SSN только для USA */}
+      {country === 'US' && (
+        <input {...register('ssn')} placeholder="SSN" />
+      )}
+    </form>
+  );
 }
 ```
 
-### Observer
+### Подписка на изменения
 
-Реакция на изменения состояния.
+```typescript
+const { watch } = useForm()
 
-**Пример:**
+useEffect(() => {
+  const subscription = watch((value, { name, type }) => {
+    console.log('Changed field:', name, value)
+  })
 
-- EventEmitter
-- RxJS
-- Redux (через подписки)
+  return () => subscription.unsubscribe()
+}, [watch])
+```
 
-### Strategy
+---
 
-Выбор алгоритма во время выполнения.
+## Динамические поля (Field Arrays)
 
-```javascript
-const strategies = {
-  asc: (a, b) => a - b,
-  desc: (a, b) => b - a,
+```typescript
+import { useForm, useFieldArray } from 'react-hook-form';
+
+interface FormData {
+  users: Array<{ name: string; email: string }>;
+}
+
+export function UsersForm() {
+  const { register, control, handleSubmit } = useForm<FormData>({
+    defaultValues: {
+      users: [{ name: '', email: '' }],
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'users',
+  });
+
+  return (
+    <form onSubmit={handleSubmit((data) => console.log(data))}>
+      {fields.map((field, index) => (
+        <div key={field.id}>
+          <input
+            {...register(`users.${index}.name`)}
+            placeholder="Name"
+          />
+          <input
+            {...register(`users.${index}.email`)}
+            placeholder="Email"
+          />
+          <button type="button" onClick={() => remove(index)}>
+            Удалить
+          </button>
+        </div>
+      ))}
+
+      <button
+        type="button"
+        onClick={() => append({ name: '', email: '' })}
+      >
+        Добавить пользователя
+      </button>
+
+      <button type="submit">Отправить</button>
+    </form>
+  );
 }
 ```
 
-### Facade
+---
 
-Простой интерфейс над сложной системой.
+## Controlled компоненты (Controller)
 
-### Proxy
+Для кастомных UI библиотек (Radix, MUI, etc.).
 
-Контролирует доступ к объекту.
+```typescript
+import { Controller, useForm } from 'react-hook-form';
+import { Select } from '@/components/ui/Select';
 
-```javascript
-const proxy = new Proxy(target, {
-  get(target, prop) {
-    return target[prop]
+export function SettingsForm() {
+  const { control, handleSubmit } = useForm();
+
+  return (
+    <form onSubmit={handleSubmit((data) => console.log(data))}>
+      <Controller
+        name="theme"
+        control={control}
+        defaultValue="light"
+        render={({ field }) => (
+          <Select
+            value={field.value}
+            onChange={field.onChange}
+            options={[
+              { value: 'light', label: 'Light' },
+              { value: 'dark', label: 'Dark' },
+            ]}
+          />
+        )}
+      />
+
+      <button type="submit">Сохранить</button>
+    </form>
+  );
+}
+```
+
+---
+
+## Оптимизация производительности
+
+### Режим валидации
+
+```typescript
+const { register } = useForm({
+  mode: 'onBlur', // Валидация при потере фокуса (default: onSubmit)
+  // mode: 'onChange', // При каждом изменении
+  // mode: 'onTouched', // После первого blur
+  // mode: 'all', // onChange + onBlur
+})
+```
+
+### Отключение ререндеров
+
+```typescript
+// ❌ watch вызывает ререндер
+const value = watch('email')
+
+// ✅ Используйте getValues без ререндера
+const { getValues } = useForm()
+const value = getValues('email')
+```
+
+### Изоляция форм
+
+```typescript
+// Разбейте большую форму на подформы
+function BigForm() {
+  return (
+    <>
+      <PersonalInfoForm />
+      <AddressForm />
+      <PaymentForm />
+    </>
+  );
+}
+
+// Каждая подформа изолирована
+function PersonalInfoForm() {
+  const { register } = useForm();
+  // Ререндер только этой части
+}
+```
+
+---
+
+## Сравнение: React Hook Form vs Formik
+
+| Критерий           | React Hook Form | Formik  |
+| ------------------ | --------------- | ------- |
+| Ререндеры          | Минимальные     | Много   |
+| Bundle size        | ~9KB            | ~15KB   |
+| Производительность | ⚡⚡⚡          | ⚡      |
+| TypeScript         | Отличная        | Хорошая |
+| Валидация          | Zod, Yup, Joi   | Yup     |
+| Uncontrolled       | ✅              | ❌      |
+| Field Arrays       | ✅              | ✅      |
+| Ecosystem          | Растёт          | Зрелая  |
+
+**Выбор в 2026:** React Hook Form — стандарт.
+
+---
+
+## Интеграция с TanStack Query
+
+```typescript
+import { useMutation } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const UserSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+});
+
+type UserFormData = z.infer<typeof UserSchema>;
+
+export function CreateUserForm() {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    formState: { errors },
+  } = useForm<UserFormData>({
+    resolver: zodResolver(UserSchema),
+  });
+
+  const createUser = useMutation({
+    mutationFn: (data: UserFormData) => apiClient.post('/users', data),
+    onSuccess: () => {
+      reset(); // Очистка формы
+    },
+    onError: (error: any) => {
+      // Обработка серверных ошибок
+      if (error.response?.data?.errors) {
+        Object.entries(error.response.data.errors).forEach(
+          ([field, message]) => {
+            setError(field as keyof UserFormData, {
+              type: 'server',
+              message: message as string,
+            });
+          }
+        );
+      }
+    },
+  });
+
+  const onSubmit = (data: UserFormData) => {
+    createUser.mutate(data);
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <input {...register('name')} />
+      {errors.name && <span>{errors.name.message}</span>}
+
+      <input {...register('email')} />
+      {errors.email && <span>{errors.email.message}</span>}
+
+      <button type="submit" disabled={createUser.isPending}>
+        {createUser.isPending ? 'Создание...' : 'Создать'}
+      </button>
+    </form>
+  );
+}
+```
+
+---
+
+## Переиспользуемые поля
+
+```typescript
+// components/FormField.tsx
+import { useFormContext } from 'react-hook-form';
+
+interface FormFieldProps {
+  name: string;
+  label: string;
+  type?: string;
+  placeholder?: string;
+}
+
+export function FormField({
+  name,
+  label,
+  type = 'text',
+  placeholder,
+}: FormFieldProps) {
+  const {
+    register,
+    formState: { errors },
+  } = useFormContext();
+
+  const error = errors[name];
+
+  return (
+    <div className="form-field">
+      <label htmlFor={name}>{label}</label>
+      <input
+        id={name}
+        type={type}
+        placeholder={placeholder}
+        {...register(name)}
+        className={error ? 'error' : ''}
+      />
+      {error && <span className="error-message">{error.message}</span>}
+    </div>
+  );
+}
+
+// Использование
+function SignupForm() {
+  const methods = useForm();
+
+  return (
+    <FormProvider {...methods}>
+      <form onSubmit={methods.handleSubmit(onSubmit)}>
+        <FormField name="email" label="Email" type="email" />
+        <FormField name="password" label="Password" type="password" />
+        <button type="submit">Sign Up</button>
+      </form>
+    </FormProvider>
+  );
+}
+```
+
+---
+
+## Best Practices
+
+### 1. Всегда используйте resolver для валидации
+
+```typescript
+// ❌ Плохо: встроенная валидация
+register('email', {
+  required: true,
+  pattern: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+})
+
+// ✅ Хорошо: Zod resolver
+const schema = z.object({
+  email: z.string().email(),
+})
+
+useForm({ resolver: zodResolver(schema) })
+```
+
+### 2. Типизируйте формы
+
+```typescript
+// ✅ Всегда указывайте тип
+const { register } = useForm<LoginFormData>()
+```
+
+### 3. Используйте defaultValues
+
+```typescript
+const { register } = useForm({
+  defaultValues: {
+    email: '',
+    rememberMe: false,
   },
 })
 ```
 
----
+### 4. Разделяйте большие формы
 
-## 25.3. Фронтенд-архитектура модулей
+```typescript
+// ❌ Плохо: одна гигантская форма
+function MegaForm() {
+  // 50 полей...
+}
 
-### Feature-based структура
+// ✅ Хорошо: разделение на шаги
+function MultiStepForm() {
+  const [step, setStep] = useState(1);
 
+  return (
+    <>
+      {step === 1 && <PersonalInfoStep />}
+      {step === 2 && <AddressStep />}
+      {step === 3 && <PaymentStep />}
+    </>
+  );
+}
 ```
-/features
-  /auth
-  /profile
-  /cart
-```
-
-Каждая фича содержит всё необходимое: компоненты, логику, стили, тесты.
-
-### Layered архитектура
-
-- UI — компоненты
-- domain — бизнес-логика
-- data — работа с API
-
-### Anti-patterns
-
-- god-components (огромные компоненты)
-- бизнес-логика в UI
-- тесная связность модулей
 
 ---
 
-## Вопросы на собеседовании
+## Заключение
 
-### 1. Что такое SOLID?
+**React Hook Form** — это современный стандарт для форм в React:
 
-Набор принципов проектирования: Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion.
+- ⚡ **Производительность** — минимальные ререндеры
+- 🎯 **Простота** — меньше кода, чем у конкурентов
+- 🔧 **Гибкость** — встроенная валидация или Zod/Yup
+- 📦 **Размер** — всего 9KB
+- 🔒 **Типизация** — отличная поддержка TypeScript
 
-### 2. Применимы ли паттерны GoF во фронтенде?
+**Ключевые паттерны:**
 
-Да, но адаптированы под функциональный подход и компонентную модель.
+1. Используйте `zodResolver` для валидации
+2. `Controller` для кастомных UI компонентов
+3. `useFieldArray` для динамических полей
+4. `setError` для серверных ошибок
+5. Разделяйте большие формы на компоненты
 
-### 3. Singleton — зло?
-
-Во фронтенде часто заменяется Context API. Может быть полезен для глобальных сервисов.
-
-### 4. Observer в React — где?
-
-Redux (подписки), EventEmitter, RxJS, сам React (подписка на изменения).
-
-### 5. Strategy — пример из UI?
-
-Сортировка списков, валидация форм, алгоритмы отображения данных.
-
-### 6. Что такое Facade?
-
-Упрощённый интерфейс над сложной системой. Скрывает сложность.
-
-### 7. Какие архитектурные анти-паттерны знаете?
-
-God components, бизнес-логика в UI, тесная связность, дублирование кода.
-
----
-
-## Key Takeaways
-
-- SOLID применим во фронтенде, но адаптирован под компонентную модель
-- Паттерны решают конкретные проблемы, не использовать везде
-- Singleton во фронтенде часто заменяется Context
-- Observer — основа реактивности в React/Redux
-- Feature-based структура — современный подход к организации кода
-- Anti-patterns важнее знать, чем паттерны
-
----
-
-## 25.4. Практические сценарии и самопроверка
-
-**Практические сценарии:**
-
-- можешь ли на реальном примере из своего (или воображаемого) проекта показать «god‑component» и предложить, как его разбить по принципу Single Responsibility;
-- можешь ли объяснить, где в твоём текущем стеке уже используются Observer и Strategy (Redux, события, выбор алгоритма сортировки/валидации);
-- можешь ли привести пример, когда Singleton/глобальное состояние во фронте реально навредили (тестируемости, SSR, изоляции фич), и как бы ты это сейчас спроектировал иначе.
-
-**Самопроверка:**
-
-Если ты:
-
-- можешь на собеседовании не только дать определение SOLID, но и привязать каждый принцип к конкретным фронтенд‑сценариям;
-- отличаешь «паттерн ради паттерна» от реальной пользы (и можешь объяснить, почему, например, не везде нужен Singleton или Factory);
-- видишь в коде архитектурные анти‑паттерны (god‑components, бизнес‑логика в UI, жёсткая связность) и умеешь предложить план их постепенного исправления,
-
-то с точки зрения паттернов и базовой архитектуры ты уже мыслишь как уверенный Middle/Strong Middle.
-
----
-
-В следующей главе мы поговорим о более формальных архитектурных подходах — от Clean Architecture до слоёных и модульных архитектур — и разберём, когда они действительно нужны, а когда избыточны для фронтенда.
+В следующей главе мы рассмотрим **TanStack Query** для управления серверным состоянием.

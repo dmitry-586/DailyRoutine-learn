@@ -171,8 +171,8 @@ export function ReadingCarousel({ content }: ReadingCarouselProps) {
             >
               <ChapterSlide
                 chapter={chapter}
-                currentIndex={currentIndex}
                 chapterIndex={index}
+                currentIndex={currentIndex}
                 cache={cache}
                 onEnsureLoad={loadChapter}
               />

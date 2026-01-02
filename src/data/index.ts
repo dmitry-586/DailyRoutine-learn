@@ -130,111 +130,125 @@ export const partsConfig = [
         title: 'Глава 19. Продвинутые техники TypeScript',
         file: 'chapter-5.md',
       },
-      {
-        id: 'chapter-5-6',
-        title: 'Глава 20. Zod: runtime валидация и типизация',
-        file: 'chapter-6.md',
-      },
     ],
   },
   {
     id: 'part-6',
-    title: 'Часть VI. React и SPA',
+    title: 'Часть VI. React',
     folder: 'part-6',
     chapters: [
       {
         id: 'chapter-6-1',
-        title: 'Глава 21. Основы React',
+        title: 'Глава 20. Основы React',
         file: 'chapter-1.md',
       },
       {
         id: 'chapter-6-2',
-        title: 'Глава 22. Хуки и управление состоянием',
+        title: 'Глава 21. Хуки и управление состоянием',
         file: 'chapter-2.md',
-      },
-      {
-        id: 'chapter-6-3',
-        title: 'Глава 23. React Hook Form',
-        file: 'chapter-3.md',
-      },
-      {
-        id: 'chapter-6-4',
-        title: 'Глава 24. Архитектура больших приложений',
-        file: 'chapter-4.md',
-      },
-      {
-        id: 'chapter-6-5',
-        title: 'Глава 25. TanStack Query',
-        file: 'chapter-5.md',
-      },
-      {
-        id: 'chapter-6-6',
-        title: 'Глава 26. Zustand',
-        file: 'chapter-6.md',
-      },
-      {
-        id: 'chapter-6-7',
-        title: 'Глава 27. Axios и работа с HTTP',
-        file: 'chapter-7.md',
-      },
-      {
-        id: 'chapter-6-8',
-        title: 'Глава 28. SSR и современный React-стек',
-        file: 'chapter-8.md',
       },
     ],
   },
   {
     id: 'part-7',
-    title: 'Часть VII. Архитектура и проектирование',
+    title: 'Часть VII. Библиотеки React-экосистемы',
     folder: 'part-7',
     chapters: [
       {
         id: 'chapter-7-1',
-        title: 'Глава 29. Паттерны проектирования',
+        title: 'Глава 22. React Hook Form',
         file: 'chapter-1.md',
       },
       {
         id: 'chapter-7-2',
-        title: 'Глава 30. Архитектуры фронтенда',
+        title: 'Глава 23. TanStack Query',
         file: 'chapter-2.md',
+      },
+      {
+        id: 'chapter-7-3',
+        title: 'Глава 24. Zustand',
+        file: 'chapter-3.md',
+      },
+      {
+        id: 'chapter-7-4',
+        title: 'Глава 25. Axios и работа с HTTP',
+        file: 'chapter-4.md',
+      },
+      {
+        id: 'chapter-7-5',
+        title: 'Глава 26. Zod: runtime валидация и типизация',
+        file: 'chapter-5.md',
       },
     ],
   },
   {
     id: 'part-8',
-    title: 'Часть VIII. Производительность и безопасность',
+    title: 'Часть VIII. SSR и Next.js',
     folder: 'part-8',
     chapters: [
       {
         id: 'chapter-8-1',
+        title: 'Глава 27. SSR и современный React-стек',
+        file: 'chapter-1.md',
+      },
+    ],
+  },
+  {
+    id: 'part-9',
+    title: 'Часть IX. Архитектура и проектирование',
+    folder: 'part-9',
+    chapters: [
+      {
+        id: 'chapter-9-1',
+        title: 'Глава 28. Архитектура больших приложений',
+        file: 'chapter-1.md',
+      },
+      {
+        id: 'chapter-9-2',
+        title: 'Глава 29. Паттерны проектирования',
+        file: 'chapter-2.md',
+      },
+      {
+        id: 'chapter-9-3',
+        title: 'Глава 30. Архитектуры фронтенда',
+        file: 'chapter-3.md',
+      },
+    ],
+  },
+  {
+    id: 'part-10',
+    title: 'Часть X. Производительность и безопасность',
+    folder: 'part-8',
+    chapters: [
+      {
+        id: 'chapter-10-1',
         title: 'Глава 31. Производительность',
         file: 'chapter-1.md',
       },
       {
-        id: 'chapter-8-2',
+        id: 'chapter-10-2',
         title: 'Глава 32. Безопасность во фронтенде',
         file: 'chapter-2.md',
       },
     ],
   },
   {
-    id: 'part-10',
-    title: 'Часть X. Подготовка к собеседованию',
+    id: 'part-11',
+    title: 'Часть XI. Подготовка к собеседованию',
     folder: 'part-10',
     chapters: [
       {
-        id: 'chapter-10-1',
+        id: 'chapter-11-1',
         title: 'Глава 33. Алгоритмические задачи',
         file: 'chapter-1.md',
       },
       {
-        id: 'chapter-10-2',
+        id: 'chapter-11-2',
         title: 'Глава 34. Поведенческое собеседование',
         file: 'chapter-2.md',
       },
       {
-        id: 'chapter-10-3',
+        id: 'chapter-11-3',
         title: 'Глава 35. Итоговый чек-лист',
         file: 'chapter-3.md',
       },

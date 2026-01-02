@@ -13,7 +13,6 @@ export interface ChapterCacheEntry {
   content?: string
 }
 
-const NEIGHBOR_PREFETCH_DELAY_MS = 150
 const STORAGE_KEY_PREFIX = 'reader:chapter:'
 const CACHE_VERSION = 'v9'
 
@@ -29,6 +28,8 @@ interface UseChapterContentResult {
   cache: Record<string, ChapterCacheEntry>
   loadChapter: (chapter: ChapterMeta) => Promise<void>
 }
+
+const NEIGHBOR_PREFETCH_DELAY_MS = 150
 
 export function useChapterContent({
   chapters,
@@ -104,6 +105,7 @@ export function useChapterContent({
     }
   }, [])
 
+  // Загружаем текущую главу
   useEffect(() => {
     const current = chapters[currentIndex]
     if (current) {
@@ -111,8 +113,8 @@ export function useChapterContent({
     }
   }, [chapters, currentIndex, loadChapter])
 
+  // Предзагрузка соседних глав (предыдущая и следующая)
   useEffect(() => {
-    // Предзагрузка соседних глав
     const neighbors = [currentIndex - 1, currentIndex + 1]
       .map((index) => chapters[index])
       .filter(Boolean) as ChapterMeta[]
@@ -141,29 +143,6 @@ export function useChapterContent({
     }, NEIGHBOR_PREFETCH_DELAY_MS)
 
     return () => clearTimeout(timer)
-  }, [chapters, currentIndex, loadChapter])
-
-  // Агрессивная предзагрузка при простое
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-
-    const prefetchAhead = () => {
-      const ahead = [currentIndex + 2, currentIndex + 3]
-        .map((index) => chapters[index])
-        .filter(Boolean) as ChapterMeta[]
-
-      ahead.forEach((chapter) => {
-        const cached = cacheRef.current[chapter.id]
-        if (!cached || cached.status === 'idle') {
-          void loadChapter(chapter)
-        }
-      })
-    }
-
-    // Предзагружаем еще 2 главы вперед при простое
-    const idleTimer = setTimeout(prefetchAhead, 3000)
-
-    return () => clearTimeout(idleTimer)
   }, [chapters, currentIndex, loadChapter])
 
   return { cache, loadChapter }

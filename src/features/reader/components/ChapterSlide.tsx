@@ -11,11 +11,8 @@ interface ChapterSlideProps {
   chapterIndex: number
   currentIndex: number
   cache: Record<string, ChapterCacheEntry>
-  virtualWindow?: number
   onEnsureLoad: (chapter: ChapterMeta) => Promise<void>
 }
-
-const DEFAULT_VIRTUAL_WINDOW = 1
 
 /**
  * Мемоизированный спиннер загрузки
@@ -29,17 +26,6 @@ const LoadingSpinner = memo(() => (
 LoadingSpinner.displayName = 'LoadingSpinner'
 
 /**
- * Мемоизированный плейсхолдер для невидимых глав
- */
-const ChapterPlaceholder = memo(() => (
-  <div className='text-foreground/70 flex h-full items-center justify-center px-4 text-sm'>
-    Глава будет загружена при открытии
-  </div>
-))
-
-ChapterPlaceholder.displayName = 'ChapterPlaceholder'
-
-/**
  * Мемоизированное сообщение об ошибке
  */
 const ErrorMessage = memo(({ message }: { message: string }) => (
@@ -51,7 +37,7 @@ const ErrorMessage = memo(({ message }: { message: string }) => (
 ErrorMessage.displayName = 'ErrorMessage'
 
 /**
- * Основной компонент слайда главы с оптимизацией рендеринга
+ * Основной компонент слайда главы с виртуализацией соседних глав
  */
 export const ChapterSlide = memo(
   function ChapterSlide({
@@ -59,22 +45,27 @@ export const ChapterSlide = memo(
     chapterIndex,
     currentIndex,
     cache,
-    virtualWindow = DEFAULT_VIRTUAL_WINDOW,
     onEnsureLoad,
   }: ChapterSlideProps) {
     const chapterState = cache[chapter.id]
+
+    // Виртуализация: загружаем только текущую главу и соседние (±1)
+    const virtualWindow = 1
     const isVisible = useMemo(
       () => Math.abs(chapterIndex - currentIndex) <= virtualWindow,
-      [chapterIndex, currentIndex, virtualWindow],
+      [chapterIndex, currentIndex],
     )
 
+    // Загружаем только видимые главы
     useEffect(() => {
-      if (!isVisible) return
-      void onEnsureLoad(chapter)
+      if (isVisible) {
+        void onEnsureLoad(chapter)
+      }
     }, [chapter, isVisible, onEnsureLoad])
 
+    // Если глава не видима, не рендерим контент
     if (!isVisible) {
-      return <ChapterPlaceholder />
+      return null
     }
 
     if (chapterState?.status === 'loaded' && chapterState.content) {
@@ -90,8 +81,14 @@ export const ChapterSlide = memo(
     return <LoadingSpinner />
   },
   (prevProps, nextProps) => {
+    const prevVisible =
+      Math.abs(prevProps.chapterIndex - prevProps.currentIndex) <= 1
+    const nextVisible =
+      Math.abs(nextProps.chapterIndex - nextProps.currentIndex) <= 1
+
     return (
       prevProps.chapter.id === nextProps.chapter.id &&
+      prevVisible === nextVisible &&
       prevProps.currentIndex === nextProps.currentIndex &&
       prevProps.cache[prevProps.chapter.id]?.status ===
         nextProps.cache[nextProps.chapter.id]?.status &&
