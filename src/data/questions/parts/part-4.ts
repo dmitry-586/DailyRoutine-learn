@@ -7,18 +7,9 @@ export const part4Questions: QuizQuestion[] = [
   {
     id: 'q-4-1',
     type: 'single',
-    question: 'Что такое tree shaking?',
+    question:
+      'Вы собираете фронтенд и замечаете, что в бандл попали функции, которые нигде не используются. Как называется оптимизация, которая пытается удалить “мёртвый” код из итогового бандла?',
     answers: [
-      {
-        id: 'a-4-1-1',
-        text: 'Процесс удаления неиспользуемого кода из финального бандла',
-        isCorrect: true,
-      },
-      {
-        id: 'a-4-1-2',
-        text: 'Процесс оптимизации DOM-дерева',
-        isCorrect: false,
-      },
       {
         id: 'a-4-1-3',
         text: 'Процесс кэширования зависимостей',
@@ -28,6 +19,16 @@ export const part4Questions: QuizQuestion[] = [
         id: 'a-4-1-4',
         text: 'Процесс минификации кода',
         isCorrect: false,
+      },
+      {
+        id: 'a-4-1-2',
+        text: 'Процесс оптимизации DOM-дерева',
+        isCorrect: false,
+      },
+      {
+        id: 'a-4-1-1',
+        text: 'Процесс удаления неиспользуемого кода из финального бандла',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -39,12 +40,18 @@ export const part4Questions: QuizQuestion[] = [
   {
     id: 'q-4-2',
     type: 'single',
-    question: 'Что такое Webpack и зачем он нужен?',
+    question:
+      'У проекта десятки модулей, ассеты и разные форматы файлов, а в браузер нужно отдать несколько оптимизированных бандлов. Какую задачу решает Webpack (или аналогичный сборщик) и в чём его роль?',
     answers: [
       {
         id: 'a-4-2-1',
         text: 'Модульный сборщик, который объединяет модули и их зависимости в один или несколько бандлов',
         isCorrect: true,
+      },
+      {
+        id: 'a-4-2-4',
+        text: 'Инструмент для тестирования кода и покрытия тестами',
+        isCorrect: false,
       },
       {
         id: 'a-4-2-2',
@@ -54,11 +61,6 @@ export const part4Questions: QuizQuestion[] = [
       {
         id: 'a-4-2-3',
         text: 'Библиотека для управления состоянием приложения',
-        isCorrect: false,
-      },
-      {
-        id: 'a-4-2-4',
-        text: 'Инструмент для тестирования кода и покрытия тестами',
         isCorrect: false,
       },
     ],
@@ -71,17 +73,18 @@ export const part4Questions: QuizQuestion[] = [
   {
     id: 'q-4-3',
     type: 'single',
-    question: 'Что такое npm и package.json?',
+    question:
+      'Вы подключаете зависимости, запускаете скрипты и хотите, чтобы проект воспроизводимо собирался на CI. За что отвечает `npm`, и какую роль играет `package.json`?',
     answers: [
-      {
-        id: 'a-4-3-1',
-        text: 'npm — менеджер пакетов для Node.js, package.json — файл с метаданными проекта и зависимостями',
-        isCorrect: true,
-      },
       {
         id: 'a-4-3-2',
         text: 'npm — система сборки проектов, package.json — конфигурация для компиляции',
         isCorrect: false,
+      },
+      {
+        id: 'a-4-3-1',
+        text: 'npm — менеджер пакетов для Node.js, package.json — файл с метаданными проекта и зависимостями',
+        isCorrect: true,
       },
       {
         id: 'a-4-3-3',
@@ -103,26 +106,27 @@ export const part4Questions: QuizQuestion[] = [
   {
     id: 'q-4-4',
     type: 'single',
-    question: 'В чём разница между unit-тестами и integration-тестами?',
+    question:
+      'Команда спорит о покрытии: что считать “юнитами”, а что — интеграцией. В чём практическая разница между unit-тестами и integration-тестами?',
     answers: [
       {
-        id: 'a-4-4-1',
-        text: 'Unit-тесты проверяют изолированные функции/компоненты, integration-тесты проверяют взаимодействие нескольких частей системы',
-        isCorrect: true,
-      },
-      {
-        id: 'a-4-4-2',
-        text: 'Integration-тесты часто дают больше уверенности, но могут стать более хрупкими из-за большего числа зависимостей и окружения (в т.ч. тайминги/сеть)',
+        id: 'a-4-4-4',
+        text: 'Разница только в среде: unit-тесты запускаются в Node.js, а integration-тесты возможны только в браузере “как у пользователя”',
         isCorrect: false,
       },
       {
         id: 'a-4-4-3',
-        text: 'Unit-тесты для фронтенда, integration-тесты для бэкенда',
+        text: 'Unit-тесты относятся к фронтенду, а integration-тесты — к бэкенду: это просто “разделение по слоям”',
         isCorrect: false,
       },
       {
-        id: 'a-4-4-4',
-        text: 'Разница только в среде запуска: unit-тесты запускаются в Node.js, а integration-тесты — только в браузере',
+        id: 'a-4-4-1',
+        text: 'Unit проверяет изолированную единицу (часто с моками), integration — взаимодействие нескольких модулей/слоёв и их контракты',
+        isCorrect: true,
+      },
+      {
+        id: 'a-4-4-2',
+        text: 'Integration-тесты обычно быстрее: они ближе к реальности, поэтому моков меньше и “всё выполняется проще”',
         isCorrect: false,
       },
     ],
@@ -136,21 +140,11 @@ export const part4Questions: QuizQuestion[] = [
     id: 'q-4-5',
     type: 'multiple',
     question:
-      'Какие инструменты используются для тестирования фронтенд-приложений?',
+      'Вы выбираете инструменты под разные уровни тестирования: unit, component, e2e. Какие из перечисленных действительно относятся к тестовым инструментам/раннерам?',
     answers: [
       {
         id: 'a-4-5-1',
         text: 'Jest',
-        isCorrect: true,
-      },
-      {
-        id: 'a-4-5-2',
-        text: 'Vitest',
-        isCorrect: true,
-      },
-      {
-        id: 'a-4-5-3',
-        text: 'React Testing Library',
         isCorrect: true,
       },
       {
@@ -168,6 +162,16 @@ export const part4Questions: QuizQuestion[] = [
         text: 'Webpack',
         isCorrect: false,
       },
+      {
+        id: 'a-4-5-3',
+        text: 'React Testing Library',
+        isCorrect: true,
+      },
+      {
+        id: 'a-4-5-2',
+        text: 'Vitest',
+        isCorrect: true,
+      },
     ],
     explanation:
       'Для тестирования используются: Jest/Vitest (unit-тесты), React Testing Library (компоненты), Playwright/Cypress (e2e-тесты). Webpack — это сборщик, не инструмент тестирования.',
@@ -178,12 +182,13 @@ export const part4Questions: QuizQuestion[] = [
   {
     id: 'q-4-6',
     type: 'single',
-    question: 'Что такое моки (mocks) в тестировании?',
+    question:
+      'В тесте вы хотите изолировать код от внешней зависимости (сеть, база, модуль) и контролировать ответы этой зависимости. Как называется такой приём в тестировании?',
     answers: [
       {
-        id: 'a-4-6-1',
-        text: 'Имитации зависимостей, которые заменяют реальные объекты для изоляции тестируемого кода',
-        isCorrect: true,
+        id: 'a-4-6-3',
+        text: 'Механизм кэширования результатов тестов',
+        isCorrect: false,
       },
       {
         id: 'a-4-6-2',
@@ -191,9 +196,9 @@ export const part4Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-4-6-3',
-        text: 'Механизм кэширования результатов тестов',
-        isCorrect: false,
+        id: 'a-4-6-1',
+        text: 'Имитации зависимостей, которые заменяют реальные объекты для изоляции тестируемого кода',
+        isCorrect: true,
       },
       {
         id: 'a-4-6-4',
@@ -214,23 +219,23 @@ export const part4Questions: QuizQuestion[] = [
       'В чём разница между dependencies и devDependencies в package.json?',
     answers: [
       {
+        id: 'a-4-7-2',
+        text: 'dependencies всегда попадают в production-бандл, а devDependencies никогда не устанавливаются ни на CI, ни в Docker',
+        isCorrect: false,
+      },
+      {
+        id: 'a-4-7-4',
+        text: 'devDependencies — это зависимости, которые обязательно идут в production, а dependencies нужны только локально “для разработки”',
+        isCorrect: false,
+      },
+      {
         id: 'a-4-7-1',
         text: 'dependencies нужны в runtime, devDependencies только для разработки (сборка, тесты, линтеры)',
         isCorrect: true,
       },
       {
-        id: 'a-4-7-2',
-        text: 'dependencies для продакшна, devDependencies для разработки',
-        isCorrect: false,
-      },
-      {
         id: 'a-4-7-3',
-        text: 'В продакшене devDependencies обычно не устанавливают, но локально они нужны для сборки/линтинга; сами категории не “про скорость”, а про назначение',
-        isCorrect: false,
-      },
-      {
-        id: 'a-4-7-4',
-        text: 'devDependencies — это зависимости, которые идут в продакшен, а dependencies устанавливаются только локально для разработки',
+        text: 'devDependencies ставятся в production в первую очередь, иначе приложение не сможет стартовать без инструментов сборки',
         isCorrect: false,
       },
     ],
@@ -243,7 +248,8 @@ export const part4Questions: QuizQuestion[] = [
   {
     id: 'q-4-8',
     type: 'single',
-    question: 'Что такое Semantic Versioning (SemVer)?',
+    question:
+      'Вы видите версию пакета вида `2.3.1` и хотите понять, что означают изменения каждой цифры. Что такое SemVer (Semantic Versioning) и что обычно означают MAJOR/MINOR/PATCH?',
     answers: [
       {
         id: 'a-4-8-1',
@@ -251,18 +257,18 @@ export const part4Questions: QuizQuestion[] = [
         isCorrect: true,
       },
       {
-        id: 'a-4-8-2',
-        text: 'Способ автоматического обновления версий',
-        isCorrect: false,
-      },
-      {
         id: 'a-4-8-3',
-        text: 'Механизм для кэширования версий',
+        text: 'Механизм кэширования: MAJOR/MINOR/PATCH — уровни кэша, которые ускоряют установку зависимостей',
         isCorrect: false,
       },
       {
         id: 'a-4-8-4',
-        text: 'Способ нумерации релизов',
+        text: 'Просто способ нумерации релизов: цифры не несут смысла о совместимости и зависят только от количества коммитов',
+        isCorrect: false,
+      },
+      {
+        id: 'a-4-8-2',
+        text: 'Способ автообновления: npm сам повышает MAJOR/MINOR/PATCH при установке, чтобы всегда ставилась “самая новая” версия',
         isCorrect: false,
       },
     ],
@@ -279,13 +285,8 @@ export const part4Questions: QuizQuestion[] = [
       'Что такое lock-файлы (package-lock.json, yarn.lock, pnpm-lock.yaml)?',
     answers: [
       {
-        id: 'a-4-9-1',
-        text: 'Файлы, которые фиксируют точные версии всех зависимостей для гарантии одинаковой сборки на всех машинах',
-        isCorrect: true,
-      },
-      {
-        id: 'a-4-9-2',
-        text: 'Файлы для кэширования пакетов',
+        id: 'a-4-9-4',
+        text: 'Файлы для резервного копирования',
         isCorrect: false,
       },
       {
@@ -294,8 +295,13 @@ export const part4Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-4-9-4',
-        text: 'Файлы для резервного копирования',
+        id: 'a-4-9-1',
+        text: 'Файлы, которые фиксируют точные версии всех зависимостей для гарантии одинаковой сборки на всех машинах',
+        isCorrect: true,
+      },
+      {
+        id: 'a-4-9-2',
+        text: 'Файлы для кэширования пакетов',
         isCorrect: false,
       },
     ],
@@ -308,12 +314,13 @@ export const part4Questions: QuizQuestion[] = [
   {
     id: 'q-4-10',
     type: 'single',
-    question: 'В чём разница между npm, yarn и pnpm?',
+    question:
+      'Команда выбирает менеджер пакетов и обсуждает скорость установки, экономию места и “странные” зависимости. В чём практическая разница между npm, Yarn и pnpm?',
     answers: [
       {
-        id: 'a-4-10-1',
-        text: 'npm — стандарт, yarn — быстрее исторически, pnpm — использует symlinks и экономит место на диске',
-        isCorrect: true,
+        id: 'a-4-10-3',
+        text: 'pnpm отличается только названием lock-файла; по модели node_modules и разрешению зависимостей он идентичен npm',
+        isCorrect: false,
       },
       {
         id: 'a-4-10-2',
@@ -321,9 +328,9 @@ export const part4Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-4-10-3',
-        text: 'pnpm использует стор (content-addressable) и жёсткие ссылки/симлинки, поэтому может выявлять проблемы с “phantom dependencies”, которые у npm/yarn иногда “случайно работают”',
-        isCorrect: false,
+        id: 'a-4-10-1',
+        text: 'npm — стандарт, Yarn исторически оптимизировал установку, pnpm экономит место за счёт общего хранилища и ссылок',
+        isCorrect: true,
       },
       {
         id: 'a-4-10-4',
@@ -340,27 +347,28 @@ export const part4Questions: QuizQuestion[] = [
   {
     id: 'q-4-11',
     type: 'single',
-    question: 'Что такое Vite и чем он отличается от Webpack?',
+    question:
+      'На большом проекте dev-сервер на Webpack стартует долго, и HMR ощутимо тормозит. Почему многие переходят на Vite, и в чём ключевое отличие Vite от Webpack (особенно в dev-режиме)?',
     answers: [
       {
-        id: 'a-4-11-1',
-        text: 'Vite — современный сборщик, использующий ES modules и нативный ESM в dev-режиме для быстрой перезагрузки; Webpack — традиционный бандлер',
-        isCorrect: true,
-      },
-      {
         id: 'a-4-11-2',
-        text: 'Vite для Vue, Webpack для React',
-        isCorrect: false,
-      },
-      {
-        id: 'a-4-11-3',
-        text: 'Vite быстрее только когда проект на TypeScript, а на чистом JavaScript Webpack обычно быстрее',
+        text: 'Vite работает только с Vue, а Webpack — только с React; в других сочетаниях они “не поддерживаются”',
         isCorrect: false,
       },
       {
         id: 'a-4-11-4',
-        text: 'Vite в dev опирается на нативный ESM браузера и быстрый HMR; Webpack чаще требует бандлинга и поэтому медленнее стартует/рефрешится на больших проектах',
+        text: 'Vite и Webpack обязаны бандлить весь проект перед стартом dev-сервера, поэтому скорость старта и HMR почти одинаковые',
         isCorrect: false,
+      },
+      {
+        id: 'a-4-11-3',
+        text: 'Vite быстрее только в TypeScript-проектах: в чистом JavaScript Webpack обычно выигрывает за счёт оптимизаций бандлинга',
+        isCorrect: false,
+      },
+      {
+        id: 'a-4-11-1',
+        text: 'Vite в dev отдаёт модули через нативный ESM (быстрее старт/HMR), а Webpack в dev часто бандлит и пересобирает больше',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -372,12 +380,13 @@ export const part4Questions: QuizQuestion[] = [
   {
     id: 'q-4-12',
     type: 'single',
-    question: 'Что такое code splitting?',
+    question:
+      'Первая загрузка приложения слишком тяжёлая, но большая часть кода нужна только на отдельных страницах. Как называется техника разделения кода на чанки, которые грузятся по требованию?',
     answers: [
       {
-        id: 'a-4-12-1',
-        text: 'Техника разделения кода на несколько бандлов, которые загружаются по требованию',
-        isCorrect: true,
+        id: 'a-4-12-4',
+        text: 'Способ оптимизации CSS',
+        isCorrect: false,
       },
       {
         id: 'a-4-12-2',
@@ -390,9 +399,9 @@ export const part4Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-4-12-4',
-        text: 'Способ оптимизации CSS',
-        isCorrect: false,
+        id: 'a-4-12-1',
+        text: 'Техника разделения кода на несколько бандлов, которые загружаются по требованию',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -404,18 +413,9 @@ export const part4Questions: QuizQuestion[] = [
   {
     id: 'q-4-13',
     type: 'single',
-    question: 'Что такое hot module replacement (HMR)?',
+    question:
+      'В dev-режиме вы меняете файл компонента, и страница обновляется без полного refresh и без потери состояния. Как называется этот механизм и что он делает?',
     answers: [
-      {
-        id: 'a-4-13-1',
-        text: 'Технология, которая обновляет модули в браузере без полной перезагрузки страницы',
-        isCorrect: true,
-      },
-      {
-        id: 'a-4-13-2',
-        text: 'Механизм для замены модулей в продакшене',
-        isCorrect: false,
-      },
       {
         id: 'a-4-13-3',
         text: 'Способ кэширования модулей',
@@ -425,6 +425,16 @@ export const part4Questions: QuizQuestion[] = [
         id: 'a-4-13-4',
         text: 'Механизм для оптимизации бандла',
         isCorrect: false,
+      },
+      {
+        id: 'a-4-13-2',
+        text: 'Механизм для замены модулей в продакшене',
+        isCorrect: false,
+      },
+      {
+        id: 'a-4-13-1',
+        text: 'Технология, которая обновляет модули в браузере без полной перезагрузки страницы',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -436,13 +446,9 @@ export const part4Questions: QuizQuestion[] = [
   {
     id: 'q-4-14',
     type: 'single',
-    question: 'Что такое e2e-тесты (end-to-end)?',
+    question:
+      'Нужно проверить полный пользовательский сценарий “как в браузере”: открыть страницу, нажать кнопки, увидеть результат. Как называются такие тесты и чем они отличаются от unit/component?',
     answers: [
-      {
-        id: 'a-4-14-1',
-        text: 'Тесты, которые проверяют работу всего приложения от начала до конца, как это делает пользователь',
-        isCorrect: true,
-      },
       {
         id: 'a-4-14-2',
         text: 'Тесты для проверки только UI',
@@ -452,6 +458,11 @@ export const part4Questions: QuizQuestion[] = [
         id: 'a-4-14-3',
         text: 'Тесты для проверки только API',
         isCorrect: false,
+      },
+      {
+        id: 'a-4-14-1',
+        text: 'Тесты, которые проверяют работу всего приложения от начала до конца, как это делает пользователь',
+        isCorrect: true,
       },
       {
         id: 'a-4-14-4',
@@ -468,13 +479,9 @@ export const part4Questions: QuizQuestion[] = [
   {
     id: 'q-4-15',
     type: 'single',
-    question: 'Что такое snapshot-тесты?',
+    question:
+      'Вы хотите зафиксировать “снимок” UI-вывода компонента и ловить непреднамеренные изменения разметки при следующих прогонах. Как называются такие тесты?',
     answers: [
-      {
-        id: 'a-4-15-1',
-        text: 'Тесты, которые сохраняют "снимок" вывода компонента/функции и сравнивают с ним при следующих запусках',
-        isCorrect: true,
-      },
       {
         id: 'a-4-15-2',
         text: 'Тесты для проверки производительности',
@@ -484,6 +491,11 @@ export const part4Questions: QuizQuestion[] = [
         id: 'a-4-15-3',
         text: 'Тесты для проверки безопасности',
         isCorrect: false,
+      },
+      {
+        id: 'a-4-15-1',
+        text: 'Тесты, которые сохраняют "снимок" вывода компонента/функции и сравнивают с ним при следующих запусках',
+        isCorrect: true,
       },
       {
         id: 'a-4-15-4',
@@ -500,8 +512,14 @@ export const part4Questions: QuizQuestion[] = [
   {
     id: 'q-4-16',
     type: 'single',
-    question: 'Что такое peerDependencies в package.json?',
+    question:
+      'Вы пишете библиотеку компонентов для React и не хотите тащить второй React внутрь своей библиотеки. Какую категорию зависимостей используют, чтобы потребитель проекта “предоставил” зависимость сам?',
     answers: [
+      {
+        id: 'a-4-16-4',
+        text: 'Зависимости для тестирования',
+        isCorrect: false,
+      },
       {
         id: 'a-4-16-1',
         text: 'Зависимости, которые должны быть предоставлены приложением, использующим библиотеку',
@@ -517,11 +535,6 @@ export const part4Questions: QuizQuestion[] = [
         text: 'Опциональные зависимости',
         isCorrect: false,
       },
-      {
-        id: 'a-4-16-4',
-        text: 'Зависимости для тестирования',
-        isCorrect: false,
-      },
     ],
     explanation:
       'peerDependencies указывают, что библиотека ожидает, что приложение предоставит эти зависимости. Это предотвращает дублирование зависимостей. Пример: библиотека React-компонентов указывает react как peerDependency.',
@@ -532,7 +545,8 @@ export const part4Questions: QuizQuestion[] = [
   {
     id: 'q-4-17',
     type: 'single',
-    question: 'Что такое минификация (minification) кода?',
+    question:
+      'В production-сборке размер JS должен быть меньше: убрать пробелы/комментарии, сократить идентификаторы. Как называется этот процесс?',
     answers: [
       {
         id: 'a-4-17-1',
@@ -545,13 +559,13 @@ export const part4Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-4-17-3',
-        text: 'Процесс оптимизации производительности',
+        id: 'a-4-17-4',
+        text: 'Процесс разделения кода на модули',
         isCorrect: false,
       },
       {
-        id: 'a-4-17-4',
-        text: 'Процесс разделения кода на модули',
+        id: 'a-4-17-3',
+        text: 'Процесс оптимизации производительности',
         isCorrect: false,
       },
     ],
@@ -564,12 +578,13 @@ export const part4Questions: QuizQuestion[] = [
   {
     id: 'q-4-18',
     type: 'single',
-    question: 'Что такое source maps?',
+    question:
+      'В проде код минифицирован, но вы хотите видеть в DevTools оригинальные файлы/строки при отладке и ошибках. Какие файлы для этого используются?',
     answers: [
       {
-        id: 'a-4-18-1',
-        text: 'Файлы, которые связывают минифицированный/транспилированный код с исходным кодом для отладки',
-        isCorrect: true,
+        id: 'a-4-18-4',
+        text: 'Файлы для кэширования',
+        isCorrect: false,
       },
       {
         id: 'a-4-18-2',
@@ -577,13 +592,13 @@ export const part4Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-4-18-3',
-        text: 'Файлы для оптимизации бандла',
-        isCorrect: false,
+        id: 'a-4-18-1',
+        text: 'Файлы, которые связывают минифицированный/транспилированный код с исходным кодом для отладки',
+        isCorrect: true,
       },
       {
-        id: 'a-4-18-4',
-        text: 'Файлы для кэширования',
+        id: 'a-4-18-3',
+        text: 'Файлы для оптимизации бандла',
         isCorrect: false,
       },
     ],
@@ -596,7 +611,8 @@ export const part4Questions: QuizQuestion[] = [
   {
     id: 'q-4-19',
     type: 'single',
-    question: 'Почему flaky E2E-тесты считаются особенно вредными для команды?',
+    question:
+      'CI “краснеет” не из-за багов, а из‑за случайных падений (тайминги, сеть, анимации), и команда перестаёт доверять тестам. Почему flaky E2E-тесты особенно вредны?',
     answers: [
       {
         id: 'a-4-19-1',
@@ -615,7 +631,7 @@ export const part4Questions: QuizQuestion[] = [
       },
       {
         id: 'a-4-19-4',
-        text: 'Иногда flaky сигналит о гонках/неустойчивом окружении; “лечить sleep” — плохая практика, лучше устранять первопричину и улучшать синхронизацию ожиданий',
+        text: 'Flaky тесты — это нормально: их лучше лечить `sleep(5000)`, чтобы “успевало прогрузиться”',
         isCorrect: false,
       },
     ],
@@ -632,11 +648,6 @@ export const part4Questions: QuizQuestion[] = [
       'Какие практики чаще всего уменьшают флейки в E2E (Playwright/Cypress)?',
     answers: [
       {
-        id: 'a-4-20-1',
-        text: 'Ожидать состояния UI, а не “sleep”: использовать ожидания видимости/доступности элементов',
-        isCorrect: true,
-      },
-      {
         id: 'a-4-20-2',
         text: 'Стабилизировать селекторы: role/label/testid вместо глубоких CSS-селекторов',
         isCorrect: true,
@@ -644,6 +655,11 @@ export const part4Questions: QuizQuestion[] = [
       {
         id: 'a-4-20-3',
         text: 'Изолировать данные теста: чистая база/фикстуры, предсказуемая среда',
+        isCorrect: true,
+      },
+      {
+        id: 'a-4-20-1',
+        text: 'Ожидать состояния UI, а не “sleep”: использовать ожидания видимости/доступности элементов',
         isCorrect: true,
       },
       {
@@ -665,24 +681,24 @@ export const part4Questions: QuizQuestion[] = [
       'Почему snapshot-тесты часто превращаются в “шум”, если ими злоупотреблять?',
     answers: [
       {
-        id: 'a-4-21-1',
-        text: 'Они ломаются при легитимных изменениях разметки и провоцируют “обновить снапшот не глядя”, что снижает ценность теста',
-        isCorrect: true,
-      },
-      {
-        id: 'a-4-21-2',
-        text: 'Потому что снапшоты делают SSR невозможным',
+        id: 'a-4-21-4',
+        text: 'Snapshot сам по себе проверяет поведение пользователя, поэтому может заменить e2e: достаточно “зафиксировать разметку”',
         isCorrect: false,
       },
       {
         id: 'a-4-21-3',
-        text: 'Потому что snapshot тесты не работают с TypeScript',
+        text: 'Потому что snapshot тесты не работают с TypeScript: сериализация JSX “ломается”, и в TS-проектах они неизбежно флейкнут',
         isCorrect: false,
       },
       {
-        id: 'a-4-21-4',
-        text: 'Snapshot может быть полезен для стабильного вывода (например, сериализация/разметка), но сам по себе не проверяет поведение пользователя и не заменяет e2e',
+        id: 'a-4-21-2',
+        text: 'Потому что снапшоты делают SSR невозможным: разметка на сервере и клиенте всегда будет отличаться из‑за “сохранённых” снимков',
         isCorrect: false,
+      },
+      {
+        id: 'a-4-21-1',
+        text: 'Они ломаются при легитимных изменениях разметки и провоцируют “обновить снапшот не глядя”, что снижает ценность теста',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -698,24 +714,24 @@ export const part4Questions: QuizQuestion[] = [
       'Какой селектор в Testing Library считается предпочтительным и почему?',
     answers: [
       {
-        id: 'a-4-22-1',
-        text: 'getByRole (с name), потому что он ближе к тому, как пользователи и ассистивные технологии “видят” интерфейс',
-        isCorrect: true,
-      },
-      {
         id: 'a-4-22-2',
-        text: 'getByTestId, потому что он самый быстрый',
-        isCorrect: false,
-      },
-      {
-        id: 'a-4-22-3',
-        text: 'getByClassName, потому что классы стабильны',
+        text: 'getByTestId, потому что он самый “стабильный” и не зависит от доступности/семантики, значит тесты будут надёжнее',
         isCorrect: false,
       },
       {
         id: 'a-4-22-4',
-        text: 'querySelector, потому что он максимально универсален',
+        text: 'querySelector, потому что он максимально универсален: это же CSS‑селектор, значит он лучше отражает “как видит пользователь”',
         isCorrect: false,
+      },
+      {
+        id: 'a-4-22-3',
+        text: 'getByClassName, потому что классы — часть публичного API UI, они редко меняются и хорошо отражают поведение пользователя',
+        isCorrect: false,
+      },
+      {
+        id: 'a-4-22-1',
+        text: 'getByRole (с name), потому что он ближе к тому, как пользователи и ассистивные технологии “видят” интерфейс',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -737,17 +753,17 @@ export const part4Questions: QuizQuestion[] = [
       },
       {
         id: 'a-4-23-2',
-        text: 'Source maps помогают отлаживать и разбирать стектрейсы. В production их иногда ограничивают/прячут из‑за утечки исходников и размеров, но они не “ускоряют” runtime',
+        text: 'Source maps ускоряют выполнение JavaScript в production, поэтому их иногда отключают только из‑за “лишнего веса” в репозитории',
         isCorrect: false,
       },
       {
         id: 'a-4-23-3',
-        text: 'Они нужны только для CSS, для JS не применяются',
+        text: 'Source maps нужны только для CSS: для JavaScript сопоставить минифицированный код с исходниками технически невозможно',
         isCorrect: false,
       },
       {
         id: 'a-4-23-4',
-        text: 'Они автоматически исправляют ошибки в коде',
+        text: 'Source maps автоматически исправляют ошибки: браузер “патчит” проблемные места, потому что знает исходные строки и колонки',
         isCorrect: false,
       },
     ],
@@ -769,11 +785,6 @@ export const part4Questions: QuizQuestion[] = [
         isCorrect: true,
       },
       {
-        id: 'a-4-24-2',
-        text: 'Чтобы ускорить установку npm в 10 раз',
-        isCorrect: false,
-      },
-      {
         id: 'a-4-24-3',
         text: 'Чтобы включить tree-shaking для CSS',
         isCorrect: false,
@@ -781,6 +792,11 @@ export const part4Questions: QuizQuestion[] = [
       {
         id: 'a-4-24-4',
         text: 'Чтобы запретить пользователю обновлять зависимости',
+        isCorrect: false,
+      },
+      {
+        id: 'a-4-24-2',
+        text: 'Чтобы ускорить установку npm в 10 раз',
         isCorrect: false,
       },
     ],

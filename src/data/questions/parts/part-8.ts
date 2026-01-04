@@ -8,16 +8,11 @@ export const part8Questions: QuizQuestion[] = [
     id: 'q-8-1',
     type: 'multiple',
     question:
-      'Какие техники помогают улучшить производительность фронтенд-приложения?',
+      'Страница “тяжёлая” и медленно загружается. Какие практики действительно помогают улучшить производительность фронтенд-приложения (в среднем случае)?',
     answers: [
       {
-        id: 'a-8-1-1',
-        text: 'Code splitting и lazy loading',
-        isCorrect: true,
-      },
-      {
-        id: 'a-8-1-2',
-        text: 'Мемоизация компонентов (React.memo, useMemo)',
+        id: 'a-8-1-4',
+        text: 'Использование CDN',
         isCorrect: true,
       },
       {
@@ -26,14 +21,19 @@ export const part8Questions: QuizQuestion[] = [
         isCorrect: true,
       },
       {
-        id: 'a-8-1-4',
-        text: 'Использование CDN',
-        isCorrect: true,
-      },
-      {
         id: 'a-8-1-5',
         text: 'Увеличение размера бандла',
         isCorrect: false,
+      },
+      {
+        id: 'a-8-1-2',
+        text: 'Мемоизация компонентов (React.memo, useMemo)',
+        isCorrect: true,
+      },
+      {
+        id: 'a-8-1-1',
+        text: 'Code splitting и lazy loading',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -45,18 +45,9 @@ export const part8Questions: QuizQuestion[] = [
   {
     id: 'q-8-2',
     type: 'single',
-    question: 'Что такое XSS (Cross-Site Scripting)?',
+    question:
+      'На странице показывается пользовательский контент, и вы боитесь, что кто-то сможет выполнить свой JS в браузере жертвы. Что такое XSS?',
     answers: [
-      {
-        id: 'a-8-2-1',
-        text: 'Уязвимость, при которой злоумышленник внедряет вредоносный JavaScript-код на страницу',
-        isCorrect: true,
-      },
-      {
-        id: 'a-8-2-2',
-        text: 'Уязвимость, при которой злоумышленник перехватывает сессию пользователя через подмену cookies',
-        isCorrect: false,
-      },
       {
         id: 'a-8-2-3',
         text: 'Уязвимость, при которой злоумышленник получает доступ к базе данных через SQL-инъекции',
@@ -66,6 +57,16 @@ export const part8Questions: QuizQuestion[] = [
         id: 'a-8-2-4',
         text: 'Уязвимость, при которой злоумышленник получает доступ к файловой системе сервера',
         isCorrect: false,
+      },
+      {
+        id: 'a-8-2-2',
+        text: 'Уязвимость, при которой злоумышленник перехватывает сессию пользователя через подмену cookies',
+        isCorrect: false,
+      },
+      {
+        id: 'a-8-2-1',
+        text: 'Уязвимость, при которой злоумышленник внедряет вредоносный JavaScript-код на страницу',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -77,17 +78,18 @@ export const part8Questions: QuizQuestion[] = [
   {
     id: 'q-8-3',
     type: 'single',
-    question: 'Что такое code splitting?',
+    question:
+      'Первая загрузка слишком большая, но часть кода нужна только на отдельных страницах. Как называется техника, которая делит код на чанки и грузит их по требованию?',
     answers: [
+      {
+        id: 'a-8-3-4',
+        text: 'Способ оптимизации CSS для уменьшения размера стилей',
+        isCorrect: false,
+      },
       {
         id: 'a-8-3-1',
         text: 'Техника разделения кода на несколько бандлов, которые загружаются по требованию',
         isCorrect: true,
-      },
-      {
-        id: 'a-8-3-2',
-        text: 'Процесс разделения кода на отдельные файлы для лучшей читаемости',
-        isCorrect: false,
       },
       {
         id: 'a-8-3-3',
@@ -95,8 +97,8 @@ export const part8Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-8-3-4',
-        text: 'Способ оптимизации CSS для уменьшения размера стилей',
+        id: 'a-8-3-2',
+        text: 'Процесс разделения кода на отдельные файлы для лучшей читаемости',
         isCorrect: false,
       },
     ],
@@ -109,12 +111,18 @@ export const part8Questions: QuizQuestion[] = [
   {
     id: 'q-8-4',
     type: 'single',
-    question: 'Что такое CSRF (Cross-Site Request Forgery)?',
+    question:
+      'Пользователь залогинен в банк, а на другом сайте его “незаметно” заставляют отправить запрос на перевод денег. Что такое CSRF?',
     answers: [
       {
         id: 'a-8-4-1',
         text: 'Атака, при которой злоумышленник заставляет пользователя выполнить нежелательные действия на сайте, где он аутентифицирован',
         isCorrect: true,
+      },
+      {
+        id: 'a-8-4-4',
+        text: 'Атака, при которой злоумышленник получает доступ к серверу',
+        isCorrect: false,
       },
       {
         id: 'a-8-4-2',
@@ -124,11 +132,6 @@ export const part8Questions: QuizQuestion[] = [
       {
         id: 'a-8-4-3',
         text: 'Атака, при которой злоумышленник перехватывает пароли пользователей',
-        isCorrect: false,
-      },
-      {
-        id: 'a-8-4-4',
-        text: 'Атака, при которой злоумышленник получает доступ к серверу',
         isCorrect: false,
       },
     ],
@@ -141,7 +144,8 @@ export const part8Questions: QuizQuestion[] = [
   {
     id: 'q-8-5',
     type: 'single',
-    question: 'Что такое lazy loading?',
+    question:
+      'Вы хотите не грузить изображения/модули заранее, а подгружать их только когда они реально нужны (например, при скролле). Как называется эта техника?',
     answers: [
       {
         id: 'a-8-5-1',
@@ -149,8 +153,8 @@ export const part8Questions: QuizQuestion[] = [
         isCorrect: true,
       },
       {
-        id: 'a-8-5-2',
-        text: 'Способ замедления загрузки для экономии трафика',
+        id: 'a-8-5-4',
+        text: 'Способ оптимизации CSS',
         isCorrect: false,
       },
       {
@@ -159,8 +163,8 @@ export const part8Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-8-5-4',
-        text: 'Способ оптимизации CSS',
+        id: 'a-8-5-2',
+        text: 'Способ замедления загрузки для экономии трафика',
         isCorrect: false,
       },
     ],
@@ -177,13 +181,13 @@ export const part8Questions: QuizQuestion[] = [
       'Какие метрики используются для измерения производительности веб-приложений?',
     answers: [
       {
-        id: 'a-8-6-1',
-        text: 'FCP (First Contentful Paint)',
-        isCorrect: true,
+        id: 'a-8-6-6',
+        text: 'Размер бандла в мегабайтах',
+        isCorrect: false,
       },
       {
-        id: 'a-8-6-2',
-        text: 'LCP (Largest Contentful Paint)',
+        id: 'a-8-6-1',
+        text: 'FCP (First Contentful Paint)',
         isCorrect: true,
       },
       {
@@ -202,9 +206,9 @@ export const part8Questions: QuizQuestion[] = [
         isCorrect: true,
       },
       {
-        id: 'a-8-6-6',
-        text: 'Размер бандла в мегабайтах',
-        isCorrect: false,
+        id: 'a-8-6-2',
+        text: 'LCP (Largest Contentful Paint)',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -216,8 +220,14 @@ export const part8Questions: QuizQuestion[] = [
   {
     id: 'q-8-7',
     type: 'single',
-    question: 'Что такое debounce и throttle?',
+    question:
+      'Вы оптимизируете обработчик `scroll/resize/input`, чтобы не вызывать тяжёлую логику слишком часто. В чём разница debounce и throttle?',
     answers: [
+      {
+        id: 'a-8-7-4',
+        text: 'Throttle гарантирует строго ровно один вызов каждые N мс независимо от нагрузки и реализации',
+        isCorrect: false,
+      },
       {
         id: 'a-8-7-1',
         text: 'Debounce откладывает выполнение до паузы в событиях; throttle ограничивает частоту выполнения',
@@ -225,17 +235,12 @@ export const part8Questions: QuizQuestion[] = [
       },
       {
         id: 'a-8-7-2',
-        text: 'В реальных реализациях (lodash и др.) у debounce/throttle есть настройки leading/trailing. Ошибка — думать, что “по умолчанию” trailing всегда гарантирован и одинаков у всех библиотек',
+        text: 'Debounce и throttle всегда одинаковы во всех библиотеках: никаких опций поведения (leading/trailing) не существует',
         isCorrect: false,
       },
       {
         id: 'a-8-7-3',
         text: 'Debounce для событий, throttle для анимаций',
-        isCorrect: false,
-      },
-      {
-        id: 'a-8-7-4',
-        text: 'Оба “про контроль частоты”, но поведение разное: throttle ограничивает частоту, debounce ждёт паузу. На собесе часто ловят на “ровно раз в интервал” — это не так',
         isCorrect: false,
       },
     ],
@@ -248,16 +253,17 @@ export const part8Questions: QuizQuestion[] = [
   {
     id: 'q-8-8',
     type: 'single',
-    question: 'Как защититься от XSS-атак?',
+    question:
+      'Вы принимаете пользовательский ввод и отображаете его на странице. Какая мера защиты от XSS здесь наиболее уместна (в базовом случае)?',
     answers: [
-      {
-        id: 'a-8-8-1',
-        text: 'Экранирование пользовательского ввода, использование Content Security Policy, санитизация данных',
-        isCorrect: true,
-      },
       {
         id: 'a-8-8-2',
         text: 'Использование HTTPS для всех запросов',
+        isCorrect: false,
+      },
+      {
+        id: 'a-8-8-4',
+        text: 'Использование только POST-запросов',
         isCorrect: false,
       },
       {
@@ -266,9 +272,9 @@ export const part8Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-8-8-4',
-        text: 'Использование только POST-запросов',
-        isCorrect: false,
+        id: 'a-8-8-1',
+        text: 'Экранирование пользовательского ввода, использование Content Security Policy, санитизация данных',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -280,8 +286,14 @@ export const part8Questions: QuizQuestion[] = [
   {
     id: 'q-8-9',
     type: 'single',
-    question: 'Что такое Content Security Policy (CSP)?',
+    question:
+      'Вы хотите ограничить источники скриптов/стилей и запретить опасные inline-скрипты, чтобы снизить риск XSS. Что такое Content Security Policy (CSP)?',
     answers: [
+      {
+        id: 'a-8-9-4',
+        text: 'Механизм сжатия контента',
+        isCorrect: false,
+      },
       {
         id: 'a-8-9-1',
         text: 'Механизм безопасности, который позволяет контролировать, какие ресурсы может загружать страница',
@@ -297,11 +309,6 @@ export const part8Questions: QuizQuestion[] = [
         text: 'Способ оптимизации загрузки ресурсов',
         isCorrect: false,
       },
-      {
-        id: 'a-8-9-4',
-        text: 'Механизм сжатия контента',
-        isCorrect: false,
-      },
     ],
     explanation:
       'CSP — это механизм безопасности, который позволяет указать, откуда браузер может загружать скрипты, стили, изображения и другие ресурсы, что помогает предотвратить XSS-атаки.',
@@ -312,12 +319,13 @@ export const part8Questions: QuizQuestion[] = [
   {
     id: 'q-8-10',
     type: 'single',
-    question: 'Что такое Web Workers?',
+    question:
+      'Тяжёлые вычисления “фризят” UI, и вы хотите вынести их из main thread. Какой браузерный механизм для этого используют?',
     answers: [
       {
-        id: 'a-8-10-1',
-        text: 'Механизм для выполнения JavaScript в фоновом потоке, не блокируя главный поток',
-        isCorrect: true,
+        id: 'a-8-10-3',
+        text: 'Способ оптимизации CSS',
+        isCorrect: false,
       },
       {
         id: 'a-8-10-2',
@@ -325,14 +333,14 @@ export const part8Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-8-10-3',
-        text: 'Способ оптимизации CSS',
-        isCorrect: false,
-      },
-      {
         id: 'a-8-10-4',
         text: 'Механизм для кэширования',
         isCorrect: false,
+      },
+      {
+        id: 'a-8-10-1',
+        text: 'Механизм для выполнения JavaScript в фоновом потоке, не блокируя главный поток',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -344,26 +352,27 @@ export const part8Questions: QuizQuestion[] = [
   {
     id: 'q-8-11',
     type: 'single',
-    question: 'Что такое Service Workers?',
+    question:
+      'Вы делаете PWA: офлайн-режим, кэширование и перехват сетевых запросов. Что такое Service Worker и какую задачу он решает?',
     answers: [
-      {
-        id: 'a-8-11-1',
-        text: 'Скрипт, который работает между браузером и сетью, позволяя кэшировать ресурсы и работать офлайн',
-        isCorrect: true,
-      },
       {
         id: 'a-8-11-2',
         text: 'Механизм для работы с сервером',
         isCorrect: false,
       },
       {
-        id: 'a-8-11-3',
-        text: 'Способ оптимизации CSS',
+        id: 'a-8-11-4',
+        text: 'Механизм для работы с формами',
         isCorrect: false,
       },
       {
-        id: 'a-8-11-4',
-        text: 'Механизм для работы с формами',
+        id: 'a-8-11-1',
+        text: 'Скрипт, который работает между браузером и сетью, позволяя кэшировать ресурсы и работать офлайн',
+        isCorrect: true,
+      },
+      {
+        id: 'a-8-11-3',
+        text: 'Способ оптимизации CSS',
         isCorrect: false,
       },
     ],
@@ -380,8 +389,8 @@ export const part8Questions: QuizQuestion[] = [
       'Какие изменения чаще всего дают заметное улучшение LCP на первом экране?',
     answers: [
       {
-        id: 'a-8-12-1',
-        text: 'Оптимизация “hero”-изображения (размеры, современный формат, правильный приоритет загрузки)',
+        id: 'a-8-12-3',
+        text: 'Устранение render‑blocking ресурсов (критический CSS, отложенная загрузка некритичного)',
         isCorrect: true,
       },
       {
@@ -390,8 +399,8 @@ export const part8Questions: QuizQuestion[] = [
         isCorrect: true,
       },
       {
-        id: 'a-8-12-3',
-        text: 'Устранение render‑blocking ресурсов (критический CSS, отложенная загрузка некритичного)',
+        id: 'a-8-12-1',
+        text: 'Оптимизация “hero”-изображения (размеры, современный формат, правильный приоритет загрузки)',
         isCorrect: true,
       },
       {
@@ -413,24 +422,24 @@ export const part8Questions: QuizQuestion[] = [
       'В чём ключевая разница между <link rel="preload"> и <link rel="prefetch">?',
     answers: [
       {
-        id: 'a-8-13-1',
-        text: 'preload — ресурс нужен “прямо сейчас” (в текущей навигации), prefetch — вероятно понадобится позже (низкий приоритет)',
-        isCorrect: true,
-      },
-      {
-        id: 'a-8-13-2',
-        text: 'preload/prefetch — это подсказки браузеру и могут применяться к разным типам ресурсов; но важно правильно указать as/crossorigin, иначе можно получить лишнюю загрузку или промах по кэшу',
+        id: 'a-8-13-3',
+        text: 'preload — для ресурсов “на потом”, а prefetch — для критичных ресурсов текущей страницы',
         isCorrect: false,
       },
       {
-        id: 'a-8-13-3',
-        text: 'И preload, и prefetch в итоге зависят от обычного HTTP‑кэширования. Разница — приоритет/контекст, а не “вечно/никогда”',
+        id: 'a-8-13-2',
+        text: 'prefetch всегда идёт с высоким приоритетом и может блокировать загрузку критичных ресурсов',
         isCorrect: false,
       },
       {
         id: 'a-8-13-4',
-        text: 'preload используется только в HTTP/2, prefetch — только в HTTP/3',
+        text: 'preload работает только для скриптов, а prefetch — только для стилей',
         isCorrect: false,
+      },
+      {
+        id: 'a-8-13-1',
+        text: 'preload — ресурс нужен “прямо сейчас” (в текущей навигации), prefetch — вероятно понадобится позже (низкий приоритет)',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -447,22 +456,22 @@ export const part8Questions: QuizQuestion[] = [
     answers: [
       {
         id: 'a-8-14-1',
-        text: 'INP оценивает задержку реакции интерфейса на взаимодействия (до следующей отрисовки) по всему жизненному циклу страницы, а FID смотрел только на первое взаимодействие',
+        text: 'INP оценивает задержку реакции на взаимодействия до следующей отрисовки по всей сессии, а FID — только на первое взаимодействие',
         isCorrect: true,
       },
       {
+        id: 'a-8-14-4',
+        text: 'INP — это “средний FID”: время от input до начала обработчика, усреднённое по всем взаимодействиям',
+        isCorrect: false,
+      },
+      {
         id: 'a-8-14-2',
-        text: 'INP измеряет скорость сети и заменил TTFB',
+        text: 'INP — это метрика сетевой задержки (почти как TTFB), поэтому важна в основном для SSR',
         isCorrect: false,
       },
       {
         id: 'a-8-14-3',
-        text: 'INP особенно важен как раз для SPA, потому что измеряет отзывчивость в течение жизни страницы (а не только “первый ввод”)',
-        isCorrect: false,
-      },
-      {
-        id: 'a-8-14-4',
-        text: 'INP измеряет только время выполнения JavaScript, игнорируя рендеринг',
+        text: 'INP учитывает только клики мышью, а ввод с клавиатуры и тач‑жесты в расчёт не попадают',
         isCorrect: false,
       },
     ],
@@ -475,17 +484,18 @@ export const part8Questions: QuizQuestion[] = [
   {
     id: 'q-8-15',
     type: 'multiple',
-    question: 'Какие типичные причины приводят к плохому CLS?',
+    question:
+      'У страницы “прыгает” контент при загрузке, и CLS высокий. Какие причины чаще всего приводят к плохому CLS?',
     answers: [
-      {
-        id: 'a-8-15-1',
-        text: 'Изображения/видео без заранее заданных размеров (браузер не резервирует место)',
-        isCorrect: true,
-      },
       {
         id: 'a-8-15-2',
         text: 'Динамическая вставка баннеров/блоков выше контента без резерва места',
         isCorrect: true,
+      },
+      {
+        id: 'a-8-15-4',
+        text: 'Использование WebP/AVIF вместо PNG',
+        isCorrect: false,
       },
       {
         id: 'a-8-15-3',
@@ -493,9 +503,9 @@ export const part8Questions: QuizQuestion[] = [
         isCorrect: true,
       },
       {
-        id: 'a-8-15-4',
-        text: 'Использование WebP/AVIF вместо PNG',
-        isCorrect: false,
+        id: 'a-8-15-1',
+        text: 'Изображения/видео без заранее заданных размеров (браузер не резервирует место)',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -511,23 +521,23 @@ export const part8Questions: QuizQuestion[] = [
       'Для чего на практике чаще всего используют WebPageTest, когда Lighthouse уже “показывает проблемы”?',
     answers: [
       {
-        id: 'a-8-16-1',
-        text: 'Чтобы увидеть реальный waterfall (порядок/приоритеты загрузки ресурсов) на конкретных устройствах и сетях и найти узкие места',
-        isCorrect: true,
-      },
-      {
         id: 'a-8-16-2',
-        text: 'Чтобы заменить unit‑тесты производительности и убрать необходимость профилирования',
+        text: 'Чтобы собрать только данные реальных пользователей (RUM) без лабораторных прогонов и симуляций',
         isCorrect: false,
       },
       {
+        id: 'a-8-16-1',
+        text: 'Чтобы посмотреть waterfall и приоритеты загрузки на заданных устройствах/сетях и найти узкие места',
+        isCorrect: true,
+      },
+      {
         id: 'a-8-16-3',
-        text: 'Чтобы автоматически переписать код и оптимизировать бандл без участия разработчика',
+        text: 'Чтобы автоматически расставить приоритеты загрузки ресурсов (priority hints) без правок кода',
         isCorrect: false,
       },
       {
         id: 'a-8-16-4',
-        text: 'Чтобы включить HTTP/3 на клиенте без изменения сервера',
+        text: 'Чтобы “обойти” CORS при загрузке ресурсов и получить более быстрый waterfall',
         isCorrect: false,
       },
     ],
@@ -544,23 +554,23 @@ export const part8Questions: QuizQuestion[] = [
       'Почему виртуализация списка (react-window/react-virtual) часто даёт больший эффект, чем “мемоизация всего”?',
     answers: [
       {
-        id: 'a-8-17-1',
-        text: 'Потому что она уменьшает количество реально созданных DOM‑узлов и работы по layout/paint, а не только количество ререндеров React',
-        isCorrect: true,
-      },
-      {
-        id: 'a-8-17-2',
-        text: 'Потому что она автоматически переносит рендеринг на GPU',
+        id: 'a-8-17-4',
+        text: 'Потому что она уменьшает число ререндеров React, но почти не влияет на количество DOM‑узлов',
         isCorrect: false,
       },
       {
         id: 'a-8-17-3',
-        text: 'Потому что она отключает diffing Virtual DOM',
+        text: 'Потому что она “склеивает” элементы списка в один DOM‑узел и ускоряет layout/paint',
         isCorrect: false,
       },
       {
-        id: 'a-8-17-4',
-        text: 'Потому что она гарантирует отсутствие CLS',
+        id: 'a-8-17-1',
+        text: 'Потому что она уменьшает число реально созданных DOM‑узлов и работу браузера (layout/paint), а не только ререндеры React',
+        isCorrect: true,
+      },
+      {
+        id: 'a-8-17-2',
+        text: 'Потому что она переносит рендеринг списка в Web Worker и разгружает главный поток',
         isCorrect: false,
       },
     ],
@@ -573,12 +583,18 @@ export const part8Questions: QuizQuestion[] = [
   {
     id: 'q-8-18',
     type: 'multiple',
-    question: 'Какие практики реально помогают уменьшать JS‑бандл?',
+    question:
+      'JS-бандл слишком большой, и вы хотите уменьшить его без потери функциональности. Какие практики реально помогают уменьшать JS‑бандл?',
     answers: [
       {
         id: 'a-8-18-1',
         text: 'Code splitting (в т.ч. по роутам) и динамические импорты тяжёлых частей',
         isCorrect: true,
+      },
+      {
+        id: 'a-8-18-4',
+        text: 'Замена async/await на .then() для уменьшения размера JavaScript',
+        isCorrect: false,
       },
       {
         id: 'a-8-18-2',
@@ -589,11 +605,6 @@ export const part8Questions: QuizQuestion[] = [
         id: 'a-8-18-3',
         text: 'Удаление неиспользуемого кода/зависимостей и анализ бандла (bundle analyzer)',
         isCorrect: true,
-      },
-      {
-        id: 'a-8-18-4',
-        text: 'Замена async/await на .then() для уменьшения размера JavaScript',
-        isCorrect: false,
       },
     ],
     explanation:
@@ -609,11 +620,6 @@ export const part8Questions: QuizQuestion[] = [
       'Почему React.memo не “спасёт” от ререндеров, если компонент читает значение из Context, которое часто меняется?',
     answers: [
       {
-        id: 'a-8-19-1',
-        text: 'Потому что обновление Context считается причиной ререндера независимо от равенства props, и memo сравнивает только props',
-        isCorrect: true,
-      },
-      {
         id: 'a-8-19-2',
         text: 'Потому что React.memo работает только в Class Components',
         isCorrect: false,
@@ -627,6 +633,11 @@ export const part8Questions: QuizQuestion[] = [
         id: 'a-8-19-4',
         text: 'Потому что memo отключает Virtual DOM и ломает reconciliation',
         isCorrect: false,
+      },
+      {
+        id: 'a-8-19-1',
+        text: 'Потому что обновление Context считается причиной ререндера независимо от равенства props, и memo сравнивает только props',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -647,6 +658,11 @@ export const part8Questions: QuizQuestion[] = [
         isCorrect: true,
       },
       {
+        id: 'a-8-20-4',
+        text: 'CSRF',
+        isCorrect: false,
+      },
+      {
         id: 'a-8-20-2',
         text: 'Reflected XSS (отражённая)',
         isCorrect: false,
@@ -654,11 +670,6 @@ export const part8Questions: QuizQuestion[] = [
       {
         id: 'a-8-20-3',
         text: 'DOM‑based XSS',
-        isCorrect: false,
-      },
-      {
-        id: 'a-8-20-4',
-        text: 'CSRF',
         isCorrect: false,
       },
     ],
@@ -675,9 +686,9 @@ export const part8Questions: QuizQuestion[] = [
       'Почему хранение access‑токена в localStorage часто считают плохой практикой?',
     answers: [
       {
-        id: 'a-8-21-1',
-        text: 'При XSS злоумышленник может прочитать localStorage и украсть токен, после чего выполнять запросы от имени пользователя',
-        isCorrect: true,
+        id: 'a-8-21-3',
+        text: 'localStorage работает только по HTTP, а не по HTTPS',
+        isCorrect: false,
       },
       {
         id: 'a-8-21-2',
@@ -685,14 +696,14 @@ export const part8Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-8-21-3',
-        text: 'localStorage работает только по HTTP, а не по HTTPS',
+        id: 'a-8-21-4',
+        text: 'localStorage опасен из‑за CSRF: браузер автоматически отправляет localStorage на сервер как cookie',
         isCorrect: false,
       },
       {
-        id: 'a-8-21-4',
-        text: 'Риск localStorage — XSS (JS может прочитать). В cookie риск другой: cookie отправляется автоматически и требует CSRF‑защиты. Неверно смешивать это как “localStorage уходит как cookie”',
-        isCorrect: false,
+        id: 'a-8-21-1',
+        text: 'При XSS злоумышленник может прочитать localStorage и украсть токен, после чего выполнять запросы от имени пользователя',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -704,7 +715,8 @@ export const part8Questions: QuizQuestion[] = [
   {
     id: 'q-8-22',
     type: 'multiple',
-    question: 'Какие меры реально снижают риск CSRF при cookie‑авторизации?',
+    question:
+      'У вас cookie-based auth, и нужно снизить риск CSRF. Какие меры реально помогают в этом сценарии?',
     answers: [
       {
         id: 'a-8-22-1',
@@ -740,16 +752,6 @@ export const part8Questions: QuizQuestion[] = [
       'Почему CORS не является “защитой API от чужих запросов” в общем смысле?',
     answers: [
       {
-        id: 'a-8-23-1',
-        text: 'Потому что CORS ограничивает доступ только в браузере (SOP), а запросы с сервера (curl/backend) CORS не блокирует',
-        isCorrect: true,
-      },
-      {
-        id: 'a-8-23-2',
-        text: 'Потому что CORS работает только для GET‑запросов, а POST не затрагивает',
-        isCorrect: false,
-      },
-      {
         id: 'a-8-23-3',
         text: 'Потому что CORS включается только при HTTPS',
         isCorrect: false,
@@ -758,6 +760,16 @@ export const part8Questions: QuizQuestion[] = [
         id: 'a-8-23-4',
         text: 'Потому что CORS всегда отключён в современных браузерах',
         isCorrect: false,
+      },
+      {
+        id: 'a-8-23-2',
+        text: 'Потому что CORS работает только для GET‑запросов, а POST не затрагивает',
+        isCorrect: false,
+      },
+      {
+        id: 'a-8-23-1',
+        text: 'Потому что CORS ограничивает доступ только в браузере (SOP), а запросы с сервера (curl/backend) CORS не блокирует',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -773,13 +785,8 @@ export const part8Questions: QuizQuestion[] = [
       'Что произойдёт в браузере, если сервер ответит CORS‑заголовками Access-Control-Allow-Origin: * и одновременно Access-Control-Allow-Credentials: true?',
     answers: [
       {
-        id: 'a-8-24-1',
-        text: 'Браузер заблокирует доступ к ответу: при credentials нельзя использовать * — нужен конкретный origin',
-        isCorrect: true,
-      },
-      {
-        id: 'a-8-24-2',
-        text: 'Это “самая безопасная” конфигурация: разрешает только доверенные сайты',
+        id: 'a-8-24-4',
+        text: 'Сработает только в HTTP/2, а в HTTP/1.1 будет ошибка',
         isCorrect: false,
       },
       {
@@ -788,8 +795,13 @@ export const part8Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-8-24-4',
-        text: 'Сработает только в HTTP/2, а в HTTP/1.1 будет ошибка',
+        id: 'a-8-24-1',
+        text: 'Браузер заблокирует доступ к ответу: при credentials нельзя использовать * — нужен конкретный origin',
+        isCorrect: true,
+      },
+      {
+        id: 'a-8-24-2',
+        text: 'Это “самая безопасная” конфигурация: разрешает только доверенные сайты',
         isCorrect: false,
       },
     ],
@@ -806,16 +818,6 @@ export const part8Questions: QuizQuestion[] = [
       'Какие cookie‑атрибуты и от чего они защищают (в первую очередь)?',
     answers: [
       {
-        id: 'a-8-25-1',
-        text: 'HttpOnly — снижает риск кражи cookie через XSS (JS не может прочитать cookie)',
-        isCorrect: true,
-      },
-      {
-        id: 'a-8-25-2',
-        text: 'Secure — запрещает передачу cookie по HTTP (только HTTPS)',
-        isCorrect: true,
-      },
-      {
         id: 'a-8-25-3',
         text: 'SameSite — снижает риск CSRF, ограничивая отправку cookie в кросс‑сайт контексте',
         isCorrect: true,
@@ -824,6 +826,16 @@ export const part8Questions: QuizQuestion[] = [
         id: 'a-8-25-4',
         text: 'HttpOnly — основная защита от CSRF',
         isCorrect: false,
+      },
+      {
+        id: 'a-8-25-1',
+        text: 'HttpOnly — снижает риск кражи cookie через XSS (JS не может прочитать cookie)',
+        isCorrect: true,
+      },
+      {
+        id: 'a-8-25-2',
+        text: 'Secure — запрещает передачу cookie по HTTP (только HTTPS)',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -840,7 +852,7 @@ export const part8Questions: QuizQuestion[] = [
     answers: [
       {
         id: 'a-8-26-1',
-        text: 'Избегать dangerouslySetInnerHTML для непроверенного ввода; предпочитать безопасные форматы (например, Markdown → контролируемый HTML)',
+        text: 'Избегать dangerouslySetInnerHTML для непроверенного ввода; рендерить контент через безопасный слой/преобразование',
         isCorrect: true,
       },
       {
@@ -849,14 +861,14 @@ export const part8Questions: QuizQuestion[] = [
         isCorrect: true,
       },
       {
-        id: 'a-8-26-3',
-        text: 'Настроить CSP так, чтобы ограничить источники скриптов и запретить inline‑скрипты там, где возможно',
-        isCorrect: true,
-      },
-      {
         id: 'a-8-26-4',
         text: 'Положиться только на то, что “React экранирует всё”, даже если вы вставляете HTML строкой',
         isCorrect: false,
+      },
+      {
+        id: 'a-8-26-3',
+        text: 'Настроить CSP так, чтобы ограничить источники скриптов и запретить inline‑скрипты там, где возможно',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -871,23 +883,23 @@ export const part8Questions: QuizQuestion[] = [
     question: 'Что означает SameSite=Lax в контексте cookies?',
     answers: [
       {
+        id: 'a-8-27-4',
+        text: 'Cookie отправляется только если запрос сделан с `credentials: "include"`, иначе браузер её не добавит',
+        isCorrect: false,
+      },
+      {
         id: 'a-8-27-1',
-        text: 'Cookie обычно не отправляется в кросс‑сайт контексте, но может отправляться при “безопасной” навигации верхнего уровня (например, переход по ссылке)',
+        text: 'Cookie обычно не отправляется в кросс‑сайт контексте, но может прийти при “безопасной” навигации верхнего уровня (например, переход по ссылке)',
         isCorrect: true,
       },
       {
         id: 'a-8-27-2',
-        text: 'Cookie всегда отправляется на любые домены, если запрос GET',
+        text: 'Cookie отправляется в кросс‑сайт запросах всегда, если метод GET и нет тела запроса',
         isCorrect: false,
       },
       {
         id: 'a-8-27-3',
-        text: 'Cookie никогда не отправляется даже на ваш домен, если вкладка была открыта из другой вкладки',
-        isCorrect: false,
-      },
-      {
-        id: 'a-8-27-4',
-        text: 'Cookie отправляется только из Service Worker',
+        text: 'Cookie в кросс‑сайт контексте не отправляется вообще — это то же самое, что SameSite=Strict',
         isCorrect: false,
       },
     ],
@@ -904,23 +916,23 @@ export const part8Questions: QuizQuestion[] = [
       'Какой практический недостаток JWT чаще всего называют в контексте “stateless авторизации”?',
     answers: [
       {
+        id: 'a-8-28-4',
+        text: 'JWT плохо подходит для браузера: его можно использовать только в server‑to‑server сценариях',
+        isCorrect: false,
+      },
+      {
         id: 'a-8-28-1',
-        text: 'Сложнее “отозвать” токен до истечения срока (revocation), если он утёк, без дополнительной серверной инфраструктуры',
+        text: 'Сложнее “отозвать” токен до истечения срока, если он утёк, без дополнительной серверной инфраструктуры',
         isCorrect: true,
       },
       {
         id: 'a-8-28-2',
-        text: 'JWT нельзя использовать по HTTPS — только по HTTP',
+        text: 'JWT сам по себе защищает от XSS/CSRF, поэтому не важно, где и как вы его храните',
         isCorrect: false,
       },
       {
         id: 'a-8-28-3',
-        text: 'JWT — это формат токена, а не механизм хранения. Безопасность зависит от того, где и как вы его храните/передаёте; сам по себе JWT не “защищает” от XSS/CSRF',
-        isCorrect: false,
-      },
-      {
-        id: 'a-8-28-4',
-        text: 'JWT всегда меньше по размеру, чем session id',
+        text: 'JWT нельзя проверить без запроса в БД, поэтому stateless авторизация с ним невозможна',
         isCorrect: false,
       },
     ],
@@ -937,23 +949,23 @@ export const part8Questions: QuizQuestion[] = [
       'Почему связка “короткий access‑токен + refresh‑токен” часто считается более безопасной, чем один долгоживущий токен?',
     answers: [
       {
+        id: 'a-8-29-3',
+        text: 'Потому что access‑токен не отправляют в API‑запросах: он нужен только интерфейсу',
+        isCorrect: false,
+      },
+      {
         id: 'a-8-29-1',
-        text: 'Потому что окно для злоупотребления украденным access‑токеном меньше, а refresh можно ротировать/ограничивать и хранить безопаснее (например, HttpOnly)',
+        text: 'Потому что окно для злоупотребления украденным access меньше, а refresh можно ротировать/отзывать и хранить строже (например, HttpOnly)',
         isCorrect: true,
       },
       {
         id: 'a-8-29-2',
-        text: 'Refresh‑токен можно украсть (особенно при XSS/компрометации устройства). Идея схемы — сузить окно атаки и дать механизмы ротации/отзыва, а не “невозможность кражи”',
-        isCorrect: false,
-      },
-      {
-        id: 'a-8-29-3',
-        text: 'Потому что access‑токен не нужен в API‑запросах — он только для UI',
+        text: 'Потому что refresh‑токен по определению нельзя отозвать: он stateless, значит утечка неуправляема',
         isCorrect: false,
       },
       {
         id: 'a-8-29-4',
-        text: 'Потому что два токена автоматически отключают CORS',
+        text: 'Потому что два токена браузер не может отправить в одном запросе, и это снижает риск утечки',
         isCorrect: false,
       },
     ],

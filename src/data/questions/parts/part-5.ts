@@ -7,8 +7,14 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-1',
     type: 'single',
-    question: 'В чём основное отличие interface от type в TypeScript?',
+    question:
+      'Вы проектируете публичный контракт (например, типы пропсов компонента) и хотите понимать, где лучше `interface`, а где — `type`. В чём ключевое отличие `interface` от `type` в TypeScript?',
     answers: [
+      {
+        id: 'a-5-1-4',
+        text: 'type поддерживает declaration merging и расширение через extends, а interface — нет',
+        isCorrect: false,
+      },
       {
         id: 'a-5-1-1',
         text: 'interface можно расширять и объединять через extends, type более гибкий для создания утилитарных типов',
@@ -24,11 +30,6 @@ export const part5Questions: QuizQuestion[] = [
         text: 'interface компилируется в runtime код, type полностью удаляется при компиляции',
         isCorrect: false,
       },
-      {
-        id: 'a-5-1-4',
-        text: 'type поддерживает declaration merging и расширение через extends, а interface — нет',
-        isCorrect: false,
-      },
     ],
     explanation:
       'interface можно расширять и объединять через extends, что делает его удобным для описания объектов. type более гибкий и может использоваться для создания утилитарных типов, union types и т.д.',
@@ -39,12 +40,13 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-2',
     type: 'single',
-    question: 'Что такое дженерики (generics) в TypeScript?',
+    question:
+      'Вы пишете функцию `identity`, которая должна работать с любым типом и при этом сохранять конкретный тип на выходе. Какой механизм TypeScript для этого используется?',
     answers: [
       {
-        id: 'a-5-2-1',
-        text: 'Механизм создания переиспользуемых компонентов, которые работают с разными типами данных',
-        isCorrect: true,
+        id: 'a-5-2-4',
+        text: 'Способ оптимизации компиляции TypeScript кода',
+        isCorrect: false,
       },
       {
         id: 'a-5-2-2',
@@ -52,13 +54,13 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-5-2-3',
-        text: 'Механизм для автоматического вывода типов без явного указания',
-        isCorrect: false,
+        id: 'a-5-2-1',
+        text: 'Механизм создания переиспользуемых компонентов, которые работают с разными типами данных',
+        isCorrect: true,
       },
       {
-        id: 'a-5-2-4',
-        text: 'Способ оптимизации компиляции TypeScript кода',
+        id: 'a-5-2-3',
+        text: 'Механизм для автоматического вывода типов без явного указания',
         isCorrect: false,
       },
     ],
@@ -71,16 +73,12 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-3',
     type: 'single',
-    question: 'Что такое утилитарные типы (utility types) в TypeScript?',
+    question:
+      'Нужно “переиспользовать” существующий тип: взять только часть полей, сделать поля опциональными или исключить ключи. Как называются встроенные типы TypeScript вроде `Pick`, `Omit`, `Partial`?',
     answers: [
       {
-        id: 'a-5-3-1',
-        text: 'Встроенные типы для трансформации существующих типов (Pick, Omit, Partial и др.)',
-        isCorrect: true,
-      },
-      {
-        id: 'a-5-3-2',
-        text: 'Типы для работы с асинхронными операциями и промисами',
+        id: 'a-5-3-4',
+        text: 'Типы для оптимизации производительности компиляции',
         isCorrect: false,
       },
       {
@@ -89,9 +87,14 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-5-3-4',
-        text: 'Типы для оптимизации производительности компиляции',
+        id: 'a-5-3-2',
+        text: 'Типы для работы с асинхронными операциями и промисами',
         isCorrect: false,
+      },
+      {
+        id: 'a-5-3-1',
+        text: 'Встроенные типы для трансформации существующих типов (Pick, Omit, Partial и др.)',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -103,8 +106,14 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-4',
     type: 'single',
-    question: 'В чём основное преимущество TypeScript перед JavaScript?',
+    question:
+      'В проекте много командной разработки и рефакторингов, и хочется ловить ошибки до запуска в браузере. Какое преимущество TypeScript перед JavaScript обычно называют ключевым?',
     answers: [
+      {
+        id: 'a-5-4-3',
+        text: 'Автоматическая оптимизация кода при компиляции',
+        isCorrect: false,
+      },
       {
         id: 'a-5-4-1',
         text: 'Статическая типизация, которая помогает находить ошибки на этапе разработки',
@@ -113,11 +122,6 @@ export const part5Questions: QuizQuestion[] = [
       {
         id: 'a-5-4-2',
         text: 'Более быстрая производительность выполнения кода',
-        isCorrect: false,
-      },
-      {
-        id: 'a-5-4-3',
-        text: 'Автоматическая оптимизация кода при компиляции',
         isCorrect: false,
       },
       {
@@ -135,26 +139,27 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-5',
     type: 'single',
-    question: 'Что такое type assertion в TypeScript?',
+    question:
+      'Вы получили значение типа `unknown` (например, из `JSON.parse`) и хотите “подсказать” компилятору тип, понимая риски. Что такое type assertion в TypeScript и что он (не) делает?',
     answers: [
-      {
-        id: 'a-5-5-1',
-        text: 'Указание компилятору рассматривать значение как определённый тип',
-        isCorrect: true,
-      },
       {
         id: 'a-5-5-2',
         text: 'Автоматическое определение типа на основе значения',
         isCorrect: false,
       },
       {
-        id: 'a-5-5-3',
-        text: 'Способ создания новых типов из существующих',
+        id: 'a-5-5-4',
+        text: 'Механизм проверки типов во время выполнения',
         isCorrect: false,
       },
       {
-        id: 'a-5-5-4',
-        text: 'Механизм проверки типов во время выполнения',
+        id: 'a-5-5-1',
+        text: 'Указание компилятору рассматривать значение как определённый тип',
+        isCorrect: true,
+      },
+      {
+        id: 'a-5-5-3',
+        text: 'Способ создания новых типов из существующих',
         isCorrect: false,
       },
     ],
@@ -167,12 +172,13 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-6',
     type: 'multiple',
-    question: 'Какие типы данных можно использовать в TypeScript?',
+    question:
+      'Вы описываете типы данных в приложении и хотите понимать, что TypeScript добавляет поверх JavaScript (и какие составные типы есть “из коробки”). Какие варианты корректно относятся к типовой системе TypeScript?',
     answers: [
       {
-        id: 'a-5-6-1',
-        text: 'Примитивные типы (string, number, boolean)',
-        isCorrect: true,
+        id: 'a-5-6-5',
+        text: 'Только типы из JavaScript',
+        isCorrect: false,
       },
       {
         id: 'a-5-6-2',
@@ -180,8 +186,8 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: true,
       },
       {
-        id: 'a-5-6-3',
-        text: 'Union types (string | number)',
+        id: 'a-5-6-1',
+        text: 'Примитивные типы (string, number, boolean)',
         isCorrect: true,
       },
       {
@@ -190,9 +196,9 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: true,
       },
       {
-        id: 'a-5-6-5',
-        text: 'Только типы из JavaScript',
-        isCorrect: false,
+        id: 'a-5-6-3',
+        text: 'Union types (string | number)',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -204,16 +210,12 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-7',
     type: 'single',
-    question: 'В чём разница между any и unknown?',
+    question:
+      'Вы парсите данные из внешнего источника и не уверены в типе. Почему `unknown` безопаснее `any`, и в чём их принципиальная разница?',
     answers: [
       {
-        id: 'a-5-7-1',
-        text: 'any отключает проверку типов, unknown требует проверки типа перед использованием',
-        isCorrect: true,
-      },
-      {
-        id: 'a-5-7-2',
-        text: 'any для объектов, unknown для примитивов',
+        id: 'a-5-7-4',
+        text: 'unknown можно использовать так же свободно, как any: TypeScript не потребует проверок перед доступом к полям',
         isCorrect: false,
       },
       {
@@ -222,9 +224,14 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-5-7-4',
-        text: 'unknown можно использовать так же свободно, как any: TypeScript не потребует проверок перед доступом к полям',
+        id: 'a-5-7-2',
+        text: 'any для объектов, unknown для примитивов',
         isCorrect: false,
+      },
+      {
+        id: 'a-5-7-1',
+        text: 'any отключает проверку типов, unknown требует проверки типа перед использованием',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -236,12 +243,13 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-8',
     type: 'single',
-    question: 'Что такое type guard в TypeScript?',
+    question:
+      'У вас есть `unknown` или union-тип, и перед доступом к полям нужно доказать TypeScript, что значение имеет конкретный тип. Как называется такая проверка/паттерн в TypeScript?',
     answers: [
       {
-        id: 'a-5-8-1',
-        text: 'Функция, которая проверяет тип значения во время выполнения и сужает тип для TypeScript',
-        isCorrect: true,
+        id: 'a-5-8-3',
+        text: 'Способ создания новых типов',
+        isCorrect: false,
       },
       {
         id: 'a-5-8-2',
@@ -249,14 +257,14 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-5-8-3',
-        text: 'Способ создания новых типов',
-        isCorrect: false,
-      },
-      {
         id: 'a-5-8-4',
         text: 'Инструмент для валидации данных',
         isCorrect: false,
+      },
+      {
+        id: 'a-5-8-1',
+        text: 'Функция, которая проверяет тип значения во время выполнения и сужает тип для TypeScript',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -268,17 +276,13 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-9',
     type: 'single',
-    question: 'Что такое union types (A | B) в TypeScript?',
+    question:
+      'Функция принимает либо строку, либо число, и внутри нужно корректно сузить тип. Как называется тип `A | B` в TypeScript?',
     answers: [
       {
         id: 'a-5-9-1',
         text: 'Тип, который может быть одним из нескольких типов',
         isCorrect: true,
-      },
-      {
-        id: 'a-5-9-2',
-        text: 'Тип, который объединяет свойства нескольких типов',
-        isCorrect: false,
       },
       {
         id: 'a-5-9-3',
@@ -288,6 +292,11 @@ export const part5Questions: QuizQuestion[] = [
       {
         id: 'a-5-9-4',
         text: 'Тип для асинхронных операций',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-9-2',
+        text: 'Тип, который объединяет свойства нескольких типов',
         isCorrect: false,
       },
     ],
@@ -300,7 +309,8 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-10',
     type: 'single',
-    question: 'Что такое intersection types (A & B) в TypeScript?',
+    question:
+      'Нужно описать объект, который одновременно соответствует двум контрактам (например, имеет поля и из `A`, и из `B`). Как называется тип `A & B` в TypeScript?',
     answers: [
       {
         id: 'a-5-10-1',
@@ -308,13 +318,13 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: true,
       },
       {
-        id: 'a-5-10-2',
-        text: 'Тип, который может быть A или B',
+        id: 'a-5-10-3',
+        text: 'Тип для работы с массивами',
         isCorrect: false,
       },
       {
-        id: 'a-5-10-3',
-        text: 'Тип для работы с массивами',
+        id: 'a-5-10-2',
+        text: 'Тип, который может быть A или B',
         isCorrect: false,
       },
       {
@@ -332,7 +342,8 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-11',
     type: 'single',
-    question: 'Что такое Pick, Omit, Partial в TypeScript?',
+    question:
+      'Вы хотите переиспользовать существующий тип: выбрать часть ключей, исключить ключи или сделать все поля опциональными. Какие утилитарные типы для этого есть в TypeScript?',
     answers: [
       {
         id: 'a-5-11-1',
@@ -345,13 +356,13 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-5-11-3',
-        text: 'Операторы для проверки типов',
+        id: 'a-5-11-4',
+        text: 'Способы создания новых типов',
         isCorrect: false,
       },
       {
-        id: 'a-5-11-4',
-        text: 'Способы создания новых типов',
+        id: 'a-5-11-3',
+        text: 'Операторы для проверки типов',
         isCorrect: false,
       },
     ],
@@ -364,17 +375,18 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-12',
     type: 'single',
-    question: 'Что такое readonly в TypeScript?',
+    question:
+      'Вы хотите запретить присваивание в поле после инициализации на уровне типов (а не runtime). Какой модификатор/утилита TypeScript для этого используется?',
     answers: [
-      {
-        id: 'a-5-12-1',
-        text: 'Модификатор, который делает свойство или массив неизменяемым после инициализации',
-        isCorrect: true,
-      },
       {
         id: 'a-5-12-2',
         text: 'Модификатор для приватных свойств',
         isCorrect: false,
+      },
+      {
+        id: 'a-5-12-1',
+        text: 'Модификатор, который делает свойство или массив неизменяемым после инициализации',
+        isCorrect: true,
       },
       {
         id: 'a-5-12-3',
@@ -396,12 +408,13 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-13',
     type: 'single',
-    question: 'Что такое enum в TypeScript?',
+    question:
+      'Нужно описать набор именованных констант (например, статусы), и при этом помнить про то, что попадёт в runtime. Что такое `enum` в TypeScript?',
     answers: [
       {
-        id: 'a-5-13-1',
-        text: 'Конструкция для создания набора именованных констант',
-        isCorrect: true,
+        id: 'a-5-13-4',
+        text: 'Способ создания интерфейсов',
+        isCorrect: false,
       },
       {
         id: 'a-5-13-2',
@@ -409,13 +422,13 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-5-13-3',
-        text: 'Механизм для работы с классами',
-        isCorrect: false,
+        id: 'a-5-13-1',
+        text: 'Конструкция для создания набора именованных констант',
+        isCorrect: true,
       },
       {
-        id: 'a-5-13-4',
-        text: 'Способ создания интерфейсов',
+        id: 'a-5-13-3',
+        text: 'Механизм для работы с классами',
         isCorrect: false,
       },
     ],
@@ -428,26 +441,27 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-14',
     type: 'single',
-    question: 'Что такое tuple в TypeScript?',
+    question:
+      'Вы возвращаете из функции пару `[value, error]` с фиксированным порядком и разными типами элементов. Какой тип TypeScript лучше всего описывает такой массив фиксированной структуры?',
     answers: [
-      {
-        id: 'a-5-14-1',
-        text: 'Массив с фиксированной длиной и известными типами элементов на каждой позиции',
-        isCorrect: true,
-      },
       {
         id: 'a-5-14-2',
         text: 'Тип для работы с объектами',
         isCorrect: false,
       },
       {
-        id: 'a-5-14-3',
-        text: 'Тип для асинхронных операций',
+        id: 'a-5-14-4',
+        text: 'Способ создания классов',
         isCorrect: false,
       },
       {
-        id: 'a-5-14-4',
-        text: 'Способ создания классов',
+        id: 'a-5-14-1',
+        text: 'Массив с фиксированной длиной и известными типами элементов на каждой позиции',
+        isCorrect: true,
+      },
+      {
+        id: 'a-5-14-3',
+        text: 'Тип для асинхронных операций',
         isCorrect: false,
       },
     ],
@@ -460,17 +474,18 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-15',
     type: 'single',
-    question: 'Что такое strict mode в TypeScript?',
+    question:
+      'Вы включаете строгую типизацию в проекте, чтобы ловить больше ошибок на этапе компиляции (особенно про `null/undefined` и неявные `any`). Что включает флаг `strict` в TypeScript?',
     answers: [
+      {
+        id: 'a-5-15-4',
+        text: 'Режим для отключения проверки типов',
+        isCorrect: false,
+      },
       {
         id: 'a-5-15-1',
         text: 'Режим, который включает все строгие проверки типов (strictNullChecks, noImplicitAny и др.)',
         isCorrect: true,
-      },
-      {
-        id: 'a-5-15-2',
-        text: 'Режим для оптимизации компиляции',
-        isCorrect: false,
       },
       {
         id: 'a-5-15-3',
@@ -478,8 +493,8 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-5-15-4',
-        text: 'Режим для отключения проверки типов',
+        id: 'a-5-15-2',
+        text: 'Режим для оптимизации компиляции',
         isCorrect: false,
       },
     ],
@@ -492,26 +507,27 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-16',
     type: 'single',
-    question: 'Что такое декораторы (decorators) в TypeScript?',
+    question:
+      'Вы видите синтаксис `@Injectable()`/`@Controller()` и хотите понимать, что это за механизм и почему он требует настройки компилятора. Что такое декораторы в TypeScript?',
     answers: [
-      {
-        id: 'a-5-16-1',
-        text: 'Специальные функции, которые добавляют метаданные или изменяют поведение классов, методов, свойств',
-        isCorrect: true,
-      },
       {
         id: 'a-5-16-2',
         text: 'Способ создания новых типов',
         isCorrect: false,
       },
       {
-        id: 'a-5-16-3',
-        text: 'Механизм для работы с массивами',
+        id: 'a-5-16-4',
+        text: 'Способ оптимизации кода',
         isCorrect: false,
       },
       {
-        id: 'a-5-16-4',
-        text: 'Способ оптимизации кода',
+        id: 'a-5-16-1',
+        text: 'Специальные функции, которые добавляют метаданные или изменяют поведение классов, методов, свойств',
+        isCorrect: true,
+      },
+      {
+        id: 'a-5-16-3',
+        text: 'Механизм для работы с массивами',
         isCorrect: false,
       },
     ],
@@ -524,18 +540,9 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-17',
     type: 'single',
-    question: 'Что такое опциональные свойства (?) в TypeScript?',
+    question:
+      'В API-ответе поле может отсутствовать, и вы хотите описать это в типах. Что означает `?` у свойства в интерфейсе/типе TypeScript?',
     answers: [
-      {
-        id: 'a-5-17-1',
-        text: 'Свойства, которые могут отсутствовать в объекте, помечаются знаком ? после имени свойства',
-        isCorrect: true,
-      },
-      {
-        id: 'a-5-17-2',
-        text: 'Свойства, которые нельзя изменять',
-        isCorrect: false,
-      },
       {
         id: 'a-5-17-3',
         text: 'Свойства для статических данных',
@@ -545,6 +552,16 @@ export const part5Questions: QuizQuestion[] = [
         id: 'a-5-17-4',
         text: 'Свойства, которые работают только в строгом режиме',
         isCorrect: false,
+      },
+      {
+        id: 'a-5-17-2',
+        text: 'Свойства, которые нельзя изменять',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-17-1',
+        text: 'Свойства, которые могут отсутствовать в объекте, помечаются знаком ? после имени свойства',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -556,7 +573,8 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-18',
     type: 'single',
-    question: 'Что такое перегрузка функций (function overloads) в TypeScript?',
+    question:
+      'Одна функция принимает разные типы аргументов и возвращает разные типы результата, но реализация одна. Как в TypeScript описывают такие “несколько сигнатур одной функции”?',
     answers: [
       {
         id: 'a-5-18-1',
@@ -569,13 +587,13 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-5-18-3',
-        text: 'Механизм для оптимизации функций',
+        id: 'a-5-18-4',
+        text: 'Способ работы с асинхронными функциями',
         isCorrect: false,
       },
       {
-        id: 'a-5-18-4',
-        text: 'Способ работы с асинхронными функциями',
+        id: 'a-5-18-3',
+        text: 'Механизм для оптимизации функций',
         isCorrect: false,
       },
     ],
@@ -588,18 +606,9 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-19',
     type: 'single',
-    question: 'Что такое mapped types в TypeScript?',
+    question:
+      'Вы хотите взять тип `T` и построить новый тип, проходясь по его ключам (например, сделать все поля `readonly` или `optional`). Как называется такой механизм в TypeScript?',
     answers: [
-      {
-        id: 'a-5-19-1',
-        text: 'Типы, которые создают новый тип путём трансформации свойств существующего типа через цикл по ключам',
-        isCorrect: true,
-      },
-      {
-        id: 'a-5-19-2',
-        text: 'Типы для работы с картами и объектами',
-        isCorrect: false,
-      },
       {
         id: 'a-5-19-3',
         text: 'Механизм для оптимизации типов',
@@ -608,6 +617,16 @@ export const part5Questions: QuizQuestion[] = [
       {
         id: 'a-5-19-4',
         text: 'Способ создания новых типов',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-19-1',
+        text: 'Типы, которые создают новый тип путём трансформации свойств существующего типа через цикл по ключам',
+        isCorrect: true,
+      },
+      {
+        id: 'a-5-19-2',
+        text: 'Типы для работы с картами и объектами',
         isCorrect: false,
       },
     ],
@@ -620,26 +639,27 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-20',
     type: 'single',
-    question: 'Что такое Record<K, T> в TypeScript?',
+    question:
+      'Нужно описать “словарь” вида `ключ → значение` с ограничением на тип ключей и тип значений. Какой утилитарный тип TypeScript для этого обычно используют?',
     answers: [
-      {
-        id: 'a-5-20-1',
-        text: 'Утилитарный тип для создания объекта с ключами типа K и значениями типа T',
-        isCorrect: true,
-      },
       {
         id: 'a-5-20-2',
         text: 'Тип для работы с записями базы данных',
         isCorrect: false,
       },
       {
-        id: 'a-5-20-3',
-        text: 'Механизм для кэширования типов',
+        id: 'a-5-20-4',
+        text: 'Способ создания массивов',
         isCorrect: false,
       },
       {
-        id: 'a-5-20-4',
-        text: 'Способ создания массивов',
+        id: 'a-5-20-1',
+        text: 'Утилитарный тип для создания объекта с ключами типа K и значениями типа T',
+        isCorrect: true,
+      },
+      {
+        id: 'a-5-20-3',
+        text: 'Механизм для кэширования типов',
         isCorrect: false,
       },
     ],
@@ -652,7 +672,8 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-21',
     type: 'single',
-    question: 'Что такое keyof в TypeScript?',
+    question:
+      'Вы пишете типобезопасный хелпер `get(obj, key)` и хотите, чтобы `key` мог быть только существующим ключом объекта. Какой оператор TypeScript даёт union всех ключей типа?',
     answers: [
       {
         id: 'a-5-21-1',
@@ -660,13 +681,13 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: true,
       },
       {
-        id: 'a-5-21-2',
-        text: 'Оператор для проверки наличия ключа',
+        id: 'a-5-21-3',
+        text: 'Механизм для работы с ключами',
         isCorrect: false,
       },
       {
-        id: 'a-5-21-3',
-        text: 'Механизм для работы с ключами',
+        id: 'a-5-21-2',
+        text: 'Оператор для проверки наличия ключа',
         isCorrect: false,
       },
       {
@@ -684,26 +705,27 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-22',
     type: 'single',
-    question: 'Что такое typeof в TypeScript?',
+    question:
+      'Вы хотите “вытащить” тип из уже существующей переменной/объекта (например, из конфига) и переиспользовать его в типах. Какой оператор TypeScript для этого используют?',
     answers: [
-      {
-        id: 'a-5-22-1',
-        text: 'Оператор, который возвращает тип значения переменной или выражения',
-        isCorrect: true,
-      },
-      {
-        id: 'a-5-22-2',
-        text: 'Оператор для проверки типа значения',
-        isCorrect: false,
-      },
       {
         id: 'a-5-22-3',
         text: 'Механизм для работы с типами',
         isCorrect: false,
       },
       {
+        id: 'a-5-22-1',
+        text: 'Оператор, который возвращает тип значения переменной или выражения',
+        isCorrect: true,
+      },
+      {
         id: 'a-5-22-4',
         text: 'Способ создания типов',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-22-2',
+        text: 'Оператор для проверки типа значения',
         isCorrect: false,
       },
     ],
@@ -716,12 +738,13 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-23',
     type: 'single',
-    question: 'Что такое infer в TypeScript?',
+    question:
+      'Вы пишете условный тип и хотите “вытащить” часть типа (например, тип элемента массива или тип аргумента функции) прямо внутри `extends`. Какой механизм TypeScript для этого предназначен?',
     answers: [
       {
-        id: 'a-5-23-1',
-        text: 'Ключевое слово для вывода типа внутри условных типов, позволяет извлечь тип из другого типа',
-        isCorrect: true,
+        id: 'a-5-23-3',
+        text: 'Механизм для оптимизации типов',
+        isCorrect: false,
       },
       {
         id: 'a-5-23-2',
@@ -729,9 +752,9 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-5-23-3',
-        text: 'Механизм для оптимизации типов',
-        isCorrect: false,
+        id: 'a-5-23-1',
+        text: 'Ключевое слово для вывода типа внутри условных типов, позволяет извлечь тип из другого типа',
+        isCorrect: true,
       },
       {
         id: 'a-5-23-4',
@@ -748,26 +771,27 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-24',
     type: 'single',
-    question: 'Что такое условные типы (conditional types) в TypeScript?',
+    question:
+      'Нужно выразить тип по условию вида “если `T` расширяет `U`, то один тип, иначе другой” — как в шаблонах. Как называется такой механизм в TypeScript?',
     answers: [
-      {
-        id: 'a-5-24-1',
-        text: 'Типы, которые выбирают один из двух типов на основе условия, используют синтаксис T extends U ? X : Y',
-        isCorrect: true,
-      },
       {
         id: 'a-5-24-2',
         text: 'Типы для условных операторов в коде',
         isCorrect: false,
       },
       {
-        id: 'a-5-24-3',
-        text: 'Механизм для проверки типов',
+        id: 'a-5-24-4',
+        text: 'Способ создания типов',
         isCorrect: false,
       },
       {
-        id: 'a-5-24-4',
-        text: 'Способ создания типов',
+        id: 'a-5-24-1',
+        text: 'Типы, которые выбирают один из двух типов на основе условия, используют синтаксис T extends U ? X : Y',
+        isCorrect: true,
+      },
+      {
+        id: 'a-5-24-3',
+        text: 'Механизм для проверки типов',
         isCorrect: false,
       },
     ],
@@ -780,8 +804,19 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-25',
     type: 'single',
-    question: 'Что такое Exclude и Extract в TypeScript?',
+    question:
+      'Вы работаете с union-типом и хотите либо убрать из него часть вариантов, либо наоборот — оставить только пересечение с другим union. Какие утилиты TypeScript для этого используются?',
     answers: [
+      {
+        id: 'a-5-25-3',
+        text: 'Extract/Exclude — это runtime‑утилиты: они реально фильтруют значения, поэтому их можно использовать вместо type guards',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-25-4',
+        text: 'Exclude/Extract работают только с объектными типами, а для union литералов (строк/чисел) они не применимы',
+        isCorrect: false,
+      },
       {
         id: 'a-5-25-1',
         text: 'Exclude исключает из типа T все типы, которые можно присвоить U; Extract оставляет только типы, которые можно присвоить U',
@@ -789,17 +824,7 @@ export const part5Questions: QuizQuestion[] = [
       },
       {
         id: 'a-5-25-2',
-        text: 'Exclude для объектов, Extract для массивов',
-        isCorrect: false,
-      },
-      {
-        id: 'a-5-25-3',
-        text: 'Extract/Exclude — типовые (compile-time) инструменты, но в коде их часто используют “в паре” с runtime‑проверками/guards, чтобы после фильтрации получить более точный тип',
-        isCorrect: false,
-      },
-      {
-        id: 'a-5-25-4',
-        text: 'Exclude/Extract чаще всего используют для объектов, но они прекрасно работают и для union примитивов (строки/числа/литералы) — ограничение не в “object”, а в типовой совместимости',
+        text: 'Exclude используют только для объектных типов, а Extract — только для массивов и tuple (для union они не подходят)',
         isCorrect: false,
       },
     ],
@@ -812,16 +837,12 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-26',
     type: 'single',
-    question: 'Что такое NonNullable в TypeScript?',
+    question:
+      'У вас тип `T | null | undefined`, и вы хотите получить вариант без `null/undefined`, чтобы не тащить проверки дальше по коду. Какой утилитарный тип TypeScript для этого есть?',
     answers: [
       {
-        id: 'a-5-26-1',
-        text: 'Утилитарный тип, который исключает null и undefined из типа',
-        isCorrect: true,
-      },
-      {
-        id: 'a-5-26-2',
-        text: 'Тип для работы с nullable значениями',
+        id: 'a-5-26-4',
+        text: 'Способ создания типов',
         isCorrect: false,
       },
       {
@@ -830,8 +851,13 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-5-26-4',
-        text: 'Способ создания типов',
+        id: 'a-5-26-1',
+        text: 'Утилитарный тип, который исключает null и undefined из типа',
+        isCorrect: true,
+      },
+      {
+        id: 'a-5-26-2',
+        text: 'Тип для работы с nullable значениями',
         isCorrect: false,
       },
     ],
@@ -844,7 +870,8 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-27',
     type: 'single',
-    question: 'Что такое ReturnType и Parameters в TypeScript?',
+    question:
+      'Вы хотите вывести тип возвращаемого значения функции и типы её параметров, чтобы переиспользовать их в других местах (без дублирования). Какие utility-типы TypeScript для этого существуют?',
     answers: [
       {
         id: 'a-5-27-1',
@@ -852,18 +879,18 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: true,
       },
       {
-        id: 'a-5-27-2',
-        text: 'ReturnType для возврата, Parameters для параметров',
+        id: 'a-5-27-4',
+        text: 'Parameters возвращает объединение (union) типов параметров, а ReturnType возвращает tuple параметров',
         isCorrect: false,
       },
       {
         id: 'a-5-27-3',
-        text: 'Parameters/ReturnType — чисто типовые утилиты: они одинаково применимы и к async, и к sync функциям; отличие скорее в том, что для async часто дополнительно используют Awaited<ReturnType<...>>',
+        text: 'Parameters/ReturnType работают только для sync‑функций: для async они всегда дают `Promise<unknown>` и практически бесполезны',
         isCorrect: false,
       },
       {
-        id: 'a-5-27-4',
-        text: 'Parameters возвращает объединение (union) типов параметров, а ReturnType возвращает tuple параметров',
+        id: 'a-5-27-2',
+        text: 'Эти утилиты работают только для методов классов (в интерфейсах), а для обычных функций их использовать нельзя',
         isCorrect: false,
       },
     ],
@@ -876,12 +903,13 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-28',
     type: 'single',
-    question: 'Что такое Awaited в TypeScript?',
+    question:
+      'Вы описываете тип результата async-функции и хотите получить “развёрнутый” тип из `Promise<T>`. Какой utility-тип TypeScript для этого используется?',
     answers: [
       {
-        id: 'a-5-28-1',
-        text: 'Утилитарный тип, который извлекает тип значения из Promise',
-        isCorrect: true,
+        id: 'a-5-28-3',
+        text: 'Механизм для проверки промисов',
+        isCorrect: false,
       },
       {
         id: 'a-5-28-2',
@@ -889,14 +917,14 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-5-28-3',
-        text: 'Механизм для проверки промисов',
-        isCorrect: false,
-      },
-      {
         id: 'a-5-28-4',
         text: 'Способ создания промисов',
         isCorrect: false,
+      },
+      {
+        id: 'a-5-28-1',
+        text: 'Утилитарный тип, который извлекает тип значения из Promise',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -908,7 +936,8 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-29',
     type: 'single',
-    question: 'Что такое индексные сигнатуры (index signatures) в TypeScript?',
+    question:
+      'Нужно описать объект-словарь, где заранее неизвестны имена ключей (например, `Record` с произвольными ключами), но известен тип значений. Как в TypeScript это описывается через индексную сигнатуру?',
     answers: [
       {
         id: 'a-5-29-1',
@@ -940,7 +969,8 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-30',
     type: 'single',
-    question: 'Что такое declaration merging в TypeScript?',
+    question:
+      'Вы объявляете `interface` с одним и тем же именем в двух местах, и TypeScript их “склеивает”. Как называется этот механизм и для каких сущностей он характерен?',
     answers: [
       {
         id: 'a-5-30-1',
@@ -953,13 +983,13 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-5-30-3',
-        text: 'Способ оптимизации типов',
+        id: 'a-5-30-4',
+        text: 'Механизм для работы с классами',
         isCorrect: false,
       },
       {
-        id: 'a-5-30-4',
-        text: 'Механизм для работы с классами',
+        id: 'a-5-30-3',
+        text: 'Способ оптимизации типов',
         isCorrect: false,
       },
     ],
@@ -972,7 +1002,8 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-31',
     type: 'single',
-    question: 'Что такое const assertions (as const) в TypeScript?',
+    question:
+      'Вы хотите сохранить литеральные значения и сделать объект/массив максимально “узким” по типам (например, чтобы `status: "ok"` не расширялся до `string`). Какой приём TypeScript для этого используют?',
     answers: [
       {
         id: 'a-5-31-1',
@@ -985,13 +1016,13 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-5-31-3',
-        text: 'Способ оптимизации типов',
+        id: 'a-5-31-4',
+        text: 'Механизм для работы с массивами',
         isCorrect: false,
       },
       {
-        id: 'a-5-31-4',
-        text: 'Механизм для работы с массивами',
+        id: 'a-5-31-3',
+        text: 'Способ оптимизации типов',
         isCorrect: false,
       },
     ],
@@ -1004,17 +1035,18 @@ export const part5Questions: QuizQuestion[] = [
   {
     id: 'q-5-32',
     type: 'single',
-    question: 'Что такое satisfies в TypeScript?',
+    question:
+      'Вы хотите проверить, что объект соответствует интерфейсу, но при этом сохранить максимально точный (узкий) вывод типов по значениям. Какую роль играет оператор `satisfies` в TypeScript?',
     answers: [
+      {
+        id: 'a-5-32-4',
+        text: 'Способ создания типов',
+        isCorrect: false,
+      },
       {
         id: 'a-5-32-1',
         text: 'Оператор, который проверяет соответствие типа без расширения типа значения, сохраняя более узкий тип',
         isCorrect: true,
-      },
-      {
-        id: 'a-5-32-2',
-        text: 'Оператор для проверки типов',
-        isCorrect: false,
       },
       {
         id: 'a-5-32-3',
@@ -1022,8 +1054,8 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-5-32-4',
-        text: 'Способ создания типов',
+        id: 'a-5-32-2',
+        text: 'Оператор для проверки типов',
         isCorrect: false,
       },
     ],
@@ -1045,18 +1077,18 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: true,
       },
       {
-        id: 'a-5-33-2',
-        text: 'unknown автоматически валидирует JSON на соответствие интерфейсу',
+        id: 'a-5-33-4',
+        text: 'unknown всегда превращается в never при инференсе, поэтому компилятор “запрещает” использовать значение без кастов',
         isCorrect: false,
       },
       {
         id: 'a-5-33-3',
-        text: 'unknown не добавляет runtime‑проверок сам по себе, но дисциплинирует код: вам придётся писать guards/валидацию, и вот эти проверки уже имеют runtime‑стоимость',
+        text: 'unknown автоматически добавляет runtime‑проверки и валидирует данные, поэтому его выбирают вместо любых схем (Zod не нужен)',
         isCorrect: false,
       },
       {
-        id: 'a-5-33-4',
-        text: 'unknown всегда превращается в never при инференсе',
+        id: 'a-5-33-2',
+        text: 'unknown автоматически валидирует JSON на соответствие интерфейсу: если данные не совпали, TypeScript “кинет ошибку” в runtime',
         isCorrect: false,
       },
     ],
@@ -1073,11 +1105,6 @@ export const part5Questions: QuizQuestion[] = [
       'В чём практический смысл пользовательских type guards (user-defined type guards)?',
     answers: [
       {
-        id: 'a-5-34-1',
-        text: 'Они позволяют TypeScript сузить тип внутри ветки, потому что функция возвращает предикат вида value is T',
-        isCorrect: true,
-      },
-      {
         id: 'a-5-34-2',
         text: 'Они валидируют данные в runtime лучше Zod без библиотек',
         isCorrect: false,
@@ -1091,6 +1118,11 @@ export const part5Questions: QuizQuestion[] = [
         id: 'a-5-34-4',
         text: 'Они запрещены в strict режиме',
         isCorrect: false,
+      },
+      {
+        id: 'a-5-34-1',
+        text: 'Они позволяют TypeScript сузить тип внутри ветки, потому что функция возвращает предикат вида value is T',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -1106,13 +1138,13 @@ export const part5Questions: QuizQuestion[] = [
       'Какой основной риск у “as Type” (type assertion) при работе с данными из API?',
     answers: [
       {
-        id: 'a-5-35-1',
-        text: 'Это не проверка в runtime: можно “заставить” компилятор поверить, но приложение упадёт, если данные не соответствуют типу',
-        isCorrect: true,
-      },
-      {
         id: 'a-5-35-2',
         text: 'Type assertion запрещает tree-shaking и увеличивает бандл',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-35-4',
+        text: 'Type assertion автоматически сериализует типы в JSON',
         isCorrect: false,
       },
       {
@@ -1121,9 +1153,9 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-5-35-4',
-        text: 'Type assertion автоматически сериализует типы в JSON',
-        isCorrect: false,
+        id: 'a-5-35-1',
+        text: 'Это не проверка в runtime: можно “заставить” компилятор поверить, но приложение упадёт, если данные не соответствуют типу',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -1139,23 +1171,23 @@ export const part5Questions: QuizQuestion[] = [
       'Какое утверждение точнее всего про распределительные conditional types?',
     answers: [
       {
+        id: 'a-5-36-2',
+        text: 'Conditional types никогда не распределяются по union: результат вычисляется “целиком”, поэтому обёртка `[T]` не влияет на поведение',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-36-3',
+        text: 'Распределение происходит только для interface: у type alias нет вычислений, поэтому conditional types в них не “распадаются”',
+        isCorrect: false,
+      },
+      {
         id: 'a-5-36-1',
         text: 'Conditional type распределяется по union, если проверяемый тип стоит “голым” (T extends U ? ... : ...)',
         isCorrect: true,
       },
       {
-        id: 'a-5-36-2',
-        text: 'Conditional types часто “распределяются” по union, что может неожиданно раздувать результат; иногда это нужно отключать через обёртку в кортеж ([T] extends [U])',
-        isCorrect: false,
-      },
-      {
-        id: 'a-5-36-3',
-        text: 'Распределение происходит только для interface, но не для type',
-        isCorrect: false,
-      },
-      {
         id: 'a-5-36-4',
-        text: 'Распределение включается только если использовать infer',
+        text: 'Распределение включается только если использовать infer: без infer conditional type всегда даёт один итоговый тип',
         isCorrect: false,
       },
     ],
@@ -1172,23 +1204,23 @@ export const part5Questions: QuizQuestion[] = [
       'Зачем в TypeScript иногда используют “брендированные типы” (branded/nominal types)?',
     answers: [
       {
+        id: 'a-5-37-3',
+        text: 'Чтобы автоматически валидировать данные в runtime без библиотек: бренд гарантирует корректность значений на исполнении',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-37-4',
+        text: 'Чтобы включить рефлексию типов в JavaScript: бренд “передаёт” типовую информацию в runtime и её можно прочитать',
+        isCorrect: false,
+      },
+      {
         id: 'a-5-37-1',
         text: 'Чтобы сделать типы несовместимыми при одинаковой структуре (например, UserId и PostId оба string), предотвращая логические ошибки',
         isCorrect: true,
       },
       {
         id: 'a-5-37-2',
-        text: 'Чтобы ускорить компиляцию за счёт уменьшения union',
-        isCorrect: false,
-      },
-      {
-        id: 'a-5-37-3',
-        text: 'Чтобы автоматически валидировать данные в runtime без библиотек',
-        isCorrect: false,
-      },
-      {
-        id: 'a-5-37-4',
-        text: 'Чтобы включить поддержку рефлексии типов в JavaScript',
+        text: 'Чтобы ускорить компиляцию: брендирование уменьшает union и делает вывод типов “быстрее” для компилятора',
         isCorrect: false,
       },
     ],
@@ -1209,11 +1241,6 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: true,
       },
       {
-        id: 'a-5-38-2',
-        text: 'Runtime-валидатор, который можно вызывать как функцию',
-        isCorrect: false,
-      },
-      {
         id: 'a-5-38-3',
         text: 'JSON-schema для Swagger/OpenAPI',
         isCorrect: false,
@@ -1221,6 +1248,11 @@ export const part5Questions: QuizQuestion[] = [
       {
         id: 'a-5-38-4',
         text: 'Promise с типом данных, который вернёт API',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-38-2',
+        text: 'Runtime-валидатор, который можно вызывать как функцию',
         isCorrect: false,
       },
     ],
@@ -1237,13 +1269,8 @@ export const part5Questions: QuizQuestion[] = [
       'В чём практическая разница между Schema.parse и Schema.safeParse в Zod?',
     answers: [
       {
-        id: 'a-5-39-1',
-        text: 'parse бросает исключение при ошибке, safeParse возвращает объект результата { success, data/error } без throw',
-        isCorrect: true,
-      },
-      {
-        id: 'a-5-39-2',
-        text: 'safeParse валидирует только примитивы, а parse — любые схемы',
+        id: 'a-5-39-4',
+        text: 'parse не возвращает данные, он только проверяет',
         isCorrect: false,
       },
       {
@@ -1252,8 +1279,13 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-5-39-4',
-        text: 'parse не возвращает данные, он только проверяет',
+        id: 'a-5-39-1',
+        text: 'parse бросает исключение при ошибке, safeParse возвращает объект результата { success, data/error } без throw',
+        isCorrect: true,
+      },
+      {
+        id: 'a-5-39-2',
+        text: 'safeParse валидирует только примитивы, а parse — любые схемы',
         isCorrect: false,
       },
     ],
@@ -1269,23 +1301,23 @@ export const part5Questions: QuizQuestion[] = [
     question: 'Когда в Zod стоит использовать preprocess вместо transform?',
     answers: [
       {
+        id: 'a-5-40-4',
+        text: 'preprocess применяют ПОСЛЕ успешной валидации, а transform — ДО неё, чтобы “подготовить” вход',
+        isCorrect: false,
+      },
+      {
         id: 'a-5-40-1',
         text: 'Когда нужно привести входные данные к форме, подходящей для последующей валидации (например, пустую строку → null)',
         isCorrect: true,
       },
       {
-        id: 'a-5-40-2',
-        text: 'Когда нужно ускорить компиляцию TypeScript',
-        isCorrect: false,
-      },
-      {
         id: 'a-5-40-3',
-        text: 'Когда нужно изменить тип без изменения данных',
+        text: 'Когда нужно “поменять тип”, не трогая данные: preprocess/transform якобы влияют только на типы, а не на значения',
         isCorrect: false,
       },
       {
-        id: 'a-5-40-4',
-        text: 'preprocess и transform — оба runtime. preprocess полезен именно ДО основной валидации (нормализовать вход), а transform — ПОСЛЕ успешной валидации (преобразовать результат), и это важно для корректных ошибок',
+        id: 'a-5-40-2',
+        text: 'Когда нужно ускорить компиляцию TypeScript: preprocess якобы выполняется на этапе type-check и не добавляет runtime-кода',
         isCorrect: false,
       },
     ],
@@ -1302,14 +1334,9 @@ export const part5Questions: QuizQuestion[] = [
       'Какие преимущества даёт discriminatedUnion в Zod по сравнению с обычным union?',
     answers: [
       {
-        id: 'a-5-41-1',
-        text: 'Более предсказуемая и быстрая валидация за счёт “дискриминатора” (tag field)',
-        isCorrect: true,
-      },
-      {
-        id: 'a-5-41-2',
-        text: 'Более понятные ошибки валидации, потому что выбор ветки делается по tag',
-        isCorrect: true,
+        id: 'a-5-41-4',
+        text: 'Гарантированная защита от XSS на фронтенде',
+        isCorrect: false,
       },
       {
         id: 'a-5-41-3',
@@ -1317,9 +1344,14 @@ export const part5Questions: QuizQuestion[] = [
         isCorrect: false,
       },
       {
-        id: 'a-5-41-4',
-        text: 'Гарантированная защита от XSS на фронтенде',
-        isCorrect: false,
+        id: 'a-5-41-2',
+        text: 'Более понятные ошибки валидации, потому что выбор ветки делается по tag',
+        isCorrect: true,
+      },
+      {
+        id: 'a-5-41-1',
+        text: 'Более предсказуемая и быстрая валидация за счёт “дискриминатора” (tag field)',
+        isCorrect: true,
       },
     ],
     explanation:
@@ -1334,23 +1366,23 @@ export const part5Questions: QuizQuestion[] = [
     question: 'Зачем в Zod нужен superRefine, если уже есть refine?',
     answers: [
       {
+        id: 'a-5-42-4',
+        text: 'superRefine автоматически исправляет данные, если они невалидны, поэтому его используют вместо любых трансформаций',
+        isCorrect: false,
+      },
+      {
         id: 'a-5-42-1',
         text: 'superRefine позволяет добавлять несколько ошибок и “прикреплять” их к конкретным путям (полям), делая валидацию более точной',
         isCorrect: true,
       },
       {
         id: 'a-5-42-2',
-        text: 'superRefine включает strictNullChecks',
+        text: 'superRefine “включает” strictNullChecks в TypeScript и делает схему более типобезопасной на уровне компиляции',
         isCorrect: false,
       },
       {
         id: 'a-5-42-3',
-        text: 'superRefine нужен только для массивов, а refine — только для объектов',
-        isCorrect: false,
-      },
-      {
-        id: 'a-5-42-4',
-        text: 'superRefine автоматически исправляет данные, если они невалидны',
+        text: 'superRefine нужен только для массивов/коллекций, а refine применим исключительно к объектам и формам',
         isCorrect: false,
       },
     ],
@@ -1366,14 +1398,14 @@ export const part5Questions: QuizQuestion[] = [
     question: 'Какой сценарий лучше всего оправдывает использование z.lazy?',
     answers: [
       {
-        id: 'a-5-43-1',
-        text: 'Рекурсивные структуры (деревья), где схема ссылается сама на себя',
-        isCorrect: true,
-      },
-      {
         id: 'a-5-43-2',
         text: 'Когда нужно сделать валидацию асинхронной: z.lazy включает async‑режим и даёт await внутри схемы',
         isCorrect: false,
+      },
+      {
+        id: 'a-5-43-1',
+        text: 'Рекурсивные структуры (деревья), где схема ссылается сама на себя',
+        isCorrect: true,
       },
       {
         id: 'a-5-43-3',
@@ -1398,23 +1430,23 @@ export const part5Questions: QuizQuestion[] = [
     question: 'Что даёт .brand() в Zod и какая проблема это решает?',
     answers: [
       {
+        id: 'a-5-44-2',
+        text: 'Шифрует значения на лету, чтобы их нельзя было украсть из памяти или прочитать в DevTools даже при XSS',
+        isCorrect: false,
+      },
+      {
+        id: 'a-5-44-3',
+        text: 'Ускоряет запросы к API за счёт кеширования валидации: бренд сохраняется в runtime и схема “не проверяет повторно”',
+        isCorrect: false,
+      },
+      {
         id: 'a-5-44-1',
         text: 'Создаёт брендированный тип на уровне TypeScript (nominal typing), чтобы различать логически разные значения одинаковой структуры (например, разные id)',
         isCorrect: true,
       },
       {
-        id: 'a-5-44-2',
-        text: 'Шифрует значения, чтобы их нельзя было украсть из памяти',
-        isCorrect: false,
-      },
-      {
-        id: 'a-5-44-3',
-        text: 'Ускоряет запросы к API за счёт кеширования',
-        isCorrect: false,
-      },
-      {
         id: 'a-5-44-4',
-        text: 'Добавляет поле brand в runtime объект',
+        text: 'Добавляет поле `brand` в runtime объект, и по нему можно отличать `UserId` от `PostId` без type guards',
         isCorrect: false,
       },
     ],
