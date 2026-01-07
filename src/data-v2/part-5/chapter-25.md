@@ -18,11 +18,11 @@
 **Мутация vs Иммутабельность:**
 
 ```javascript
-// ❌ Мутация
+//  Мутация
 const arr = [1, 2, 3]
 arr.push(4) // Изменяет исходный массив
 
-// ✅ Иммутабельно
+//  Иммутабельно
 const arr = [1, 2, 3]
 const newArr = [...arr, 4] // Создаёт новый массив
 ```
@@ -296,7 +296,7 @@ const letters2 = words.map((word) => word.split(' ')).flat()
 
 ### sort
 
-Сортировка (⚠️ **мутирует массив!**):
+Сортировка ( **мутирует массив!**):
 
 ```javascript
 const numbers = [3, 1, 4, 1, 5]
@@ -310,7 +310,7 @@ const users = [
 users.sort((a, b) => a.age - b.age) // по возрасту
 ```
 
-⚠️ **Важно:** `sort` **мутирует** исходный массив. Если нужно сохранить исходный, создайте копию:
+ **Важно:** `sort` **мутирует** исходный массив. Если нужно сохранить исходный, создайте копию:
 
 ```javascript
 const sorted = [...numbers].sort((a, b) => a - b)
@@ -323,10 +323,10 @@ const sorted = [...numbers].sort((a, b) => a - b)
 ### Добавление элемента
 
 ```javascript
-// ❌ Мутация
+//  Мутация
 arr.push(item)
 
-// ✅ Иммутабельно
+//  Иммутабельно
 const newArr = [...arr, item]
 // или
 const newArr = arr.concat(item)
@@ -335,10 +335,10 @@ const newArr = arr.concat(item)
 ### Удаление элемента
 
 ```javascript
-// ❌ Мутация
+//  Мутация
 arr.splice(index, 1)
 
-// ✅ Иммутабельно
+//  Иммутабельно
 const newArr = arr.filter((_, i) => i !== index)
 // или
 const newArr = [...arr.slice(0, index), ...arr.slice(index + 1)]
@@ -347,20 +347,20 @@ const newArr = [...arr.slice(0, index), ...arr.slice(index + 1)]
 ### Изменение элемента
 
 ```javascript
-// ❌ Мутация
+//  Мутация
 arr[index] = newValue
 
-// ✅ Иммутабельно
+//  Иммутабельно
 const newArr = arr.map((item, i) => i === index ? newValue : item)
 ```
 
 ### Обновление объекта в массиве
 
 ```javascript
-// ❌ Мутация
+//  Мутация
 users[index].name = 'New Name'
 
-// ✅ Иммутабельно
+//  Иммутабельно
 const newUsers = users.map((user, i) =>
   i === index ? { ...user, name: 'New Name' } : user
 )
@@ -373,40 +373,40 @@ const newUsers = users.map((user, i) =>
 ### Добавление свойства
 
 ```javascript
-// ❌ Мутация
+//  Мутация
 obj.newProp = 'value'
 
-// ✅ Иммутабельно
+//  Иммутабельно
 const newObj = { ...obj, newProp: 'value' }
 ```
 
 ### Изменение свойства
 
 ```javascript
-// ❌ Мутация
+//  Мутация
 obj.name = 'New Name'
 
-// ✅ Иммутабельно
+//  Иммутабельно
 const newObj = { ...obj, name: 'New Name' }
 ```
 
 ### Удаление свойства
 
 ```javascript
-// ❌ Мутация
+//  Мутация
 delete obj.prop
 
-// ✅ Иммутабельно
+//  Иммутабельно
 const { prop, ...newObj } = obj
 ```
 
 ### Вложенные объекты
 
 ```javascript
-// ❌ Мутация
+//  Мутация
 user.profile.email = 'new@email.com'
 
-// ✅ Иммутабельно
+//  Иммутабельно
 const newUser = {
   ...user,
   profile: {
@@ -469,15 +469,3 @@ const newUser = {
 ### 7. В чём разница между some и every?
 
 `some` — проверяет, есть ли хотя бы один элемент. `every` — проверяет, все ли элементы соответствуют условию.
-
----
-
-## Key Takeaways
-
-- Методы массивов создают новые массивы, не мутируя исходные
-- `map` для трансформации, `filter` для фильтрации, `reduce` для агрегации
-- Иммутабельность делает код предсказуемым и безопасным
-- Spread оператор (`...`) — основной инструмент для иммутабельных операций
-- Комбинирование методов создаёт мощные цепочки трансформаций
-- Понимание иммутабельности критично для работы с React
-

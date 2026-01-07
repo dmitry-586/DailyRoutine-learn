@@ -28,11 +28,11 @@ const [count, setCount] = useState(0)
 Когда новое значение зависит от предыдущего, нужно использовать **функциональное обновление**:
 
 ```jsx
-// ❌ Проблема: count может быть устаревшим
+// Проблема: count может быть устаревшим
 setCount(count + 1)
 setCount(count + 1) // не сработает как ожидается
 
-// ✅ Правильно: гарантирует актуальное значение
+// Правильно: гарантирует актуальное значение
 setCount((prev) => prev + 1)
 setCount((prev) => prev + 1) // теперь работает корректно
 ```
@@ -48,10 +48,10 @@ setCount((prev) => prev + 1) // теперь работает корректно
 Если начальное значение дорого вычислять, можно передать функцию:
 
 ```jsx
-// ❌ Вычисляется при каждом рендере (даже если не используется)
+// Плохо: вычисляется при каждом рендере (даже если не используется)
 const [data, setData] = useState(expensiveCalculation())
 
-// ✅ Вычисляется только один раз при первом рендере
+// Хорошо: вычисляется только один раз при первом рендере
 const [data, setData] = useState(() => expensiveCalculation())
 ```
 
@@ -68,11 +68,11 @@ const [data, setData] = useState(() => expensiveCalculation())
 ```jsx
 const [user, setUser] = useState({ name: 'John', age: 30 })
 
-// ❌ Мутация — React не заметит изменение
+// Плохо: мутация — React не заметит изменение
 user.age = 31
 setUser(user)
 
-// ✅ Создание нового объекта
+// Хорошо: создание нового объекта
 setUser({ ...user, age: 31 })
 
 // Или для вложенных объектов
@@ -232,18 +232,179 @@ function Counter() {
 }
 ```
 
+### Ленивая инициализация
+
+Как и в `useState`, можно передать функцию для инициализации начального состояния:
+
+```jsx
+function init(initialCount) {
+  return { count: initialCount }
+}
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'increment':
+      return { count: state.count + 1 }
+    case 'reset':
+      return init(action.payload)
+    default:
+      return state
+  }
+}
+
+function Counter({ initialCount = 0 }) {
+  // Третий параметр — функция инициализации
+  const [state, dispatch] = useReducer(reducer, initialCount, init)
+
+  return (
+    <div>
+      <p>Count: {state.count}</p>
+      <button onClick={() => dispatch({ type: 'increment' })}>+</button>
+      <button
+        onClick={() => dispatch({ type: 'reset', payload: initialCount })}
+      >
+        Reset
+      </button>
+    </div>
+  )
+}
+```
+
+**Когда использовать:** когда начальное состояние требует вычислений или чтения из localStorage.
+
+### Типизация с TypeScript
+
+Для типобезопасности определите типы для state и action:
+
+```tsx
+interface CounterState {
+  count: number
+}
+
+type CounterAction =
+  | { type: 'increment' }
+  | { type: 'decrement' }
+  | { type: 'reset' }
+  | { type: 'set'; payload: number }
+
+function reducer(state: CounterState, action: CounterAction): CounterState {
+  switch (action.type) {
+    case 'increment':
+      return { count: state.count + 1 }
+    case 'decrement':
+      return { count: state.count - 1 }
+    case 'reset':
+      return { count: 0 }
+    case 'set':
+      return { count: action.payload }
+    default:
+      return state
+  }
+}
+
+function Counter() {
+  const [state, dispatch] = useReducer(reducer, { count: 0 })
+  // TypeScript знает типы state и action
+}
+```
+
+### Action Creators
+
+Для удобства создавайте функции-создатели действий:
+
+```tsx
+const increment = () => ({ type: 'increment' as const })
+const decrement = () => ({ type: 'decrement' as const })
+const setCount = (payload: number) => ({ type: 'set' as const, payload })
+
+function Counter() {
+  const [state, dispatch] = useReducer(reducer, { count: 0 })
+
+  return (
+    <div>
+      <button onClick={() => dispatch(increment())}>+</button>
+      <button onClick={() => dispatch(decrement())}>-</button>
+      <button onClick={() => dispatch(setCount(100))}>Set to 100</button>
+    </div>
+  )
+}
+```
+
+**Преимущества:** централизованное управление действиями, меньше опечаток, легче рефакторить.
+
+### Интеграция с Context API
+
+`useReducer` часто используется вместе с Context для глобального состояния:
+
+```tsx
+interface AppState {
+  user: User | null
+  theme: 'light' | 'dark'
+}
+
+type AppAction =
+  | { type: 'SET_USER'; payload: User }
+  | { type: 'SET_THEME'; payload: 'light' | 'dark' }
+
+function appReducer(state: AppState, action: AppAction): AppState {
+  switch (action.type) {
+    case 'SET_USER':
+      return { ...state, user: action.payload }
+    case 'SET_THEME':
+      return { ...state, theme: action.payload }
+    default:
+      return state
+  }
+}
+
+const AppContext = createContext<{
+  state: AppState
+  dispatch: React.Dispatch<AppAction>
+} | null>(null)
+
+function AppProvider({ children }: { children: React.ReactNode }) {
+  const [state, dispatch] = useReducer(appReducer, {
+    user: null,
+    theme: 'light',
+  })
+
+  return (
+    <AppContext.Provider value={{ state, dispatch }}>
+      {children}
+    </AppContext.Provider>
+  )
+}
+
+function useApp() {
+  const context = useContext(AppContext)
+  if (!context) throw new Error('useApp must be used within AppProvider')
+  return context
+}
+```
+
+**Когда использовать:** для простого глобального состояния без необходимости в Redux.
+
 ---
 
 ## 45.3. Сравнение useState и useReducer
 
-| Критерий         | useState                    | useReducer                  |
-| ---------------- | --------------------------- | --------------------------- |
-| Простота         | Проще                       | Сложнее                     |
-| Логика           | В компоненте                | В reducer                   |
-| Тестируемость    | Сложнее                     | Легче (чистая функция)      |
-| Сложное состояние | Неудобно                    | Удобно                      |
-| Множество действий | Много setState            | Один dispatch               |
-| Предсказуемость  | Меньше                      | Больше                      |
+**useState:**
+
+- Простота: проще
+- Логика: в компоненте
+- Тестируемость: сложнее
+- Сложное состояние: неудобно
+- Множество действий: много setState
+- Предсказуемость: меньше
+
+**useReducer:**
+
+- Простота: сложнее
+- Логика: в reducer
+- Тестируемость: легче (чистая функция)
+- Сложное состояние: удобно
+- Множество действий: один dispatch
+- Предсказуемость: больше
 
 **Правило выбора:**
 
@@ -257,23 +418,23 @@ function Counter() {
 ### 1. Мутация состояния
 
 ```jsx
-// ❌ Плохо
+// Плохо
 const [items, setItems] = useState([1, 2, 3])
 items.push(4)
 setItems(items)
 
-// ✅ Хорошо
+// Хорошо
 setItems([...items, 4])
 ```
 
 ### 2. Забытое функциональное обновление
 
 ```jsx
-// ❌ Проблема при батчинге
+// Проблема при батчинге
 setCount(count + 1)
 setCount(count + 1)
 
-// ✅ Правильно
+// Правильно
 setCount((prev) => prev + 1)
 setCount((prev) => prev + 1)
 ```
@@ -281,10 +442,10 @@ setCount((prev) => prev + 1)
 ### 3. Неправильная инициализация
 
 ```jsx
-// ❌ Вычисляется при каждом рендере
+// Плохо: вычисляется при каждом рендере
 const [data, setData] = useState(expensiveCalculation())
 
-// ✅ Вычисляется один раз
+// Хорошо: вычисляется один раз
 const [data, setData] = useState(() => expensiveCalculation())
 ```
 
@@ -311,15 +472,3 @@ React сравнивает ссылки, а не содержимое. Если 
 ### 5. Когда использовать useReducer вместо useState?
 
 Для сложного состояния с множеством переходов, когда логику обновления нужно вынести из компонента.
-
----
-
-## Key Takeaways
-
-- `useState` для простого состояния, `useReducer` для сложного
-- Функциональное обновление гарантирует актуальное значение
-- Ленивая инициализация для дорогих вычислений
-- Всегда создавай новые объекты/массивы, не мутируй
-- `useReducer` централизует логику и легче тестируется
-- Выбор между `useState` и `useReducer` зависит от сложности состояния
-

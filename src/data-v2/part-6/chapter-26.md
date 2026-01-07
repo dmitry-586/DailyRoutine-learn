@@ -265,13 +265,13 @@ function processChunk(data, index) {
 ### UI блокируется при долгих операциях
 
 ```javascript
-// ❌ Плохо
+//  Плохо
 function processLargeData(data) {
   // Блокирует UI
   return data.map(heavyTransform)
 }
 
-// ✅ Хорошо
+//  Хорошо
 async function processLargeData(data) {
   const chunks = chunkArray(data, 1000)
   
@@ -330,15 +330,3 @@ API для явного добавления задачи в очередь micr
 ### 6. В чём разница между браузером и Node.js в Event Loop?
 
 В Node.js есть несколько фаз Event Loop, `process.nextTick` выполняется раньше microtasks промисов. В браузере проще: microtasks → macrotasks.
-
----
-
-## Key Takeaways
-
-- JavaScript однопоточный, но неблокирующий благодаря Event Loop
-- Порядок выполнения: синхронный код → все microtasks → одна macrotask → повтор
-- Microtasks имеют приоритет над macrotasks
-- Блокирующий код задерживает обработку асинхронных операций
-- Понимание Event Loop критично для отладки асинхронного кода
-- queueMicrotask позволяет явно планировать microtasks
-

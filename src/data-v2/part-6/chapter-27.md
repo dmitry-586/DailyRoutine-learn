@@ -124,7 +124,7 @@ fetch(url)
 ### Забытый return
 
 ```javascript
-// ❌ Плохо
+//  Плохо
 fetch(url)
   .then((res) => {
     res.json() // Промис создан, но не возвращён
@@ -133,7 +133,7 @@ fetch(url)
     // data === undefined
   })
 
-// ✅ Хорошо
+//  Хорошо
 fetch(url)
   .then((res) => {
     return res.json() // Возвращаем промис
@@ -148,20 +148,20 @@ fetch(url)
 ### Смешивание then и async/await
 
 ```javascript
-// ❌ Плохо — смешивание стилей
+//  Плохо — смешивание стилей
 async function load() {
   const res = await fetch(url)
   return res.json().then(data => processData(data))
 }
 
-// ✅ Хорошо — последовательный await
+//  Хорошо — последовательный await
 async function load() {
   const res = await fetch(url)
   const data = await res.json()
   return processData(data)
 }
 
-// ✅ Хорошо — полностью then
+//  Хорошо — полностью then
 function load() {
   return fetch(url)
     .then(res => res.json())
@@ -262,7 +262,7 @@ load()
 ### Последовательное выполнение (плохо для независимых операций)
 
 ```javascript
-// ❌ Плохо — запросы выполняются последовательно
+//  Плохо — запросы выполняются последовательно
 const a = await fetch(url1)
 const b = await fetch(url2)
 // Общее время = время(url1) + время(url2)
@@ -271,7 +271,7 @@ const b = await fetch(url2)
 ### Параллельное выполнение
 
 ```javascript
-// ✅ Хорошо — запросы выполняются параллельно
+//  Хорошо — запросы выполняются параллельно
 const [a, b] = await Promise.all([
   fetch(url1),
   fetch(url2)
@@ -421,16 +421,3 @@ async function retry(fn, maxAttempts = 3) {
 ### 7. Что такое unhandledrejection?
 
 Событие, которое срабатывает, когда промис отклонён, но ошибка не обработана. Последний рубеж для обработки ошибок.
-
----
-
-## Key Takeaways
-
-- Promise представляет результат асинхронной операции
-- Состояния: pending → fulfilled/rejected (один раз)
-- then/catch/finally позволяют обрабатывать результаты и ошибки
-- async/await — синтаксический сахар над промисами
-- Всегда возвращайте значения из then, если нужен результат дальше
-- Используйте try/catch для обработки ошибок в async функциях
-- Параллельное выполнение ускоряет независимые операции
-

@@ -39,7 +39,7 @@ observer.observe(element)
 const observer = new IntersectionObserver(callback, {
   root: null, // viewport (или конкретный элемент)
   rootMargin: '0px', // Отступы от root
-  threshold: 0.5 // Порог видимости (0.0 - 1.0)
+  threshold: 0.5, // Порог видимости (0.0 - 1.0)
 })
 ```
 
@@ -92,17 +92,20 @@ observer.observe(sentinel)
 ### Анимации при появлении
 
 ```javascript
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach((entry) => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('animate-in')
-    }
-  })
-}, {
-  threshold: 0.1
-})
+const observer = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('animate-in')
+      }
+    })
+  },
+  {
+    threshold: 0.1,
+  },
+)
 
-document.querySelectorAll('.animate-on-scroll').forEach(el => {
+document.querySelectorAll('.animate-on-scroll').forEach((el) => {
   observer.observe(el)
 })
 ```
@@ -110,19 +113,22 @@ document.querySelectorAll('.animate-on-scroll').forEach(el => {
 ### Отслеживание видимости для аналитики
 
 ```javascript
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach((entry) => {
-    if (entry.isIntersecting) {
-      // Отправить событие в аналитику
-      analytics.track('view', {
-        element: entry.target.id,
-        time: entry.time
-      })
-    }
-  })
-}, {
-  threshold: 0.5 // 50% видимости
-})
+const observer = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        // Отправить событие в аналитику
+        analytics.track('view', {
+          element: entry.target.id,
+          time: entry.time,
+        })
+      }
+    })
+  },
+  {
+    threshold: 0.5, // 50% видимости
+  },
+)
 ```
 
 ### unobserve и disconnect
@@ -155,12 +161,12 @@ const observer = new MutationObserver((mutations) => {
   mutations.forEach((mutation) => {
     console.log('Type:', mutation.type)
     console.log('Target:', mutation.target)
-    
+
     if (mutation.type === 'childList') {
       console.log('Added nodes:', mutation.addedNodes)
       console.log('Removed nodes:', mutation.removedNodes)
     }
-    
+
     if (mutation.type === 'attributes') {
       console.log('Attribute:', mutation.attributeName)
       console.log('Old value:', mutation.oldValue)
@@ -172,7 +178,7 @@ observer.observe(targetElement, {
   childList: true, // Изменения дочерних элементов
   attributes: true, // Изменения атрибутов
   subtree: true, // Включая поддерево
-  attributeOldValue: true // Сохранять старое значение атрибута
+  attributeOldValue: true, // Сохранять старое значение атрибута
 })
 ```
 
@@ -186,7 +192,7 @@ observer.observe(element, {
   subtree: true, // Наблюдать за всем поддеревом
   attributeOldValue: true, // Сохранять старое значение атрибута
   characterDataOldValue: true, // Сохранять старое значение текста
-  attributeFilter: ['class', 'id'] // Только указанные атрибуты
+  attributeFilter: ['class', 'id'], // Только указанные атрибуты
 })
 ```
 
@@ -204,7 +210,7 @@ const observer = new MutationObserver((mutations) => {
 
 observer.observe(element, {
   attributes: true,
-  attributeFilter: ['class']
+  attributeFilter: ['class'],
 })
 ```
 
@@ -224,7 +230,7 @@ const observer = new MutationObserver((mutations) => {
 
 observer.observe(container, {
   childList: true,
-  subtree: true
+  subtree: true,
 })
 ```
 
@@ -268,7 +274,7 @@ const widget = document.getElementById('widget')
 
 const observer = new ResizeObserver((entries) => {
   const { width } = entries[0].contentRect
-  
+
   if (width < 600) {
     widget.classList.add('mobile')
     widget.classList.remove('desktop')
@@ -288,15 +294,15 @@ const columns = document.querySelectorAll('.column')
 
 const observer = new ResizeObserver((entries) => {
   const maxHeight = Math.max(
-    ...Array.from(columns).map(col => col.offsetHeight)
+    ...Array.from(columns).map((col) => col.offsetHeight),
   )
-  
-  columns.forEach(col => {
+
+  columns.forEach((col) => {
     col.style.height = `${maxHeight}px`
   })
 })
 
-columns.forEach(col => observer.observe(col))
+columns.forEach((col) => observer.observe(col))
 ```
 
 ### unobserve и disconnect
@@ -313,11 +319,20 @@ observer.disconnect()
 
 ## 32.4. Сравнение Observer APIs
 
-| API | Назначение | Когда использовать |
-|-----|-----------|-------------------|
-| `IntersectionObserver` | Видимость элементов | Lazy loading, infinite scroll, аналитика |
-| `MutationObserver` | Изменения DOM | Отладка, реактивность, тестирование |
-| `ResizeObserver` | Изменения размеров | Адаптивные виджеты, синхронизация |
+**`IntersectionObserver`:**
+
+- Назначение: видимость элементов
+- Когда использовать: lazy loading, infinite scroll, аналитика
+
+**`MutationObserver`:**
+
+- Назначение: изменения DOM
+- Когда использовать: отладка, реактивность, тестирование
+
+**`ResizeObserver`:**
+
+- Назначение: изменения размеров
+- Когда использовать: адаптивные виджеты, синхронизация
 
 ---
 
@@ -358,11 +373,11 @@ function Component() {
   useEffect(() => {
     const observer = new IntersectionObserver(/* ... */)
     const element = document.getElementById('target')
-    
+
     if (element) {
       observer.observe(element)
     }
-    
+
     return () => {
       observer.disconnect()
     }
@@ -412,15 +427,4 @@ API для отслеживания изменений в DOM. Позволяе�
 ### 6. В чём преимущество Observer APIs перед polling?
 
 Нет постоянных проверок, браузер оптимизирует выполнение, меньше нагрузка на CPU, более точные события.
-
----
-
-## Key Takeaways
-
-- IntersectionObserver для отслеживания видимости элементов
-- MutationObserver для отслеживания изменений DOM
-- ResizeObserver для отслеживания изменений размеров
-- Observer APIs более производительны, чем polling
-- Всегда вызывайте disconnect/unobserve для cleanup
-- Понимание Observer APIs критично для оптимизации производительности
 

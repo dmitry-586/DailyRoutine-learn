@@ -36,7 +36,7 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
   return (
     <div
       ref={containerRef}
-      className='custom-scrollbar prose h-full max-w-none overflow-y-auto px-4 pt-6 pb-16 sm:px-6 lg:px-8'
+      className='custom-scrollbar prose h-full max-w-none overflow-y-auto px-4 pt-5 pb-16 sm:px-6 lg:px-8'
     >
       <MemoizedReactMarkdown content={processedContent} />
     </div>

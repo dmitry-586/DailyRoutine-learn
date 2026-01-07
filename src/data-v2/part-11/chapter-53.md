@@ -6,396 +6,149 @@
 
 ## 53.1. useMutation: изменение данных
 
-### Базовое использование
+`useMutation` — хук для операций, изменяющих данные на сервере (POST, PUT, PATCH, DELETE).
 
-```typescript
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+**Ключевые отличия от useQuery:**
 
-interface CreateUserDTO {
-  name: string
-  email: string
-}
+- Не выполняется автоматически — нужно вызвать `mutate()`
+- Не кешируется — каждый вызов отправляет запрос
+- Имеет колбэки `onSuccess`, `onError`, `onSettled` для обработки результата
 
-export const useCreateUser = () => {
-  const queryClient = useQueryClient()
+**Основные свойства:**
 
-  return useMutation({
-    mutationFn: async (userData: CreateUserDTO) => {
-      const { data } = await apiClient.post<User>('/users', userData)
-      return data
-    },
-    onSuccess: () => {
-      // Инвалидация списка пользователей
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.users.lists(),
-      })
-    },
-  })
-}
+- **mutate(data)** — запускает мутацию (fire-and-forget)
+- **mutateAsync(data)** — возвращает Promise (для await)
+- **isPending** — мутация выполняется
+- **isSuccess/isError** — результат мутации
+- **reset()** — сброс состояния
 
-// Использование
-function CreateUserForm() {
-  const createUser = useCreateUser()
-
-  const onSubmit = (data: CreateUserDTO) => {
-    createUser.mutate(data)
-  }
-
-  return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      {/* ... */}
-      <button disabled={createUser.isPending}>
-        {createUser.isPending ? 'Создание...' : 'Создать'}
-      </button>
-      {createUser.isError && <div>{createUser.error.message}</div>}
-    </form>
-  )
-}
-```
-
-### Состояния мутации
-
-```typescript
-const {
-  mutate,
-  mutateAsync,
-  data,
-  error,
-  isPending,
-  isSuccess,
-  isError,
-  reset,
-} = useMutation({
-  mutationFn: createUser,
-})
-```
+**После успешной мутации** обычно нужно инвалидировать связанные запросы через `queryClient.invalidateQueries()`, чтобы UI обновился.
 
 ---
 
 ## 53.2. Invalidation (инвалидация)
 
-Инвалидация помечает данные как устаревшие и вызывает их обновление.
+Инвалидация помечает данные как устаревшие и вызывает их автоматическое обновление.
 
-### Точечная инвалидация
+**Зачем нужна инвалидация?**
 
-```typescript
-const queryClient = useQueryClient()
+После мутации (создание, обновление, удаление) кешированные данные устарели. Инвалидация сообщает TanStack Query: «эти данные нужно обновить».
 
-// ❌ Плохо: инвалидация всех пользователей
-queryClient.invalidateQueries({ queryKey: ['users'] })
+**Стратегии инвалидации:**
 
-// ✅ Хорошо: только списки
-queryClient.invalidateQueries({
-  queryKey: queryKeys.users.lists(),
-})
+1. **Широкая** — `invalidateQueries({ queryKey: ['users'] })` обновит ВСЕ запросы пользователей
+2. **Точечная** — `invalidateQueries({ queryKey: ['users', 'detail', 123] })` обновит только конкретного пользователя
+3. **С предикатом** — `predicate: (query) => ...` для сложной логики выбора
 
-// ✅ Хорошо: только конкретный пользователь
-queryClient.invalidateQueries({
-  queryKey: queryKeys.users.detail(123),
-})
+**Рекомендация:** используйте точечную инвалидацию. Это сохраняет неизмененные данные в кеше и сокращает количество запросов.
 
-// ✅ Хорошо: с предикатом
-queryClient.invalidateQueries({
-  predicate: (query) => {
-    const [entity, type] = query.queryKey
-    return entity === 'users' && type === 'list'
-  },
-})
-```
-
-### Инвалидация в мутациях
-
-```typescript
-export const useUpdateUser = () => {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async ({ id, ...data }: Partial<User> & { id: number }) => {
-      const response = await apiClient.patch<User>(`/users/${id}`, data)
-      return response.data
-    },
-    onSuccess: (data, variables) => {
-      // Инвалидация конкретного пользователя
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.users.detail(variables.id),
-      })
-      // Инвалидация списков
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.users.lists(),
-      })
-    },
-  })
-}
-```
+**Типичный паттерн:** в `onSuccess` мутации инвалидируйте связанные списки и конкретную сущность.
 
 ---
 
 ## 53.3. Optimistic Updates
 
-Обновляем UI до получения ответа от сервера для мгновенного UX.
+Optimistic updates — обновление UI **до** получения ответа от сервера. Пользователь видит мгновенный результат, а если запрос упадёт — откат к предыдущему состоянию.
 
-```typescript
-export const useUpdateUser = () => {
-  const queryClient = useQueryClient()
+**Когда использовать:**
 
-  return useMutation({
-    mutationFn: async ({ id, ...data }: Partial<User> & { id: number }) => {
-      const response = await apiClient.patch<User>(`/users/${id}`, data)
-      return response.data
-    },
+- Простые операции с высокой вероятностью успеха (лайк, переключение статуса)
+- Критично быстрый отклик UI
+- Можно легко откатить изменения
 
-    // Шаг 1: Отменяем активные запросы
-    onMutate: async (updatedUser) => {
-      await queryClient.cancelQueries({
-        queryKey: queryKeys.users.detail(updatedUser.id),
-      })
+**Алгоритм реализации:**
 
-      // Шаг 2: Сохраняем предыдущее состояние
-      const previousUser = queryClient.getQueryData<User>(
-        queryKeys.users.detail(updatedUser.id),
-      )
+1. **onMutate** — отменяем активные запросы, сохраняем предыдущее состояние, обновляем кеш оптимистично
+2. **onError** — откатываем к сохранённому состоянию при ошибке
+3. **onSettled** — инвалидируем данные для синхронизации с сервером
 
-      // Шаг 3: Оптимистичное обновление
-      if (previousUser) {
-        queryClient.setQueryData<User>(
-          queryKeys.users.detail(updatedUser.id),
-          {
-            ...previousUser,
-            ...updatedUser,
-          },
-        )
-      }
-
-      // Возвращаем контекст для rollback
-      return { previousUser }
-    },
-
-    // Шаг 4: Откат при ошибке
-    onError: (error, variables, context) => {
-      if (context?.previousUser) {
-        queryClient.setQueryData(
-          queryKeys.users.detail(variables.id),
-          context.previousUser,
-        )
-      }
-    },
-
-    // Шаг 5: Инвалидация после завершения
-    onSettled: (data, error, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.users.detail(variables.id),
-      })
-    },
-  })
-}
-```
+**Важно:** всегда сохраняйте предыдущее состояние для отката! Без этого при ошибке пользователь увидит невалидные данные.
 
 ---
 
 ## 53.4. Prefetch (предзагрузка)
 
-### prefetchQuery — перед навигацией
+Предзагрузка позволяет загрузить данные **до** того, как они понадобятся. Когда пользователь перейдёт на страницу — данные уже в кеше.
 
-```typescript
-function UserCard({ user }: { user: User }) {
-  const queryClient = useQueryClient()
+**Два подхода:**
 
-  const handleMouseEnter = () => {
-    // Предзагрузка данных при наведении
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.users.detail(user.id),
-      queryFn: () => fetchUser(user.id),
-    })
-  }
+### prefetchQuery — загрузка по событию
 
-  return (
-    <Link to={`/users/${user.id}`} onMouseEnter={handleMouseEnter}>
-      {user.name}
-    </Link>
-  )
-}
+Загружаем данные при наведении на ссылку. К моменту клика данные уже в кеше, страница открывается мгновенно.
 
-// Когда пользователь перейдёт, данные уже в кэше!
-```
+**Используйте когда:** пользователь скорее всего перейдёт по ссылке (hover на карточке).
 
-### initialData — из списка
+### initialData — использование существующих данных
 
-```typescript
-function UserProfile({ id }: { id: number }) {
-  const queryClient = useQueryClient()
+Берём данные из уже загруженного списка как начальные для детальной страницы. UI рендерится мгновенно с базовой информацией, пока загружаются полные данные.
 
-  const { data: user } = useQuery({
-    queryKey: queryKeys.users.detail(id),
-    queryFn: () => fetchUser(id),
-    initialData: () => {
-      // Берём данные из списка пользователей
-      const users = queryClient.getQueryData<User[]>(
-        queryKeys.users.lists(),
-      )
-      return users?.find((u) => u.id === id)
-    },
-  })
-
-  // Мгновенная отрисовка если данные были в списке
-}
-```
+**Используйте когда:** список уже содержит часть данных для детальной страницы (например, имя и аватар пользователя).
 
 ---
 
 ## 53.5. Infinite Query (бесконечные списки)
 
-Для пагинации и бесконечной прокрутки.
+`useInfiniteQuery` — специальный хук для пагинации и бесконечной прокрутки.
 
-```typescript
-export const useInfiniteUsers = () => {
-  return useInfiniteQuery({
-    queryKey: queryKeys.users.lists(),
-    queryFn: async ({ pageParam = 1 }) => {
-      const { data } = await apiClient.get<{
-        users: User[]
-        nextPage: number | null
-      }>('/users', {
-        params: { page: pageParam },
-      })
-      return data
-    },
-    getNextPageParam: (lastPage) => lastPage.nextPage,
-    initialPageParam: 1,
-  })
-}
+**Отличия от обычного useQuery:**
 
-// Использование
-function InfiniteUsersList() {
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useInfiniteUsers()
+- Хранит массив страниц `data.pages`, а не один результат
+- Имеет `fetchNextPage()` и `fetchPreviousPage()` для навигации
+- `getNextPageParam` определяет, есть ли следующая страница
 
-  return (
-    <div>
-      {data?.pages.map((page, i) => (
-        <div key={i}>
-          {page.users.map((user) => (
-            <UserCard key={user.id} {...user} />
-          ))}
-        </div>
-      ))}
+**Ключевые свойства:**
 
-      {hasNextPage && (
-        <button
-          onClick={() => fetchNextPage()}
-          disabled={isFetchingNextPage}
-        >
-          {isFetchingNextPage ? 'Loading...' : 'Load More'}
-        </button>
-      )}
-    </div>
-  )
-}
-```
+- **data.pages** — массив всех загруженных страниц
+- **hasNextPage** — есть ли ещё данные
+- **fetchNextPage()** — загрузить следующую страницу
+- **isFetchingNextPage** — загружается ли следующая страница
 
-### С Intersection Observer
+**Два варианта UX:**
 
-```typescript
-function InfiniteUsersList() {
-  const { ref, inView } = useInView()
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useInfiniteUsers()
+1. **Кнопка «Загрузить ещё»** — пользователь сам решает, когда загружать
+2. **Intersection Observer** — автоматическая загрузка при скролле к концу списка
 
-  useEffect(() => {
-    if (inView && hasNextPage) {
-      fetchNextPage()
-    }
-  }, [inView, hasNextPage, fetchNextPage])
-
-  return (
-    <div>
-      {data?.pages.map((page) =>
-        page.users.map((user) => <UserCard key={user.id} {...user} />),
-      )}
-
-      {hasNextPage && <div ref={ref}>Loading...</div>}
-    </div>
-  )
-}
-```
+**Рекомендация:** для бесконечного скролла используйте `react-intersection-observer` с `useInView()` хуком.
 
 ---
 
-## 53.6. Dependent Queries
+## 53.6. Dependent Queries (зависимые запросы)
 
-Запросы, которые зависят от результата другого запроса.
+Иногда запрос зависит от результата другого запроса. Например: сначала загрузить пользователя, потом его посты.
 
-```typescript
-function UserPosts({ userId }: { userId: number }) {
-  // Сначала загружаем пользователя
-  const { data: user } = useUser(userId)
+**Решение:** параметр `enabled`
 
-  // Затем его посты (только если user загружен)
-  const { data: posts } = useQuery({
-    queryKey: queryKeys.posts.list(`userId:${userId}`),
-    queryFn: () => fetchUserPosts(userId),
-    enabled: !!user, // Зависимый запрос
-  })
+Запрос выполняется только когда `enabled: true`. Это позволяет выстраивать цепочки зависимых запросов.
 
-  return (
-    <div>
-      <h1>{user?.name}</h1>
-      {posts?.map((post) => (
-        <PostCard key={post.id} {...post} />
-      ))}
-    </div>
-  )
-}
-```
+**Типичные случаи:**
+
+- Загрузка связанных данных (user → posts)
+- Запрос после получения ID из другого запроса
+- Условная загрузка (только для авторизованных)
+
+**Важно:** `enabled` может быть любым boolean выражением: `enabled: !!user`, `enabled: isAuthenticated`, `enabled: id > 0`.
 
 ---
 
 ## 53.7. Глобальная обработка ошибок
 
-```typescript
-// app/layout.tsx
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: (failureCount, error: any) => {
-        // Не повторяем при 404
-        if (error?.response?.status === 404) return false
+Настройте retry-логику на уровне `QueryClient`, чтобы не дублировать код в каждом запросе.
 
-        // Не повторяем при 401/403
-        if ([401, 403].includes(error?.response?.status)) {
-          window.location.href = '/login'
-          return false
-        }
+**Рекомендации по retry:**
 
-        // Повторяем 2 раза для сетевых ошибок и 5xx
-        return failureCount < 2
-      },
-      retryDelay: (attemptIndex) => {
-        // Exponential backoff: 1s, 2s, 4s
-        return Math.min(1000 * 2 ** attemptIndex, 30000)
-      },
-    },
-    mutations: {
-      onError: (error: any) => {
-        // Глобальная обработка ошибок мутаций
-        if (error?.response?.status === 401) {
-          window.location.href = '/login'
-        }
+- **404** — не повторять (ресурс не существует)
+- **401/403** — не повторять, редирект на логин
+- **5xx и сетевые ошибки** — повторить 2-3 раза с exponential backoff
 
-        // Показываем toast
-        toast.error(error?.response?.data?.message || 'Произошла ошибка')
-      },
-    },
-  },
-})
-```
+**Exponential backoff** — увеличение задержки между попытками: 1с → 2с → 4с. Это снижает нагрузку на сервер при проблемах.
+
+**Глобальный onError для мутаций:**
+
+- Показ toast с сообщением об ошибке
+- Логирование в систему аналитики
+- Редирект при 401
+
+**Преимущество:** вся логика обработки ошибок в одном месте, легко поддерживать и менять.
 
 ---
 
@@ -420,16 +173,3 @@ const queryClient = new QueryClient({
 ### 5. Как обрабатывать ошибки в мутациях?
 
 Через `onError` в мутации или глобально в `defaultOptions.mutations.onError`.
-
----
-
-## Key Takeaways
-
-- `useMutation` для изменения данных
-- Invalidation для обновления кеша после мутаций
-- Optimistic updates для мгновенного UX
-- Prefetch для предзагрузки данных
-- Infinite Query для пагинации
-- Dependent queries через `enabled`
-- Глобальная обработка ошибок в QueryClient
-

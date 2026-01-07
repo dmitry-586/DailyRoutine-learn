@@ -43,7 +43,7 @@ var x = 10
 console.log(global.x) // 10
 ```
 
-⚠️ Глобальные переменные — антипаттерн. Избегайте их.
+Глобальные переменные — антипаттерн. Избегайте их.
 
 ### Function scope
 
@@ -306,14 +306,14 @@ arr.push(4) // Ок — меняем массив
 **Пример:**
 
 ```javascript
-// ✅ Хорошо
+//  Хорошо
 const users = []
 const config = { apiUrl: '...' }
 
 let currentUser = null
 let isLoading = false
 
-// ❌ Плохо
+//  Плохо
 var users = []
 var config = {}
 ```
@@ -336,11 +336,11 @@ const x = 'global'
 
 function outer() {
   const x = 'outer'
-  
+
   function inner() {
     console.log(x) // 'outer' — берётся из внешней функции
   }
-  
+
   inner()
 }
 
@@ -361,19 +361,19 @@ const global = 'global'
 
 function level1() {
   const l1 = 'level1'
-  
+
   function level2() {
     const l2 = 'level2'
-    
+
     function level3() {
       console.log(global) // 'global'
       console.log(l1) // 'level1'
       console.log(l2) // 'level2'
     }
-    
+
     level3()
   }
-  
+
   level2()
 }
 
@@ -443,17 +443,3 @@ for (var i = 0; i < 3; i++) {
 ```
 
 Выведет 3, 3, 3, потому что var создаёт одну переменную на всю функцию, и все setTimeout'ы ссылаются на одно значение.
-
----
-
-## Key Takeaways
-
-- Scope определяет доступность переменных
-- var имеет function scope, let/const — block scope
-- Hoisting поднимает объявления, но не присваивания
-- TDZ предотвращает использование let/const до инициализации
-- const по умолчанию, let когда нужно менять значение
-- var устарел, не используйте в новом коде
-- JavaScript использует лексическую область видимости
-- Понимание scope критично для работы с замыканиями
-

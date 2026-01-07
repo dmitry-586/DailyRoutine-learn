@@ -83,13 +83,13 @@ instance.__proto__ === User.prototype // true
 function myNew(Constructor, ...args) {
   // 1. Создаём пустой объект
   const obj = {}
-  
+
   // 2. Связываем прототип
   Object.setPrototypeOf(obj, Constructor.prototype)
-  
+
   // 3. Вызываем конструктор
   const result = Constructor.apply(obj, args)
-  
+
   // 4. Возвращаем результат
   return result instanceof Object ? result : obj
 }
@@ -109,7 +109,7 @@ function Animal(name) {
   this.name = name
 }
 
-Animal.prototype.eat = function() {
+Animal.prototype.eat = function () {
   console.log(this.name, 'eats')
 }
 
@@ -120,7 +120,7 @@ function Dog(name) {
 Dog.prototype = Object.create(Animal.prototype)
 Dog.prototype.constructor = Dog
 
-Dog.prototype.bark = function() {
+Dog.prototype.bark = function () {
   console.log(this.name, 'barks')
 }
 
@@ -172,7 +172,7 @@ function Animal(name) {
   this.name = name
 }
 
-Animal.prototype.eat = function() {
+Animal.prototype.eat = function () {
   console.log(this.name, 'eats')
 }
 
@@ -183,7 +183,7 @@ function Dog(name) {
 Dog.prototype = Object.create(Animal.prototype)
 Dog.prototype.constructor = Dog
 
-Dog.prototype.bark = function() {
+Dog.prototype.bark = function () {
   console.log(this.name, 'barks')
 }
 ```
@@ -289,7 +289,7 @@ class MathUtils {
   static sum(a, b) {
     return a + b
   }
-  
+
   static PI = 3.14159
 }
 
@@ -303,7 +303,7 @@ instance.sum(1, 2) // TypeError: instance.sum is not a function
 **Под капотом:**
 
 ```javascript
-MathUtils.sum = function(a, b) {
+MathUtils.sum = function (a, b) {
   return a + b
 }
 ```
@@ -322,7 +322,7 @@ class User {
   getPassword() {
     return this.#password
   }
-  
+
   setEmail(email) {
     this.#email = email
   }
@@ -345,11 +345,11 @@ user.getPassword() // 'secret'
 ```javascript
 class Counter {
   static #count = 0
-  
+
   static increment() {
     Counter.#count++
   }
-  
+
   static getCount() {
     return Counter.#count
   }
@@ -372,7 +372,7 @@ class User {
   }
 
   set fullName(value) {
-    [this.firstName, this.lastName] = value.split(' ')
+    ;[this.firstName, this.lastName] = value.split(' ')
   }
 }
 
@@ -412,15 +412,25 @@ Animal.prototype.isPrototypeOf(dog) // true
 
 ## 23.12. Сравнение: функции-конструкторы vs классы
 
-| Характеристика | Функции-конструкторы | Классы |
-|---------------|---------------------|--------|
-| Синтаксис | Старый | Современный |
-| Hoisting | Да | Нет |
-| Strict mode | Нет (по умолчанию) | Да |
-| Вызов без new | Возможно | Ошибка |
-| Наследование | Сложное | Простое (extends) |
-| Приватные поля | Нет | Да (#) |
-| Статические методы | Вручную | Синтаксис static |
+**Функции-конструкторы:**
+
+- Синтаксис: старый
+- Hoisting: да
+- Strict mode: нет (по умолчанию)
+- Вызов без new: возможно
+- Наследование: сложное
+- Приватные поля: нет
+- Статические методы: вручную
+
+**Классы:**
+
+- Синтаксис: современный
+- Hoisting: нет
+- Strict mode: да
+- Вызов без new: ошибка
+- Наследование: простое (extends)
+- Приватные поля: да (#)
+- Статические методы: синтаксис static
 
 **Рекомендация:** Используйте классы в новом коде.
 
@@ -462,16 +472,4 @@ Animal.prototype.isPrototypeOf(dog) // true
 ### 8. Как проверить, является ли объект экземпляром класса?
 
 Использовать `instanceof`, который проверяет всю цепочку прототипов.
-
----
-
-## Key Takeaways
-
-- JavaScript использует прототипную модель наследования
-- Классы — синтаксический сахар над функциями-конструкторами и прототипами
-- `new` создаёт объект и связывает его с прототипом конструктора
-- `extends` упрощает наследование
-- `super` используется для доступа к родительскому классу
-- Приватные поля (`#`) обеспечивают инкапсуляцию
-- Понимание прототипов критично для работы с классами и наследованием
 

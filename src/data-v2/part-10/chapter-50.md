@@ -365,7 +365,7 @@ class ErrorBoundary extends Component {
 ### 1. Размещай Error Boundaries стратегически
 
 ```jsx
-// ✅ Хорошо: на разных уровнях
+//  Хорошо: на разных уровнях
 <ErrorBoundary>
   <App />
 </ErrorBoundary>
@@ -382,7 +382,7 @@ class ErrorBoundary extends Component {
 ### 2. Используй try/catch для событий и асинхронного кода
 
 ```jsx
-// ✅ Хорошо
+//  Хорошо
 const handleClick = () => {
   try {
     riskyOperation()
@@ -395,7 +395,7 @@ const handleClick = () => {
 ### 3. Логируй ошибки
 
 ```jsx
-// ✅ Хорошо
+//  Хорошо
 componentDidCatch(error, errorInfo) {
   console.error('Error:', error)
   logErrorToService(error, errorInfo)
@@ -405,7 +405,7 @@ componentDidCatch(error, errorInfo) {
 ### 4. Предоставляй возможность восстановления
 
 ```jsx
-// ✅ Хорошо
+//  Хорошо
 if (this.state.hasError) {
   return (
     <div>
@@ -439,16 +439,3 @@ React-компонент, который ловит ошибки в дочерн
 ### 5. Как обрабатывать ошибки в асинхронном коде?
 
 Использовать `try/catch` с `async/await` или `.catch()` с промисами.
-
----
-
-## Key Takeaways
-
-- Error Boundaries ловят ошибки в рендере и методах жизненного цикла
-- НЕ ловят ошибки в обработчиках событий и асинхронном коде
-- Размещай Error Boundaries стратегически на разных уровнях
-- Используй try/catch для событий и асинхронного кода
-- Логируй ошибки в сервис мониторинга
-- Предоставляй возможность восстановления после ошибки
-- Error Boundary — пока только классовый компонент
-

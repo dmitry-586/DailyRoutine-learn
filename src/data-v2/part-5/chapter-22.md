@@ -324,13 +324,13 @@ const handler = {
   }
 }
 
-// ❌ Плохо — потеря контекста
+//  Плохо — потеря контекста
 button.addEventListener('click', handler.handleClick)
 
-// ✅ Хорошо — bind
+//  Хорошо — bind
 button.addEventListener('click', handler.handleClick.bind(handler))
 
-// ✅ Хорошо — стрелка
+//  Хорошо — стрелка
 button.addEventListener('click', () => handler.handleClick())
 ```
 
@@ -362,7 +362,7 @@ calculator.add(5).multiply(2).getValue() // 10
 ### Ошибка 1: Потеря контекста в коллбеках
 
 ```javascript
-// ❌ Плохо
+//  Плохо
 const obj = {
   data: [1, 2, 3],
   process() {
@@ -372,7 +372,7 @@ const obj = {
   }
 }
 
-// ✅ Хорошо
+//  Хорошо
 const obj = {
   data: [1, 2, 3],
   process() {
@@ -386,7 +386,7 @@ const obj = {
 ### Ошибка 2: Стрелка как метод объекта
 
 ```javascript
-// ❌ Плохо
+//  Плохо
 const obj = {
   name: 'Alice',
   say: () => {
@@ -394,7 +394,7 @@ const obj = {
   }
 }
 
-// ✅ Хорошо
+//  Хорошо
 const obj = {
   name: 'Alice',
   say() {
@@ -406,7 +406,7 @@ const obj = {
 ### Ошибка 3: Забыли bind в React
 
 ```javascript
-// ❌ Плохо
+//  Плохо
 class Component extends React.Component {
   handleClick() {
     console.log(this.props) // TypeError
@@ -417,7 +417,7 @@ class Component extends React.Component {
   }
 }
 
-// ✅ Хорошо
+//  Хорошо
 class Component extends React.Component {
   handleClick = () => {
     console.log(this.props) // Работает
@@ -468,15 +468,3 @@ obj.say()
 ```
 
 undefined, потому что стрелка берёт this из глобального контекста, а не объекта.
-
----
-
-## Key Takeaways
-
-- `this` определяется в момент вызова, а не объявления
-- Правила привязки: new → call/apply/bind → метод → обычный вызов → стрелка
-- Стрелочные функции не имеют собственного `this`
-- Потеря контекста — частая проблема при передаче методов как коллбеков
-- bind, call, apply позволяют явно управлять `this`
-- Понимание `this` критично для работы с классами и React
-

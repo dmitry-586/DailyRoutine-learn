@@ -558,17 +558,5 @@ Error boundaries работают только в Client Components.
 
 Для одновременного рендеринга нескольких страниц в одном layout.
 
----
-
-## Key Takeaways
-
-- App Router использует файловую маршрутизацию
-- `layout.tsx` для общих компонентов, которые не размонтируются
-- `loading.tsx` для состояний загрузки
-- `error.tsx` для обработки ошибок (должен быть Client Component)
-- `not-found.tsx` для 404 страниц
-- `template.tsx` для шаблонов с анимациями
-- Route Groups для организации без влияния на URL
 - Parallel Routes для параллельного рендеринга
 - Intercepting Routes для модальных окон
-

@@ -31,10 +31,10 @@ console.log(sum(2, 3))
 3. **Side-effect free** код
 
 ```javascript
-// ❌ Плохо: CommonJS — не работает tree-shaking
+//  Плохо: CommonJS — не работает tree-shaking
 const { sum } = require('./math')
 
-// ✅ Хорошо: ES Modules
+//  Хорошо: ES Modules
 import { sum } from './math'
 ```
 
@@ -57,13 +57,13 @@ import { sum } from './math'
 Любой код, который выполняет действия помимо экспорта:
 
 ```javascript
-// ❌ Side effect
+//  Side effect
 window.myGlobal = 'value'
 
-// ❌ Side effect
+//  Side effect
 import './styles.css' // CSS должен быть в sideEffects
 
-// ✅ Pure (нет side effects)
+//  Pure (нет side effects)
 export const sum = (a, b) => a + b
 ```
 
@@ -144,33 +144,33 @@ export default defineConfig({
 ### 1. Динамические импорты для тяжёлых библиотек
 
 ```typescript
-// ❌ Плохо — весь Chart.js в начальном бандле
+//  Плохо — весь Chart.js в начальном бандле
 import { Chart } from 'chart.js'
 
-// ✅ Хорошо — загружается только при необходимости
+//  Хорошо — загружается только при необходимости
 const Chart = lazy(() => import('chart.js'))
 ```
 
 ### 2. Импорт только нужных функций
 
 ```typescript
-// ❌ Плохо — весь lodash
+//  Плохо — весь lodash
 import _ from 'lodash'
 
-// ✅ Хорошо — только нужная функция
+//  Хорошо — только нужная функция
 import { debounce } from 'lodash-es/debounce'
 
-// ✅ Ещё лучше — tree-shakeable версия
+//  Ещё лучше — tree-shakeable версия
 import debounce from 'lodash-es/debounce'
 ```
 
 ### 3. Используйте lighter альтернативы
 
 ```typescript
-// ❌ Плохо — moment.js (70KB)
+//  Плохо — moment.js (70KB)
 import moment from 'moment'
 
-// ✅ Хорошо — dayjs (2KB)
+//  Хорошо — dayjs (2KB)
 import dayjs from 'dayjs'
 ```
 
@@ -392,16 +392,3 @@ gzip_types text/javascript application/javascript;
 ### 7. В чём разница между preload и prefetch?
 
 Preload загружает критический ресурс немедленно. Prefetch загружает ресурс для будущего использования.
-
----
-
-## Key Takeaways
-
-- Tree-shaking требует ES Modules и статических импортов
-- Side effects должны быть явно указаны в package.json
-- Code splitting уменьшает начальный размер бандла
-- Динамические импорты для lazy loading компонентов
-- Vendor splitting для кеширования библиотек
-- Анализ бандла помогает найти проблемы
-- Оптимизация бандла критична для производительности
-

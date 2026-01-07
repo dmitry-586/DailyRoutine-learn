@@ -27,7 +27,7 @@ interface UserCardProps {
 
 export function UserCard({ name, email, avatar }: UserCardProps) {
   return (
-    <div className="user-card">
+    <div className='user-card'>
       <img src={avatar} alt={name} />
       <h3>{name}</h3>
       <p>{email}</p>
@@ -57,7 +57,385 @@ export function UserProfileContainer({ userId }: { userId: number }) {
 
 ---
 
-## 60.2. Feature-Sliced Design (FSD)
+## 60.2. SOLID принципы
+
+SOLID — пять принципов объектно-ориентированного программирования, которые помогают писать поддерживаемый и масштабируемый код. Хотя они изначально для ООП, многие идеи применимы и к функциональному программированию в React.
+
+### S — Single Responsibility Principle (Принцип единственной ответственности)
+
+**Один класс/модуль/компонент должен иметь только одну причину для изменения.**
+
+**Плохо:**
+
+```tsx
+// Компонент делает слишком много
+function UserProfile({ userId }: { userId: number }) {
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    setLoading(true)
+    fetch(`/api/users/${userId}`)
+      .then((r) => r.json())
+      .then(setUser)
+      .catch(setError)
+      .finally(() => setLoading(false))
+  }, [userId])
+
+  const handleUpdate = async (data: UserData) => {
+    await fetch(`/api/users/${userId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+    // обновление UI...
+  }
+
+  if (loading) return <Loader />
+  if (error) return <Error message={error} />
+  if (!user) return null
+
+  return (
+    <div>
+      <img src={user.avatar} alt={user.name} />
+      <h1>{user.name}</h1>
+      <p>{user.email}</p>
+      <button onClick={() => handleUpdate({ ...user, name: 'New Name' })}>
+        Update
+      </button>
+    </div>
+  )
+}
+```
+
+**Хорошо:**
+
+```tsx
+// Разделение ответственности
+function UserProfile({ userId }: { userId: number }) {
+  const { data: user, isLoading, error } = useUser(userId)
+  const updateUser = useUpdateUser()
+
+  if (isLoading) return <Loader />
+  if (error) return <Error message={error.message} />
+  if (!user) return null
+
+  return <UserCard user={user} onUpdate={updateUser.mutate} />
+}
+
+// Отдельный компонент для отображения
+function UserCard({
+  user,
+  onUpdate,
+}: {
+  user: User
+  onUpdate: (data: UserData) => void
+}) {
+  return (
+    <div>
+      <img src={user.avatar} alt={user.name} />
+      <h1>{user.name}</h1>
+      <p>{user.email}</p>
+      <button onClick={() => onUpdate({ ...user, name: 'New Name' })}>
+        Update
+      </button>
+    </div>
+  )
+}
+
+// Отдельный хук для логики
+function useUser(id: number) {
+  return useQuery({
+    queryKey: ['users', id],
+    queryFn: () => fetchUser(id),
+  })
+}
+```
+
+**Применение в React:**
+
+- Один компонент — одна ответственность (отображение ИЛИ логика)
+- Кастомные хуки для переиспользования логики
+- Утилиты для чистых функций
+
+### O — Open/Closed Principle (Принцип открытости/закрытости)
+
+**Модули должны быть открыты для расширения, но закрыты для модификации.**
+
+**Плохо:**
+
+```tsx
+function Button({
+  type,
+  ...props
+}: {
+  type: 'primary' | 'secondary' | 'danger'
+}) {
+  const className =
+    type === 'primary'
+      ? 'btn-primary'
+      : type === 'secondary'
+        ? 'btn-secondary'
+        : 'btn-danger'
+
+  return <button className={className} {...props} />
+}
+
+// Чтобы добавить новый тип, нужно модифицировать Button
+```
+
+**Хорошо:**
+
+```tsx
+// Расширяемость через композицию
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'secondary' | 'danger'
+  size?: 'sm' | 'md' | 'lg'
+}
+
+function Button({
+  variant = 'primary',
+  size = 'md',
+  className,
+  ...props
+}: ButtonProps) {
+  return (
+    <button
+      className={cn('btn', `btn-${variant}`, `btn-${size}`, className)}
+      {...props}
+    />
+  )
+}
+
+// Новые варианты добавляются через className, не модифицируя компонент
+;<Button variant='primary' className='custom-style' />
+```
+
+**Применение в React:**
+
+- Композиция вместо наследования
+- Пропсы для кастомизации вместо хардкода
+- Render props и children для гибкости
+
+### L — Liskov Substitution Principle (Принцип подстановки Лисков)
+
+**Объекты должны быть заменяемы экземплярами их подтипов без изменения корректности программы.**
+
+**Применение в React:**
+
+```tsx
+// Базовый компонент
+interface BaseInputProps {
+  value: string
+  onChange: (value: string) => void
+  label: string
+}
+
+function BaseInput({ value, onChange, label }: BaseInputProps) {
+  return (
+    <div>
+      <label>{label}</label>
+      <input value={value} onChange={(e) => onChange(e.target.value)} />
+    </div>
+  )
+}
+
+// Специализированные компоненты должны работать так же
+function EmailInput(props: BaseInputProps) {
+  return <BaseInput {...props} type='email' />
+}
+
+function PasswordInput(props: BaseInputProps) {
+  return <BaseInput {...props} type='password' />
+}
+
+// Можно заменить BaseInput на EmailInput без проблем
+function Form() {
+  return (
+    <form>
+      <EmailInput value={email} onChange={setEmail} label='Email' />
+      <PasswordInput value={password} onChange={setPassword} label='Password' />
+    </form>
+  )
+}
+```
+
+**Важно:** специализированные компоненты не должны нарушать ожидания базового компонента.
+
+### I — Interface Segregation Principle (Принцип разделения интерфейса)
+
+**Клиенты не должны зависеть от интерфейсов, которые они не используют.**
+
+**Плохо:**
+
+```tsx
+interface UserCardProps {
+  user: User
+  showEmail: boolean
+  showPhone: boolean
+  showAddress: boolean
+  showBio: boolean
+  onEdit: () => void
+  onDelete: () => void
+  onShare: () => void
+}
+
+// Компонент вынужден принимать все пропсы, даже если не использует
+function UserCard({ user, showEmail, showPhone, ... }: UserCardProps) {
+  return (
+    <div>
+      <h3>{user.name}</h3>
+      {showEmail && <p>{user.email}</p>}
+      {showPhone && <p>{user.phone}</p>}
+      {/* ... */}
+    </div>
+  )
+}
+```
+
+**Хорошо:**
+
+```tsx
+// Разделение на маленькие интерфейсы
+interface UserCardBaseProps {
+  user: User
+}
+
+interface UserCardDisplayProps {
+  showEmail?: boolean
+  showPhone?: boolean
+  showAddress?: boolean
+}
+
+interface UserCardActionsProps {
+  onEdit?: () => void
+  onDelete?: () => void
+  onShare?: () => void
+}
+
+type UserCardProps = UserCardBaseProps &
+  Partial<UserCardDisplayProps> &
+  Partial<UserCardActionsProps>
+
+// Или композиция компонентов
+function UserCard({ user }: { user: User }) {
+  return (
+    <div>
+      <h3>{user.name}</h3>
+      <UserCardEmail user={user} />
+      <UserCardPhone user={user} />
+    </div>
+  )
+}
+
+function UserCardEmail({ user }: { user: User }) {
+  return <p>{user.email}</p>
+}
+```
+
+**Применение в React:**
+
+- Маленькие, сфокусированные интерфейсы пропсов
+- Композиция компонентов вместо монолитных
+- Опциональные пропсы для гибкости
+
+### D — Dependency Inversion Principle (Принцип инверсии зависимостей)
+
+**Модули высокого уровня не должны зависеть от модулей низкого уровня. Оба должны зависеть от абстракций.**
+
+**Плохо:**
+
+```tsx
+// Компонент зависит от конкретной реализации API
+function UserList() {
+  const [users, setUsers] = useState([])
+
+  useEffect(() => {
+    fetch('/api/users') // Прямая зависимость от fetch
+      .then((r) => r.json())
+      .then(setUsers)
+  }, [])
+
+  return <div>{/* ... */}</div>
+}
+```
+
+**Хорошо:**
+
+```tsx
+// Зависимость от абстракции (хука)
+interface UserService {
+  getUsers: () => Promise<User[]>
+}
+
+function UserList() {
+  const { data: users } = useUsers() // Зависимость от абстракции
+
+  return <div>{/* ... */}</div>
+}
+
+// Реализация может быть любой
+function useUsers() {
+  return useQuery({
+    queryKey: ['users'],
+    queryFn: () => apiClient.get<User[]>('/users').then((r) => r.data),
+  })
+}
+```
+
+**Применение в React:**
+
+- Кастомные хуки как абстракции
+- Dependency Injection через Context
+- Пропсы-функции для инверсии контроля
+
+### Практические примеры SOLID в React
+
+**1. Single Responsibility — разделение компонентов:**
+
+```tsx
+// Плохо: один компонент делает всё
+function UserDashboard() {
+  // загрузка данных, логика, отображение
+}
+
+// Хорошо: разделение
+function UserDashboard() {
+  const { data: user } = useUser()
+  return <UserDashboardView user={user} />
+}
+
+function UserDashboardView({ user }: { user: User }) {
+  return <div>{/* только отображение */}</div>
+}
+```
+
+**2. Open/Closed — расширяемость через пропсы:**
+
+```tsx
+function Modal({ children, ...props }: ModalProps) {
+  // Базовый функционал
+}
+
+// Расширяем без модификации
+;<Modal size='lg' variant='dark'>
+  <CustomContent />
+</Modal>
+```
+
+**3. Dependency Inversion — хуки как абстракции:**
+
+```tsx
+// Компонент зависит от хука, а не от API
+function ProductsList() {
+  const { data } = useProducts() // Абстракция
+  // Реализация useProducts может меняться
+}
+```
+
+---
+
+## 60.3. Feature-Sliced Design (FSD)
 
 Feature-Sliced Design — популярная методология для структурирования фронтенда.
 
@@ -129,7 +507,7 @@ src/
 
 ---
 
-## 60.3. Управление состоянием
+## 60.4. Управление состоянием
 
 ### Разделение типов состояния
 
@@ -177,7 +555,7 @@ function Dashboard() {
 
 ---
 
-## 60.4. Паттерны композиции
+## 60.5. Паттерны композиции
 
 ### Compound Components
 
@@ -203,13 +581,13 @@ export function Tabs({
 
   return (
     <TabsContext.Provider value={{ activeTab, setActiveTab }}>
-      <div className="tabs">{children}</div>
+      <div className='tabs'>{children}</div>
     </TabsContext.Provider>
   )
 }
 
 export function TabList({ children }: { children: ReactNode }) {
-  return <div className="tab-list">{children}</div>
+  return <div className='tab-list'>{children}</div>
 }
 
 export function Tab({
@@ -242,20 +620,20 @@ export function TabPanel({
 
   if (activeTab !== value) return null
 
-  return <div className="tab-panel">{children}</div>
+  return <div className='tab-panel'>{children}</div>
 }
 
 // Использование
 function App() {
   return (
-    <Tabs defaultTab="profile">
+    <Tabs defaultTab='profile'>
       <TabList>
-        <Tab value="profile">Profile</Tab>
-        <Tab value="settings">Settings</Tab>
+        <Tab value='profile'>Profile</Tab>
+        <Tab value='settings'>Settings</Tab>
       </TabList>
 
-      <TabPanel value="profile">Profile content</TabPanel>
-      <TabPanel value="settings">Settings content</TabPanel>
+      <TabPanel value='profile'>Profile content</TabPanel>
+      <TabPanel value='settings'>Settings content</TabPanel>
     </Tabs>
   )
 }
@@ -298,7 +676,7 @@ function App() {
 
 ---
 
-## 60.5. Code Splitting и ленивая загрузка
+## 60.6. Code Splitting и ленивая загрузка
 
 ### Route-based splitting
 
@@ -345,12 +723,12 @@ export function Dashboard() {
 
 ---
 
-## 60.6. Best Practices
+## 60.7. Best Practices
 
 ### 1. Разделяйте ответственность
 
 ```tsx
-// ❌ Плохо: всё в одном компоненте
+//  Плохо: всё в одном компоненте
 function UserDashboard() {
   const [users, setUsers] = useState([])
 
@@ -373,7 +751,7 @@ function UserDashboard() {
   )
 }
 
-// ✅ Хорошо: разделение на слои
+//  Хорошо: разделение на слои
 function UserDashboard() {
   const { data: users } = useUsers() // TanStack Query
 
@@ -421,13 +799,13 @@ function SearchInput() {
 ### 3. Оптимизируйте ререндеры
 
 ```tsx
-// ✅ Используйте memo для тяжёлых компонентов
+//  Используйте memo для тяжёлых компонентов
 const HeavyComponent = memo(({ data }: { data: ComplexData }) => {
   // Сложные вычисления
   return <div>{/* ... */}</div>
 })
 
-// ✅ Используйте useMemo для вычислений
+//  Используйте useMemo для вычислений
 function DataList({ items }: { items: Item[] }) {
   const sortedItems = useMemo(() => {
     return [...items].sort((a, b) => a.name.localeCompare(b.name))
@@ -436,7 +814,7 @@ function DataList({ items }: { items: Item[] }) {
   return <div>{/* ... */}</div>
 }
 
-// ✅ Используйте useCallback для функций
+//  Используйте useCallback для функций
 function Parent() {
   const handleClick = useCallback(() => {
     console.log('Clicked')
@@ -448,7 +826,7 @@ function Parent() {
 
 ---
 
-## 60.7. Структура проекта
+## 60.8. Структура проекта
 
 ### Рекомендуемая структура
 
@@ -508,17 +886,12 @@ Server state → TanStack Query, Client state → Zustand/Context, Local state �
 
 Уменьшение начального бандла, быстрая загрузка первой страницы.
 
----
+### 6. Что такое SOLID принципы?
 
-## Key Takeaways
+Пять принципов проектирования: Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion. Помогают писать поддерживаемый и масштабируемый код.
 
-- Разделение ответственности критично для масштабируемости
-- Feature-Sliced Design — популярная методология структурирования
-- Presentational vs Container компоненты
-- Разделение типов состояния (Server/Client/Local)
-- Compound Components и Render Props для композиции
-- Code splitting для оптимизации бандла
-- Правильная структура проекта упрощает поддержку
-- Кастомные хуки для переиспользования логики
-- Оптимизация ререндеров через memo/useMemo/useCallback
+### 7. Как применить SOLID в React?
 
+- Single Responsibility: разделение компонентов на презентационные и контейнерные
+- Open/Closed: расширяемость через пропсы и композицию
+- Dependency Inversion: хуки как абстракции вместо прямых зависимостей от API

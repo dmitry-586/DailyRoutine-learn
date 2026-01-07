@@ -367,11 +367,11 @@ test('useCounter increments', () => {
 ### 1. Именование
 
 ```jsx
-// ✅ Хорошо: начинается с use
+//  Хорошо: начинается с use
 function useAuth() {}
 function useUserData() {}
 
-// ❌ Плохо: не начинается с use
+//  Плохо: не начинается с use
 function getAuth() {}
 function fetchUserData() {}
 ```
@@ -379,17 +379,17 @@ function fetchUserData() {}
 ### 2. Возвращаемое значение
 
 ```jsx
-// ✅ Хорошо: объект для множественных значений
+//  Хорошо: объект для множественных значений
 function useAuth() {
   return { user, login, logout }
 }
 
-// ✅ Хорошо: массив для двух значений (как useState)
+//  Хорошо: массив для двух значений (как useState)
 function useToggle() {
   return [value, toggle]
 }
 
-// ✅ Хорошо: одно значение
+//  Хорошо: одно значение
 function useWindowWidth() {
   return width
 }
@@ -398,7 +398,7 @@ function useWindowWidth() {
 ### 3. Инкапсуляция логики
 
 ```jsx
-// ✅ Хорошо: вся логика в хуке
+//  Хорошо: вся логика в хуке
 function useForm() {
   const [values, setValues] = useState({})
   const [errors, setErrors] = useState({})
@@ -410,7 +410,7 @@ function useForm() {
   return { values, errors, handleChange }
 }
 
-// ❌ Плохо: логика в компоненте
+//  Плохо: логика в компоненте
 function Form() {
   const [values, setValues] = useState({})
   const [errors, setErrors] = useState({})
@@ -441,16 +441,3 @@ function Form() {
 ### 5. Как тестировать кастомные хуки?
 
 С помощью `@testing-library/react-hooks` или тестируя компоненты, которые их используют.
-
----
-
-## Key Takeaways
-
-- Кастомные хуки начинаются с `use` и могут использовать другие хуки
-- Переиспользование логики между компонентами
-- Инкапсуляция сложной логики
-- Улучшение читаемости и тестируемости
-- Композиция хуков для сложной логики
-- Следование правилам хуков обязательно
-- Возвращаемое значение может быть любым (объект, массив, значение)
-

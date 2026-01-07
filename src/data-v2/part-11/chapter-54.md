@@ -8,85 +8,38 @@ React Hook Form и Zod — идеальная комбинация для соз
 
 ### Controlled компоненты = много ререндеров
 
-```typescript
-// ❌ Плохо: ререндер на каждый символ
-function LoginForm() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+При использовании `useState` для каждого поля формы возникают проблемы:
 
-  // Компонент ререндерится при каждом нажатии клавиши
-  return (
-    <form>
-      <input value={email} onChange={(e) => setEmail(e.target.value)} />
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-    </form>
-  )
-}
-```
+- **Ререндер на каждый символ** — весь компонент перерисовывается при вводе
+- **Плохо масштабируется** — форма на 20 полей = 20 useState + 20 onChange
+- **Много бойлерплейта** — дублирование кода для каждого поля
+- **Сложная валидация** — приходится писать вручную для каждого поля
 
-**Проблемы:**
-
-- 🐌 Ререндер всего компонента на каждый символ
-- 📦 Сложно масштабируется (большие формы)
-- 🔄 Дублирование кода для каждого поля
-- ⚠️ Валидация требует много бойлерплейта
+React Hook Form решает все эти проблемы, используя uncontrolled компоненты под капотом.
 
 ---
 
 ## 54.2. React Hook Form: базовое использование
 
 ```bash
-pnpm add react-hook-form
+npm install react-hook-form
 ```
 
-### Простая форма
+### Как это работает
 
-```typescript
-import { useForm } from 'react-hook-form'
+React Hook Form использует **uncontrolled компоненты** — значения хранятся в DOM, а не в React state. Это даёт:
 
-interface LoginFormData {
-  email: string
-  password: string
-}
+- **Нет ререндеров при вводе** — компонент не перерисовывается на каждый символ
+- **Минимальный код** — `register('field')` вместо value + onChange
+- **Типизация из коробки** — TypeScript знает структуру формы
 
-export function LoginForm() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>()
+**Ключевые методы:**
 
-  const onSubmit = (data: LoginFormData) => {
-    console.log(data) // { email: '...', password: '...' }
-  }
+- **register('fieldName')** — регистрирует поле в форме
+- **handleSubmit(onSubmit)** — обёртка для submit handler
+- **formState.errors** — объект с ошибками валидации
 
-  return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <input {...register('email')} placeholder="Email" />
-      {errors.email && <span>{errors.email.message}</span>}
-
-      <input
-        type="password"
-        {...register('password')}
-        placeholder="Password"
-      />
-      {errors.password && <span>{errors.password.message}</span>}
-
-      <button type="submit">Войти</button>
-    </form>
-  )
-}
-```
-
-**Преимущества:**
-
-- ✅ Нет ререндеров при вводе
-- ✅ Минимальный код
-- ✅ Типизация из коробки
+**Важно:** компонент ререндерится только при submit или при изменении `formState` (ошибки, dirty, etc).
 
 ---
 
@@ -94,470 +47,171 @@ export function LoginForm() {
 
 ### Зачем нужна runtime валидация?
 
-TypeScript обеспечивает типобезопасность **на этапе компиляции**, но не защищает от невалидных данных **в runtime**.
+TypeScript проверяет типы **при компиляции**, но не защищает от невалидных данных **в runtime**.
 
-```typescript
-// ❌ Проблема: TypeScript не проверяет runtime данные
-interface User {
-  id: number
-  email: string
-}
+**Проблема:** когда вы получаете данные от API, TypeScript просто верит вам на слово. Если API вернёт `null` вместо email — приложение упадёт.
 
-async function getUser(id: string): Promise<User> {
-  const response = await fetch(`/api/users/${id}`)
-  return response.json() // ⚠️ Верим что API вернёт User
-}
+**Решение:** Zod валидирует данные в runtime и гарантирует соответствие схеме.
 
-const user = await getUser('123')
-user.email.toLowerCase() // 💥 Может упасть, если email = null
-```
+### Преимущества Zod
 
-### Решение: Zod
+1. **Runtime валидация** — проверка реальных данных, а не только типов
+2. **Автовывод типов** — `z.infer<typeof Schema>` создаёт TypeScript тип из схемы
+3. **Единый источник правды** — схема определяет и тип, и валидацию
+4. **Понятные сообщения об ошибках** — можно настроить для каждого поля
 
-```typescript
-import { z } from 'zod'
+**Два метода валидации:**
 
-const UserSchema = z.object({
-  id: z.number(),
-  email: z.string().email(),
-  age: z.number().positive(),
-})
-
-// Автоматический вывод типа из схемы!
-type User = z.infer<typeof UserSchema>
-
-async function getUser(id: string): Promise<User> {
-  const response = await fetch(`/api/users/${id}`)
-  const data = await response.json()
-
-  // Валидация runtime данных
-  return UserSchema.parse(data) // ✅ Выбросит ошибку если невалидно
-}
-```
+- **parse()** — выбрасывает ошибку при невалидных данных
+- **safeParse()** — возвращает `{ success: true, data }` или `{ success: false, error }`
 
 ---
 
 ## 54.4. Интеграция React Hook Form и Zod
 
-React Hook Form + Zod = идеальная комбинация.
-
 ```bash
-pnpm add @hookform/resolvers zod
+npm install @hookform/resolvers zod
 ```
 
-### Простая форма с Zod
+### Как это работает
 
-```typescript
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+`zodResolver` связывает Zod-схему с React Hook Form:
 
-const LoginSchema = z.object({
-  email: z.string().email('Некорректный email'),
-  password: z.string().min(8, 'Минимум 8 символов'),
-})
+1. **Определяете Zod-схему** — описывает структуру и правила валидации
+2. **Выводите TypeScript тип** — `z.infer<typeof Schema>`
+3. **Передаёте resolver** — `resolver: zodResolver(Schema)`
+4. **Получаете валидные данные** — в `onSubmit` данные гарантированно соответствуют схеме
 
-type LoginFormData = z.infer<typeof LoginSchema>
+**Преимущества интеграции:**
 
-export function LoginForm() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(LoginSchema),
-  })
+- **Единый источник правды** — схема определяет и тип, и валидацию
+- **Автоматические сообщения об ошибках** — из Zod-схемы в `formState.errors`
+- **Кросс-поле валидация** — через `.refine()` (например, совпадение паролей)
 
-  const onSubmit = (data: LoginFormData) => {
-    // data гарантированно валиден
-    console.log(data)
-  }
+**Важно:** используйте кастомные сообщения в схеме: `z.string().email('Некорректный email')` — это пойдёт в UI.
 
-  return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <input {...register('email')} />
-      {errors.email && <span>{errors.email.message}</span>}
+### Продвинутая валидация
 
-      <input type="password" {...register('password')} />
-      {errors.password && <span>{errors.password.message}</span>}
+**Кросс-поле валидация с `.refine()`:**
 
-      <button type="submit">Войти</button>
-    </form>
-  )
-}
-```
+Используйте `.refine()` для валидации, которая зависит от нескольких полей. Например, проверка совпадения паролей: `.refine(data => data.password === data.confirmPassword, { message: 'Пароли не совпадают', path: ['confirmPassword'] })`.
 
-### Сложная форма с валидацией
+**Параметр `path`** указывает, к какому полю привязать ошибку.
 
-```typescript
-const SignupSchema = z
-  .object({
-    email: z.string().email('Некорректный email'),
-    password: z.string().min(8, 'Минимум 8 символов'),
-    confirmPassword: z.string(),
-    age: z.number().int().min(18, 'Вам должно быть 18+'),
-    terms: z.literal(true, {
-      errorMap: () => ({ message: 'Необходимо согласие' }),
-    }),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'Пароли не совпадают',
-    path: ['confirmPassword'],
-  })
+**Checkbox-согласие:**
 
-type SignupFormData = z.infer<typeof SignupSchema>
+Для обязательного checkbox используйте `z.literal(true)` с кастомным сообщением.
 
-export function SignupForm() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<SignupFormData>({
-    resolver: zodResolver(SignupSchema),
-  })
+**Числовые поля:**
 
-  const onSubmit = (data: SignupFormData) => {
-    // data гарантированно валиден
-    console.log(data)
-  }
-
-  return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <input {...register('email')} />
-      {errors.email && <span>{errors.email.message}</span>}
-
-      <input type="password" {...register('password')} />
-      {errors.password && <span>{errors.password.message}</span>}
-
-      <input type="password" {...register('confirmPassword')} />
-      {errors.confirmPassword && (
-        <span>{errors.confirmPassword.message}</span>
-      )}
-
-      <input
-        type="number"
-        {...register('age', { valueAsNumber: true })}
-      />
-      {errors.age && <span>{errors.age.message}</span>}
-
-      <label>
-        <input type="checkbox" {...register('terms')} />
-        Согласен с условиями
-      </label>
-      {errors.terms && <span>{errors.terms.message}</span>}
-
-      <button type="submit">Зарегистрироваться</button>
-    </form>
-  )
-}
-```
+HTML input всегда возвращает строку. Используйте `{ valueAsNumber: true }` в register для автоматического преобразования в число.
 
 ---
 
 ## 54.5. Управление ошибками
 
-### Ошибки валидации
+### Состояния формы
 
-```typescript
-const {
-  formState: { errors, isSubmitting, isValid, isDirty },
-} = useForm()
+`formState` содержит полезные флаги:
 
-// errors - объект с ошибками для каждого поля
-errors.email?.message
-errors.password?.message
-
-// isSubmitting - форма отправляется
-// isValid - форма валидна
-// isDirty - форма изменена
-```
+- **errors** — объект с ошибками для каждого поля
+- **isSubmitting** — форма отправляется (для disabled кнопки)
+- **isValid** — форма валидна (для активации кнопки)
+- **isDirty** — форма изменена (для предупреждения о несохранённых данных)
 
 ### Серверные ошибки
 
-```typescript
-const { setError, handleSubmit } = useForm<LoginFormData>()
+API может вернуть ошибки, которые не покрывает клиентская валидация (например, «email уже занят»).
 
-const onSubmit = async (data: LoginFormData) => {
-  try {
-    await login(data)
-  } catch (error) {
-    if (error.code === 'INVALID_CREDENTIALS') {
-      setError('email', {
-        type: 'server',
-        message: 'Неверный email или пароль',
-      })
-    }
-  }
-}
-```
+Используйте `setError()` для добавления серверных ошибок к полям формы. Это позволяет показывать серверные ошибки в том же месте, что и клиентские.
 
 ---
 
 ## 54.6. Интеграция с TanStack Query
 
-```typescript
-import { useMutation } from '@tanstack/react-query'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+React Hook Form + Zod + TanStack Query — полный стек для работы с формами.
 
-const UserSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-})
+**Паттерн интеграции:**
 
-type UserFormData = z.infer<typeof UserSchema>
+1. **Zod-схема** — определяет валидацию
+2. **useForm** — управляет формой
+3. **useMutation** — отправляет данные на сервер
 
-export function CreateUserForm() {
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setError,
-    formState: { errors },
-  } = useForm<UserFormData>({
-    resolver: zodResolver(UserSchema),
-  })
+**Обработка результатов:**
 
-  const createUser = useMutation({
-    mutationFn: (data: UserFormData) => apiClient.post('/users', data),
-    onSuccess: () => {
-      reset() // Очистка формы
-    },
-    onError: (error: any) => {
-      // Обработка серверных ошибок
-      if (error.response?.data?.errors) {
-        Object.entries(error.response.data.errors).forEach(
-          ([field, message]) => {
-            setError(field as keyof UserFormData, {
-              type: 'server',
-              message: message as string,
-            })
-          },
-        )
-      }
-    },
-  })
+- **onSuccess** — очистить форму через `reset()`, показать уведомление
+- **onError** — мапить серверные ошибки на поля через `setError()`
 
-  const onSubmit = (data: UserFormData) => {
-    createUser.mutate(data)
-  }
+**Кнопка submit:**
 
-  return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <input {...register('name')} />
-      {errors.name && <span>{errors.name.message}</span>}
+- `disabled={createUser.isPending}` — блокировать при отправке
+- Показывать состояние: «Создание...» / «Создать»
 
-      <input {...register('email')} />
-      {errors.email && <span>{errors.email.message}</span>}
-
-      <button type="submit" disabled={createUser.isPending}>
-        {createUser.isPending ? 'Создание...' : 'Создать'}
-      </button>
-    </form>
-  )
-}
-```
+**Серверные ошибки:** если API возвращает ошибки в формате `{ errors: { email: 'Уже занят' } }`, пройдитесь по ним и вызовите `setError()` для каждого поля.
 
 ---
 
 ## 54.7. Валидация API ответов с Zod
 
-### Безопасная работа с API
+### Зачем валидировать ответы API?
 
-```typescript
-// api/users.ts
-import { z } from 'zod'
-import { apiClient } from '@/lib/api/axios'
+API — это граница вашего приложения. Данные извне могут быть невалидными: backend изменился, ошибка в API, атака.
 
-const UserSchema = z.object({
-  id: z.number(),
-  email: z.string().email(),
-  name: z.string(),
-  avatar: z.string().url().nullable(),
-})
+**Паттерн:** валидируйте ВСЕ данные на границе приложения через Zod-схемы.
 
-const UsersResponseSchema = z.object({
-  data: z.array(UserSchema),
-  total: z.number(),
-  page: z.number(),
-})
+### parse vs safeParse
 
-type User = z.infer<typeof UserSchema>
-type UsersResponse = z.infer<typeof UsersResponseSchema>
+- **parse()** — выбрасывает ошибку при невалидных данных. Используйте когда невалидные данные = критическая ошибка.
 
-export async function getUsers(page = 1): Promise<UsersResponse> {
-  const { data } = await apiClient.get('/users', { params: { page } })
+- **safeParse()** — возвращает `{ success, data/error }`. Используйте когда нужно graceful handling (показать fallback UI, залогировать ошибку).
 
-  // Валидация ответа от API
-  return UsersResponseSchema.parse(data)
-}
-```
-
-### safeParse для graceful обработки
-
-```typescript
-async function getUserSafely(id: number) {
-  const { data } = await apiClient.get(`/users/${id}`)
-
-  const result = UserSchema.safeParse(data)
-
-  if (result.success) {
-    return result.data // ✅ Валидные данные
-  } else {
-    console.error('Validation failed:', result.error)
-    return null
-  }
-}
-```
+**Рекомендация:** для API запросов используйте `parse()` — пусть TanStack Query обработает ошибку. Для необязательных данных (localStorage, query params) — `safeParse()`.
 
 ---
 
 ## 54.8. Продвинутые возможности
 
-### Динамические поля (Field Arrays)
+### Field Arrays (динамические поля)
 
-```typescript
-import { useForm, useFieldArray } from 'react-hook-form'
+Используйте `useFieldArray` когда количество полей неизвестно заранее: список товаров в заказе, несколько email-адресов, динамические фильтры.
 
-interface FormData {
-  users: Array<{ name: string; email: string }>
-}
+**Ключевые методы:**
 
-export function UsersForm() {
-  const { register, control, handleSubmit } = useForm<FormData>({
-    defaultValues: {
-      users: [{ name: '', email: '' }],
-    },
-  })
+- **fields** — массив полей для рендеринга
+- **append(defaultValue)** — добавить поле
+- **remove(index)** — удалить поле
+- **move(from, to)** — переместить поле
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'users',
-  })
+**Важно:** используйте `field.id` как key, а не index — это критично для правильной работы React.
 
-  return (
-    <form onSubmit={handleSubmit((data) => console.log(data))}>
-      {fields.map((field, index) => (
-        <div key={field.id}>
-          <input
-            {...register(`users.${index}.name`)}
-            placeholder="Name"
-          />
-          <input
-            {...register(`users.${index}.email`)}
-            placeholder="Email"
-          />
-          <button type="button" onClick={() => remove(index)}>
-            Удалить
-          </button>
-        </div>
-      ))}
+### Controller (для controlled компонентов)
 
-      <button
-        type="button"
-        onClick={() => append({ name: '', email: '' })}
-      >
-        Добавить пользователя
-      </button>
+Сторонние UI-библиотеки (Select, DatePicker, Slider) часто требуют controlled подхода.
 
-      <button type="submit">Отправить</button>
-    </form>
-  )
-}
-```
-
-### Controlled компоненты (Controller)
-
-```typescript
-import { Controller, useForm } from 'react-hook-form'
-import { Select } from '@/components/ui/Select'
-
-export function SettingsForm() {
-  const { control, handleSubmit } = useForm()
-
-  return (
-    <form onSubmit={handleSubmit((data) => console.log(data))}>
-      <Controller
-        name="theme"
-        control={control}
-        defaultValue="light"
-        render={({ field }) => (
-          <Select
-            value={field.value}
-            onChange={field.onChange}
-            options={[
-              { value: 'light', label: 'Light' },
-              { value: 'dark', label: 'Dark' },
-            ]}
-          />
-        )}
-      />
-
-      <button type="submit">Сохранить</button>
-    </form>
-  )
-}
-```
+`Controller` оборачивает такие компоненты и связывает их с React Hook Form. В `render` получаете `field` с `value` и `onChange`.
 
 ---
 
 ## 54.9. Best Practices
 
-### 1. Всегда используйте resolver для валидации
+### 1. Используйте Zod resolver вместо встроенной валидации
 
-```typescript
-// ❌ Плохо: встроенная валидация
-register('email', {
-  required: true,
-  pattern: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-})
+Встроенная валидация React Hook Form (`required: true`, `pattern: ...`) работает, но Zod даёт:
+- Единый источник правды (тип + валидация)
+- Переиспользуемые схемы
+- Лучшие сообщения об ошибках
 
-// ✅ Хорошо: Zod resolver
-const schema = z.object({
-  email: z.string().email(),
-})
+### 2. Всегда типизируйте формы
 
-useForm({ resolver: zodResolver(schema) })
-```
+Передавайте тип в `useForm<FormData>()` — это даёт автокомплит и защиту от опечаток в именах полей.
 
-### 2. Типизируйте формы
+### 3. Валидируйте данные на границах
 
-```typescript
-// ✅ Всегда указывайте тип
-const { register } = useForm<LoginFormData>()
-```
-
-### 3. Валидируйте API ответы
-
-```typescript
-// ✅ Валидация на границе приложения
-async function getUsers(): Promise<UsersResponse> {
-  const { data } = await apiClient.get('/users')
-  return UsersResponseSchema.parse(data)
-}
-```
+API ответы, localStorage, query params — всё что приходит извне должно проходить через Zod-схему.
 
 ### 4. Разделяйте большие формы
 
-```typescript
-// ❌ Плохо: одна гигантская форма
-function MegaForm() {
-  // 50 полей...
-}
-
-// ✅ Хорошо: разделение на шаги
-function MultiStepForm() {
-  const [step, setStep] = useState(1)
-
-  return (
-    <>
-      {step === 1 && <PersonalInfoStep />}
-      {step === 2 && <AddressStep />}
-      {step === 3 && <PaymentStep />}
-    </>
-  )
-}
-```
+Форма на 50 полей = кошмар для пользователя. Используйте multi-step формы с прогресс-индикатором. Каждый шаг — отдельный компонент со своей валидацией.
 
 ---
 
@@ -582,16 +236,3 @@ TypeScript проверяет только на этапе компиляции.
 ### 5. Зачем валидировать API ответы?
 
 API может вернуть невалидные данные. Валидация защищает от runtime ошибок.
-
----
-
-## Key Takeaways
-
-- React Hook Form для производительных форм без ререндеров
-- Zod для runtime валидации и типизации
-- Интеграция через `zodResolver`
-- Валидация API ответов защищает от runtime ошибок
-- `setError` для серверных ошибок
-- Разделение больших форм на компоненты
-- Один источник правды: схема Zod → типы TypeScript
-

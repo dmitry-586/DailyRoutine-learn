@@ -170,7 +170,7 @@ Developer B (неделю спустя):
 Разные версии = разное поведение
 ```
 
-⚠️ **Правило:** Всегда коммитьте lock-файлы!
+ **Правило:** Всегда коммитьте lock-файлы!
 
 ### Структура package-lock.json
 
@@ -464,17 +464,5 @@ npm — стандарт. pnpm быстрее и экономит место. bu
 
 Автоматически выполняемые скрипты: preinstall, postinstall, prebuild, postbuild и т.д.
 
----
-
-## Key Takeaways
-
-- package.json — контракт проекта
-- dependencies для runtime, devDependencies для разработки
-- peerDependencies предотвращают дублирование
-- SemVer: MAJOR.MINOR.PATCH
-- ^ для minor/patch, ~ только для patch
-- Lock-файлы обязательны для воспроизводимости
-- pnpm быстрее и экономит место
 - Lifecycle hooks для автоматизации
 - Понимание зависимостей критично для стабильности проекта
-

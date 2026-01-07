@@ -17,7 +17,7 @@ function getUser(id: UserId) {
 }
 
 const postId: PostId = 'post-123'
-getUser(postId) // ✅ Компилируется, но логически неверно!
+getUser(postId) //  Компилируется, но логически неверно!
 ```
 
 Это может привести к ошибкам, когда разные сущности имеют одинаковый базовый тип.
@@ -61,8 +61,8 @@ function getUser(id: UserId) {
 const userId = createUserId('user-123')
 const postId = createPostId('post-456')
 
-getUser(userId) // ✅ OK
-getUser(postId) // ❌ Type 'PostId' is not assignable to type 'UserId'
+getUser(userId) //  OK
+getUser(postId) //  Type 'PostId' is not assignable to type 'UserId'
 ```
 
 ### Упрощённый подход с строковым брендом
@@ -117,10 +117,10 @@ function sendEmail(to: ValidatedEmail, subject: string) {
   // Гарантированно валидный email
 }
 
-// ❌ Не компилируется
+//  Не компилируется
 sendEmail('invalid', 'Test')
 
-// ✅ OK
+//  OK
 const email = validateEmail('user@example.com')
 sendEmail(email, 'Test')
 ```
@@ -158,9 +158,9 @@ function feetToMeters(f: Feet): Meters {
 const distance = meters(100)
 const distanceInKm = metersToKilometers(distance)
 
-// ❌ Нельзя смешивать разные единицы
+//  Нельзя смешивать разные единицы
 function calculateArea(width: Meters, height: Feet) {
-  // ❌ Type error!
+  //  Type error!
   return width * height
 }
 ```
@@ -202,8 +202,8 @@ function getPost(id: PostId): Post {
 const userId = createUserId('user-123')
 const postId = createPostId('post-456')
 
-getUser(userId) // ✅ OK
-getUser(postId) // ❌ Error
+getUser(userId) //  OK
+getUser(postId) //  Error
 ```
 
 ### Генерация идентификаторов
@@ -271,7 +271,7 @@ function createPost(authorId: UserId, title: string): Post {
 
 const userId = createUserId('user-123')
 const post = createPost(userId, 'My Post')
-// ✅ Типы совместимы
+//  Типы совместимы
 ```
 
 ---
@@ -301,14 +301,14 @@ Branded types существуют только на уровне типов. В
 
 ```typescript
 const userId: UserId = createUserId('user-123')
-const regularString: string = userId // ✅ Работает в runtime
+const regularString: string = userId //  Работает в runtime
 
 // Но TypeScript предотвращает смешивание на этапе компиляции
 function processString(str: string) {
   // ...
 }
 
-processString(userId) // ✅ OK, так как UserId extends string
+processString(userId) //  OK, так как UserId extends string
 ```
 
 ### Производительность
@@ -342,15 +342,3 @@ Branded types не влияют на производительность — э
 ### 6. Как валидировать Branded Types?
 
 Создавать функции-конструкторы, которые проверяют значение перед приведением к branded типу.
-
----
-
-## Key Takeaways
-
-- Branded types создают номинальные типы в структурной системе
-- Предотвращают ошибки смешивания разных типов с одинаковой структурой
-- Используются для безопасных идентификаторов и валидированных данных
-- Существуют только на уровне типов, не влияют на runtime
-- Функции-конструкторы обеспечивают валидацию
-- Понимание Branded Types критично для создания надёжных систем типизации
-

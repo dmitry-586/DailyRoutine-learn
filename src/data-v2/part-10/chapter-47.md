@@ -219,12 +219,12 @@ function Parent() {
   const [count, setCount] = useState(0)
   const [name, setName] = useState('')
 
-  // ❌ Плохо: новая функция при каждом рендере
+  //  Плохо: новая функция при каждом рендере
   const handleClick = () => {
     setCount(count + 1)
   }
 
-  // ✅ Хорошо: функция мемоизирована
+  //  Хорошо: функция мемоизирована
   const handleClick = useCallback(() => {
     setCount((c) => c + 1)
   }, [])
@@ -246,23 +246,23 @@ const Child = memo(({ onClick }) => {
 
 ```jsx
 function Component({ userId }) {
-  // ❌ Плохо: новая функция при каждом рендере
+  //  Плохо: новая функция при каждом рендере
   const fetchUser = () => {
     return fetch(`/api/users/${userId}`).then((res) => res.json())
   }
 
   useEffect(() => {
     fetchUser().then(setUser)
-  }, [fetchUser]) // ❌ бесконечный цикл
+  }, [fetchUser]) //  бесконечный цикл
 
-  // ✅ Хорошо: функция мемоизирована
+  //  Хорошо: функция мемоизирована
   const fetchUser = useCallback(() => {
     return fetch(`/api/users/${userId}`).then((res) => res.json())
   }, [userId])
 
   useEffect(() => {
     fetchUser().then(setUser)
-  }, [fetchUser]) // ✅ работает корректно
+  }, [fetchUser]) //  работает корректно
 }
 ```
 
@@ -281,7 +281,7 @@ function Component({ userId }) {
 ### Пример неправильного использования
 
 ```jsx
-// ❌ Избыточная оптимизация
+//  Избыточная оптимизация
 const sum = useMemo(() => a + b, [a, b])
 const handleClick = useCallback(() => console.log('click'), [])
 ```
@@ -289,7 +289,7 @@ const handleClick = useCallback(() => console.log('click'), [])
 ### Пример правильного использования
 
 ```jsx
-// ✅ Оправданная оптимизация
+//  Оправданная оптимизация
 const sortedItems = useMemo(() => {
   return items.sort((a, b) => a.price - b.price)
 }, [items])
@@ -408,16 +408,3 @@ HOC для мемоизации компонентов. Предотвращае
 ### 5. Почему преждевременная оптимизация вредна?
 
 Усложняет код, добавляет накладные расходы, может не дать ожидаемого эффекта. Сначала профилируй, потом оптимизируй.
-
----
-
-## Key Takeaways
-
-- `useRef` для мутабельных значений без ререндеров
-- `useMemo` для мемоизации дорогих вычислений
-- `useCallback` для мемоизации функций
-- `React.memo` для мемоизации компонентов
-- Не злоупотребляй оптимизацией — сначала профилируй
-- Оптимизируй только то, что действительно медленно
-- Комбинация оптимизаций даёт лучший результат
-

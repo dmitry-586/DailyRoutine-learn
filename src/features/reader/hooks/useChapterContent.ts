@@ -14,7 +14,7 @@ export interface ChapterCacheEntry {
 }
 
 const STORAGE_KEY_PREFIX = 'reader:chapter:'
-const CACHE_VERSION = 'v9'
+const CACHE_VERSION = 'v10'
 
 const getStorageKey = (chapterId: string) =>
   `${STORAGE_KEY_PREFIX}${CACHE_VERSION}:${chapterId}`

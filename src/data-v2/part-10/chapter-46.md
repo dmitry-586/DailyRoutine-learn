@@ -135,7 +135,7 @@ function Component({ userId }) {
 
   useEffect(() => {
     fetch(`/api/user/${userId}`).then(setData)
-  }, []) // ❌ userId не в зависимостях!
+  }, []) //  userId не в зависимостях!
 }
 ```
 
@@ -146,7 +146,7 @@ function Component({ userId }) {
 ```jsx
 useEffect(() => {
   fetch(`/api/user/${userId}`).then(setData)
-}, [userId]) // ✅
+}, [userId]) // 
 ```
 
 ### 2. Stale closures
@@ -161,7 +161,7 @@ function Component() {
     }, 1000)
 
     return () => clearInterval(timer)
-  }, []) // ❌ count не в зависимостях
+  }, []) //  count не в зависимостях
 }
 ```
 
@@ -191,7 +191,7 @@ useEffect(() => {
   }, 1000)
 
   return () => clearInterval(timer)
-}, [count]) // ✅
+}, [count]) // 
 ```
 
 ### 3. Бесконечные циклы
@@ -204,7 +204,7 @@ function Component() {
     fetch('/api/data')
       .then((res) => res.json())
       .then(setData)
-  }, [data]) // ❌ data в зависимостях → бесконечный цикл
+  }, [data]) //  data в зависимостях → бесконечный цикл
 }
 ```
 
@@ -217,7 +217,7 @@ useEffect(() => {
   fetch('/api/data')
     .then((res) => res.json())
     .then(setData)
-}, []) // ✅ выполнится только один раз
+}, []) //  выполнится только один раз
 ```
 
 ### 4. Отсутствие cleanup для подписок
@@ -225,7 +225,7 @@ useEffect(() => {
 ```jsx
 useEffect(() => {
   const subscription = subscribe()
-  // ❌ нет cleanup → утечка памяти
+  //  нет cleanup → утечка памяти
 }, [])
 ```
 
@@ -235,7 +235,7 @@ useEffect(() => {
 useEffect(() => {
   const subscription = subscribe()
   return () => {
-    subscription.unsubscribe() // ✅ cleanup
+    subscription.unsubscribe() //  cleanup
   }
 }, [])
 ```
@@ -246,7 +246,7 @@ useEffect(() => {
 function Component({ user }) {
   useEffect(() => {
     fetchUserData(user.id)
-  }, [user]) // ❌ user — объект, ссылка меняется при каждом рендере
+  }, [user]) //  user — объект, ссылка меняется при каждом рендере
 }
 ```
 
@@ -257,7 +257,7 @@ function Component({ user }) {
 ```jsx
 useEffect(() => {
   fetchUserData(user.id)
-}, [user.id]) // ✅ только нужное значение
+}, [user.id]) //  только нужное значение
 ```
 
 ---
@@ -335,12 +335,12 @@ useEffect(() => {
 Если в эффекте используется значение из области видимости компонента, оно должно быть в зависимостях:
 
 ```jsx
-// ❌ Плохо
+//  Плохо
 useEffect(() => {
   console.log(count)
 }, [])
 
-// ✅ Хорошо
+//  Хорошо
 useEffect(() => {
   console.log(count)
 }, [count])
@@ -351,7 +351,7 @@ useEffect(() => {
 Если нужно обновить состояние на основе предыдущего значения, используй функциональное обновление:
 
 ```jsx
-// ✅ Не нужно добавлять count в зависимости
+//  Не нужно добавлять count в зависимости
 useEffect(() => {
   const timer = setInterval(() => {
     setCount((prev) => prev + 1)
@@ -396,16 +396,3 @@ useEffect(() => {
 ### 5. Как отменить запрос в useEffect?
 
 Использовать `AbortController` и вызвать `abort()` в cleanup функции.
-
----
-
-## Key Takeaways
-
-- `useEffect` для побочных эффектов (запросы, подписки, таймеры)
-- Массив зависимостей определяет, когда выполняется эффект
-- Cleanup функция обязательна для очистки ресурсов
-- Все используемые значения должны быть в зависимостях
-- Stale closures решаются функциональным обновлением
-- Бесконечные циклы возникают при обновлении зависимостей
-- Объекты и функции в зависимостях нужно мемоизировать
-

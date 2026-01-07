@@ -528,16 +528,3 @@ grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
 ### 9. Что такое gap?
 
 Современное свойство для отступов между элементами в Grid и Flexbox. Заменяет margin между элементами.
-
----
-
-## Key Takeaways
-
-- Flexbox идеален для одномерных макетов, Grid — для двухмерных
-- justify-content и align-items работают по разным осям
-- gap — современная замена margin'ам между элементами
-- auto-fit/auto-fill делают Grid адаптивным автоматически
-- Grid Areas упрощают создание сложных layout'ов
-- flex: 1 — мощный инструмент для равномерного распределения
-- Grid и Flex делают фреймворки вроде Bootstrap практически ненужными
-

@@ -26,7 +26,7 @@ Promise.all([promise1, promise2, promise3])
 const [user, posts, comments] = await Promise.all([
   fetchUser(userId),
   fetchPosts(userId),
-  fetchComments(userId)
+  fetchComments(userId),
 ])
 ```
 
@@ -49,7 +49,7 @@ const [user, posts, comments] = await Promise.all([
 const [header, sidebar, content] = await Promise.all([
   fetch('/api/header'),
   fetch('/api/sidebar'),
-  fetch('/api/content')
+  fetch('/api/content'),
 ])
 ```
 
@@ -62,13 +62,12 @@ const [header, sidebar, content] = await Promise.all([
 **Синтаксис:**
 
 ```javascript
-Promise.allSettled([promise1, promise2])
-  .then((results) => {
-    // results: [
-    //   { status: 'fulfilled', value: ... },
-    //   { status: 'rejected', reason: ... }
-    // ]
-  })
+Promise.allSettled([promise1, promise2]).then((results) => {
+  // results: [
+  //   { status: 'fulfilled', value: ... },
+  //   { status: 'rejected', reason: ... }
+  // ]
+})
 ```
 
 **Пример:**
@@ -77,7 +76,7 @@ Promise.allSettled([promise1, promise2])
 const results = await Promise.allSettled([
   fetch('/api/users'),
   fetch('/api/posts'),
-  fetch('/api/comments')
+  fetch('/api/comments'),
 ])
 
 results.forEach((result, index) => {
@@ -110,11 +109,11 @@ results.forEach((result, index) => {
 const analytics = await Promise.allSettled([
   sendToGoogleAnalytics(data),
   sendToAmplitude(data),
-  sendToMixpanel(data)
+  sendToMixpanel(data),
 ])
 
 // Обрабатываем результаты независимо
-analytics.forEach(result => {
+analytics.forEach((result) => {
   if (result.status === 'rejected') {
     logError('Analytics failed', result.reason)
   }
@@ -144,7 +143,7 @@ Promise.race([promise1, promise2])
 ```javascript
 const result = await Promise.race([
   fetch('/api/data'),
-  timeout(5000) // Промис, который отклоняется через 5 секунд
+  timeout(5000), // Промис, который отклоняется через 5 секунд
 ])
 ```
 
@@ -168,8 +167,8 @@ function fetchWithTimeout(url, timeout = 5000) {
   return Promise.race([
     fetch(url),
     new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Timeout')), timeout)
-    )
+      setTimeout(() => reject(new Error('Timeout')), timeout),
+    ),
   ])
 }
 
@@ -177,7 +176,7 @@ function fetchWithTimeout(url, timeout = 5000) {
 const data = await Promise.race([
   fetchFromServer1(),
   fetchFromServer2(),
-  fetchFromServer3()
+  fetchFromServer3(),
 ])
 ```
 
@@ -207,7 +206,7 @@ Promise.any([promise1, promise2])
 const data = await Promise.any([
   fetch('https://cdn1.example.com/data.json'),
   fetch('https://cdn2.example.com/data.json'),
-  fetch('https://cdn3.example.com/data.json')
+  fetch('https://cdn3.example.com/data.json'),
 ])
 ```
 
@@ -230,8 +229,8 @@ const data = await Promise.any([
 // Загрузка с основного сервера или fallback
 const data = await Promise.any([
   fetch('/api/data'),
-  fetch('/api/fallback/data')
-]).catch(error => {
+  fetch('/api/fallback/data'),
+]).catch((error) => {
   // Оба сервера недоступны
   return getCachedData()
 })
@@ -241,12 +240,29 @@ const data = await Promise.any([
 
 ## 28.5. Сравнение комбинаторов
 
-| Комбинатор | Успех | Ошибка | Когда использовать |
-|-----------|-------|--------|-------------------|
-| `Promise.all` | Все успешны | Первая ошибка отклоняет все | Все операции обязательны |
-| `Promise.allSettled` | Всегда возвращает результаты | Никогда не отклоняется | Нужны все результаты, даже с ошибками |
-| `Promise.race` | Первый завершившийся | Первая ошибка | Таймауты, конкурентные запросы |
-| `Promise.any` | Первый успешный | Все отклонены | Fallback стратегии |
+**Promise.all:**
+
+- Успех: все успешны
+- Ошибка: первая ошибка отклоняет все
+- Когда использовать: все операции обязательны
+
+**Promise.allSettled:**
+
+- Успех: всегда возвращает результаты
+- Ошибка: никогда не отклоняется
+- Когда использовать: нужны все результаты, даже с ошибками
+
+**Promise.race:**
+
+- Успех: первый завершившийся
+- Ошибка: первая ошибка
+- Когда использовать: таймауты, конкурентные запросы
+
+**Promise.any:**
+
+- Успех: первый успешный
+- Ошибка: все отклонены
+- Когда использовать: fallback стратегии
 
 ---
 
@@ -259,7 +275,7 @@ const data = await Promise.any([
 const [user, posts, settings] = await Promise.all([
   fetchUser(),
   fetchPosts(),
-  fetchSettings()
+  fetchSettings(),
 ])
 ```
 
@@ -270,12 +286,10 @@ const [user, posts, settings] = await Promise.all([
 const metrics = await Promise.allSettled([
   getPageViews(),
   getUniqueVisitors(),
-  getBounceRate()
+  getBounceRate(),
 ])
 
-const report = metrics.map(m => 
-  m.status === 'fulfilled' ? m.value : null
-)
+const report = metrics.map((m) => (m.status === 'fulfilled' ? m.value : null))
 ```
 
 ### Таймаут для операции
@@ -284,7 +298,7 @@ const report = metrics.map(m =>
 async function fetchWithTimeout(url, ms) {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), ms)
-  
+
   try {
     const response = await fetch(url, { signal: controller.signal })
     clearTimeout(timeoutId)
@@ -305,7 +319,7 @@ async function fetchWithTimeout(url, ms) {
 // Пробуем загрузить с основного, затем с резервного
 const data = await Promise.any([
   fetch('/api/primary'),
-  fetch('/api/fallback')
+  fetch('/api/fallback'),
 ]).catch(() => {
   // Оба упали, используем кэш
   return getCachedData()
@@ -318,25 +332,14 @@ const data = await Promise.any([
 
 ```javascript
 // Загружаем пользователей параллельно
-const users = await Promise.all([
-  fetchUser(1),
-  fetchUser(2),
-  fetchUser(3)
-])
+const users = await Promise.all([fetchUser(1), fetchUser(2), fetchUser(3)])
 
 // Для каждого пользователя загружаем посты (тоже параллельно)
-const postsByUser = await Promise.all(
-  users.map(user => fetchPosts(user.id))
-)
+const postsByUser = await Promise.all(users.map((user) => fetchPosts(user.id)))
 
 // Или с таймаутом для каждого запроса
 const usersWithTimeout = await Promise.all(
-  userIds.map(id => 
-    Promise.race([
-      fetchUser(id),
-      timeout(5000)
-    ])
-  )
+  userIds.map((id) => Promise.race([fetchUser(id), timeout(5000)])),
 )
 ```
 
@@ -367,15 +370,4 @@ const usersWithTimeout = await Promise.all(
 ### 6. Когда использовать Promise.allSettled?
 
 Когда нужны все результаты, даже если некоторые операции упали (логирование, метрики, агрегация данных).
-
----
-
-## Key Takeaways
-
-- `Promise.all` — все обязательны, первая ошибка отклоняет все
-- `Promise.allSettled` — все результаты, даже с ошибками
-- `Promise.race` — первый завершившийся (успех или ошибка)
-- `Promise.any` — первый успешный, отклоняется только если все отклонены
-- Выбор комбинатора зависит от требований к обработке ошибок
-- Комбинаторы можно комбинировать для сложных сценариев
 

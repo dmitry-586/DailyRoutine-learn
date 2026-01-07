@@ -405,14 +405,3 @@ Cumulative Layout Shift — мера визуальной стабильност
 ### 6. Что такое INP?
 
 Interaction to Next Paint — время от взаимодействия до следующего кадра. Заменяет FID в 2024.
-
----
-
-## Key Takeaways
-
-- Жизненный цикл страницы: DOMContentLoaded → load → beforeunload
-- Preload/prefetch/preconnect помогают управлять приоритетами загрузки
-- Web Vitals измеряют реальное восприятие производительности
-- LCP, CLS, INP — ключевые метрики для оценки UX
-- Оптимизация изображений, шрифтов и JavaScript критична для производительности
-- Измерение метрик через Performance API и DevTools

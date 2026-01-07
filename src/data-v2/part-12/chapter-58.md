@@ -160,10 +160,10 @@ function AddToCartButton({ productId }: { productId: number }) {
 }
 ```
 
-### ❌ Нельзя: Client Component импортирует Server Component
+###  Нельзя: Client Component импортирует Server Component
 
 ```tsx
-// ❌ Плохо: Client Component не может импортировать Server Component
+//  Плохо: Client Component не может импортировать Server Component
 'use client'
 import { ServerComponent } from './ServerComponent' // Ошибка!
 
@@ -175,7 +175,7 @@ export function ClientComponent() {
 **Решение:** передавай данные через props.
 
 ```tsx
-// ✅ Хорошо: передаём данные через props
+//  Хорошо: передаём данные через props
 'use client'
 export function ClientComponent({ data }: { data: Data }) {
   return <div>{data.name}</div>
@@ -378,7 +378,7 @@ export function CreateProductForm() {
 ### 1. Минимизируй Client Components
 
 ```tsx
-// ❌ Плохо: всё в Client Component
+//  Плохо: всё в Client Component
 'use client'
 export function ProductsPage() {
   const [products, setProducts] = useState([])
@@ -392,7 +392,7 @@ export function ProductsPage() {
   return <div>{/* ... */}</div>
 }
 
-// ✅ Хорошо: Server Component для данных
+//  Хорошо: Server Component для данных
 async function ProductsPage() {
   const products = await getProducts()
   return <ProductsList products={products} />
@@ -434,7 +434,7 @@ function AddToCartButton({ productId }: { productId: number }) {
 ### 3. Используй Server Actions для мутаций
 
 ```tsx
-// ❌ Плохо: API route из Client Component
+//  Плохо: API route из Client Component
 'use client'
 async function handleSubmit() {
   await fetch('/api/products', {
@@ -443,7 +443,7 @@ async function handleSubmit() {
   })
 }
 
-// ✅ Хорошо: Server Action
+//  Хорошо: Server Action
 'use server'
 export async function createProduct(data: ProductData) {
   await db.products.create({ data })
@@ -474,17 +474,5 @@ Server Components отправляют только HTML, нет гидрата�
 
 Server Components по умолчанию для данных, Client Components для интерактивности.
 
----
-
-## Key Takeaways
-
-- Server Components выполняются только на сервере
-- Не попадают в JS-бандл → меньший размер клиента
-- Не могут использовать хуки, браузерные API, события
-- Server Components могут импортировать Client Components
-- Client Components не могут импортировать Server Components
-- Данные передаются через props
-- Server Actions для мутаций из Client Components
 - Используй Server Components по умолчанию
 - Переходи на Client Components только для интерактивности
-

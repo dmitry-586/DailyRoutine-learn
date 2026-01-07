@@ -11,7 +11,7 @@ export const markdownComponents: Components = {
     return (
       <h1
         id={id}
-        className={`${headingBase} mb-6 scroll-mt-20 text-3xl`}
+        className={`${headingBase} mb-6 scroll-mt-20 text-3xl max-md:text-2xl max-sm:mb-4 max-sm:text-xl`}
         {...props}
       >
         {children}
@@ -23,7 +23,7 @@ export const markdownComponents: Components = {
     return (
       <h2
         id={id}
-        className={`${headingBase} mt-8 mb-4 scroll-mt-20 text-2xl`}
+        className={`${headingBase} mt-5 mb-4 scroll-mt-20 text-2xl max-sm:text-xl`}
         {...props}
       >
         {children}
@@ -35,7 +35,7 @@ export const markdownComponents: Components = {
     return (
       <h3
         id={id}
-        className={`${headingBase} mt-6 mb-3 scroll-mt-20 text-xl`}
+        className={`${headingBase} mt-6 mb-3 scroll-mt-20 text-xl max-sm:text-lg`}
         {...props}
       >
         {children}
@@ -47,7 +47,7 @@ export const markdownComponents: Components = {
     return (
       <h4
         id={id}
-        className={`${headingBase} mt-4 mb-2 scroll-mt-20 text-lg`}
+        className={`${headingBase} mt-4 mb-2 scroll-mt-20 text-lg max-sm:text-base`}
         {...props}
       >
         {children}
@@ -140,7 +140,7 @@ export const markdownComponents: Components = {
     <strong className={`${baseText} font-bold`}>{children}</strong>
   ),
   em: ({ children }) => <em className={`${baseText} italic`}>{children}</em>,
-  hr: () => <hr className='border-gray my-8 border-t-2' />,
+  hr: () => <hr className='border-gray my-6 border-t-2' />,
   table: ({ children }) => (
     <table className='mb-4 w-full border-collapse'>{children}</table>
   ),

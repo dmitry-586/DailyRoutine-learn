@@ -36,16 +36,16 @@ XSS — внедрение вредоносного JS-кода в довере�
 ```javascript
 // Клиентский код
 const hash = window.location.hash
-element.innerHTML = hash // ❌ XSS через URL hash
+element.innerHTML = hash //  XSS через URL hash
 ```
 
 ### Пример уязвимости
 
 ```javascript
-// ❌ Опасно
+//  Опасно
 element.innerHTML = userInput
 
-// ✅ Безопасно
+//  Безопасно
 element.textContent = userInput
 ```
 
@@ -62,17 +62,17 @@ element.textContent = userInput
 React автоматически экранирует значения:
 
 ```tsx
-// ✅ Безопасно: React экранирует
+//  Безопасно: React экранирует
 function UserProfile({ name }: { name: string }) {
   return <div>{name}</div> // Автоматически экранируется
 }
 
-// ❌ Опасно: dangerouslySetInnerHTML
+//  Опасно: dangerouslySetInnerHTML
 function UserContent({ html }: { html: string }) {
   return <div dangerouslySetInnerHTML={{ __html: html }} />
 }
 
-// ✅ Безопасно: санитизация перед dangerouslySetInnerHTML
+//  Безопасно: санитизация перед dangerouslySetInnerHTML
 import DOMPurify from 'dompurify'
 
 function UserContent({ html }: { html: string }) {
@@ -149,10 +149,10 @@ Access-Control-Allow-Headers: Content-Type
 ### Типичная ошибка
 
 ```javascript
-// ❌ Опасно: открытый CORS
+//  Опасно: открытый CORS
 Access-Control-Allow-Origin: *
 
-// ✅ Безопасно: конкретные домены
+//  Безопасно: конкретные домены
 Access-Control-Allow-Origin: https://myapp.com
 ```
 
@@ -238,7 +238,7 @@ Set-Cookie: session=abc123; SameSite=Lax; Secure
 
 ### Где хранить токены
 
-**❌ localStorage:**
+** localStorage:**
 
 ```javascript
 // Уязвимо к XSS
@@ -246,7 +246,7 @@ localStorage.setItem('token', 'abc123')
 // Атакующий может прочитать через XSS
 ```
 
-**✅ HttpOnly cookies:**
+** HttpOnly cookies:**
 
 ```javascript
 // Безопасно: JS не может прочитать
@@ -375,16 +375,4 @@ HttpOnly cookies недоступны из JS, защита от XSS.
 
 XSS, CSRF, insecure storage, misconfiguration.
 
----
-
-## Key Takeaways
-
-- XSS — самая частая угроза фронтенда
-- CSRF защищается токенами и SameSite cookies
-- CORS настраивается на сервере, исполняется браузером
-- HttpOnly cookies безопаснее localStorage
-- JWT имеет ограничения, нужна стратегия обновления
-- OWASP Top-10 — базовый чек-лист безопасности
-- React экранирует по умолчанию, но `dangerouslySetInnerHTML` требует санитизации
 - Никогда не доверяй данным от клиента — валидация на сервере обязательна
-
