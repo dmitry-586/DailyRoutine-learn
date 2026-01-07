@@ -61,8 +61,6 @@ export default function PracticePage() {
             {selectedPractice.solutions && (
               <Button
                 onClick={() => setShowSolutions(!showSolutions)}
-                variant='glass'
-                size='sm'
                 title={showSolutions ? 'Скрыть решения' : 'Показать решения'}
                 aria-label={
                   showSolutions ? 'Скрыть решения' : 'Показать решения'
@@ -93,11 +91,11 @@ export default function PracticePage() {
         {/* Navigation */}
         <div className='fixed bottom-4 left-4 z-50'>
           <Button
+            variant='glass-icon'
             onClick={() => {
               setSelectedPractice(null)
               setShowSolutions(false)
             }}
-            variant='glass-icon'
             title='Назад к списку'
             aria-label='Назад к списку'
           >
@@ -175,8 +173,8 @@ export default function PracticePage() {
       {/* Navigation */}
       <div className='fixed right-4 bottom-4 z-50'>
         <Button
-          onClick={() => router.push('/')}
           variant='glass-icon'
+          onClick={() => router.push('/')}
           title='Вернуться в меню'
           aria-label='Вернуться в меню'
         >

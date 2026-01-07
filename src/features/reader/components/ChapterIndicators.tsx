@@ -29,7 +29,7 @@ export function ChapterIndicators({
           className={cn(
             'h-1.5 rounded-full transition-all',
             index === currentIndex
-              ? 'bg-primary w-8 shadow-sm'
+              ? 'bg-primary w-6 shadow-sm'
               : 'w-1.5 bg-white/30 hover:bg-white/50',
           )}
           aria-label={`Перейти к главе ${index + 1}`}

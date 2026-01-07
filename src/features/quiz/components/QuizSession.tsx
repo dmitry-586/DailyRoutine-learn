@@ -205,7 +205,6 @@ export function QuizSession({
       <div className='fixed right-4 bottom-4 z-50 flex items-center gap-3'>
         {currentIndex > 0 && (
           <Button
-            variant='glass'
             onClick={handlePrev}
             title='Предыдущий вопрос'
             aria-label='Предыдущий вопрос'
@@ -214,7 +213,6 @@ export function QuizSession({
           </Button>
         )}
         <Button
-          variant='glass'
           onClick={handleNext}
           disabled={!hasAnswer}
           title={

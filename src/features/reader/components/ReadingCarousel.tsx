@@ -187,12 +187,9 @@ export function ReadingCarousel({ content }: ReadingCarouselProps) {
         parts={content.parts}
         canScrollPrev={canScrollPrev}
         canScrollNext={canScrollNext}
-        currentGlobalIndex={currentIndex}
-        totalChapters={allChapters.length}
         onScrollPrev={scrollPrev}
         onScrollNext={scrollNext}
         onScrollTo={scrollTo}
-        onOpenTableOfContents={() => setIsTableOfContentsOpen(true)}
       />
 
       <GlobalTableOfContents
