@@ -1,4 +1,4 @@
-import { partsConfig } from '@/data'
+import { partsConfig } from '@/data-v2'
 import type { ChapterMeta } from '@/shared/types'
 import { readFile } from 'fs/promises'
 import { NextResponse } from 'next/server'
@@ -6,7 +6,7 @@ import { join } from 'path'
 
 export const dynamic = 'force-dynamic'
 
-const CONTENT_DIR = join(process.cwd(), 'src/data')
+const CONTENT_DIR = join(process.cwd(), 'src/data-v2')
 
 // Кэш для markdown контента (в памяти сервера)
 const contentCache = new Map<string, { content: string; timestamp: number }>()

@@ -1,6 +1,6 @@
 'use client'
 
-import { partsConfig } from '@/data'
+import { partsConfig } from '@/data-v2'
 import { getPartsWithQuestionCount } from '@/data/questions'
 import { Button } from '@/shared/ui/Button'
 import { ArrowLeft, Play } from 'lucide-react'
@@ -23,10 +23,7 @@ export function QuizStart({ onBack }: QuizStartProps) {
     return new Map(counts.map((c) => [c.partId, c.count]))
   }, [])
 
-  const availableParts = useMemo(
-    () => partsConfig.filter((part) => part.id !== 'part-10'),
-    [],
-  )
+  const availableParts = useMemo(() => partsConfig, [])
 
   const totalAvailableQuestions = useMemo(() => {
     if (selectedParts.length === 0) {

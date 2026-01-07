@@ -1,0 +1,88 @@
+Часть 1. Веб, сеть и HTTP
+1.	Как браузер загружает страницу: URL, DNS, соединение, первый байт
+2.	Транспортный уровень: TCP, UDP, QUIC, RTT и задержки
+3.	HTTP: протокол, методы, коды, редиректы, request/response, headers/body
+4.	API: REST и GraphQL, контракты и версионирование
+5.	Ограничения браузера: Same-Origin, CORS, cookies
+6.	Realtime в вебе: WebSocket и SSE
+
+Часть 2. Браузер, рендеринг и производительность
+7.	Архитектура браузера: процессы, изоляция, IPC
+8.	Оптимизация загрузки и Web Vitals: жизненный цикл страницы, TTFB, LCP, CLS, INP
+9.	Рендеринг: DOM, CSSOM, layout, paint, composite, reflow и repaint
+
+Часть 3. HTML, доступность и формы
+10.	HTML: семантика, структура документа и SEO-минимум
+11.	Доступность: фокус, клавиатура, роли, ARIA
+12.	Формы: валидация и UX ошибок
+
+Часть 4. CSS
+13.	CSS основы: каскад, специфичность, наследование, слои, бокс-модель и поток документа
+14.	Display, визуальное поведение элементов и позиционирование
+15.	Современные раскладки: Flexbox и Grid
+16.	Адаптивность и дизайн-токены: media queries, container queries, CSS variables
+17.	Архитектура стилей: modules, BEM, CSS-in-JS, utility-first и Tailwind CSS
+
+Часть 5. JavaScript
+18.	Типы данных, значения, ссылки и приведение типов
+19.	Scope, hoisting, TDZ и объявление переменных (var, let, const)
+20.	Функции: виды и особенности
+21.	Execution context, call stack и замыкания
+22.	this и правила привязки
+23.	Прототипы, наследование и классы
+24.	Модули: ESM и CommonJS
+25.	Методы массивов и иммутабельные паттерны
+
+Часть 6. Асинхронность
+26.	Event Loop: модель выполнения, microtasks и macrotasks
+27.	Promise и async/await: состояния, цепочки, ошибки
+28.	Комбинаторы промисов: all, allSettled, race, any
+29.	Отмена задач, таймауты и race conditions: AbortController
+
+Часть 7. DOM и события
+30.	DOM операции и производительность
+31.	События: capturing, bubbling, распространение и делегирование
+32.	Observer APIs: IntersectionObserver, MutationObserver, ResizeObserver
+
+Часть 8. TypeScript
+33.	Зачем TypeScript и строгий режим
+34.	Типы: any, unknown, never, Union, Intersection, literal types
+35.	Interface и type
+36.	Типизация функций и перегрузки
+37.	Дженерики
+38.	Продвинутые типы: Utility types, Discriminated unions, Type guards, Conditional/Mapped/Template literal types
+39.	Branded types и безопасные идентификаторы
+
+Часть 9. Инструменты, сборка и тестирование
+40.	Зависимости: package.json, semver, lockfiles и обновления
+41.	Сборка: Vite, Webpack, Turbopack, Babel и TypeScript в пайплайне
+42.	Оптимизация бандла: tree-shaking, side effects, code splitting и динамические импорты
+43.	Тестирование: unit, integration, e2e, стратегии
+
+Часть 10. React
+44.	Рендеринг и reconciliation, keys
+45.	Состояние: useState и useReducer
+46.	useEffect: зависимости, cleanup, ловушки
+47.	Оптимизация рендеров: useRef, useMemo и useCallback
+48.	Context API и перерендеры
+49.	Кастомные хуки
+50.	Error boundaries и стратегия обработки ошибок
+
+Часть 11. Server state, формы и валидация
+51.	Server state и client state
+52.	TanStack Query: useQuery, кэширование и query keys
+53.	TanStack Query: мутации, invalidation, optimistic updates, prefetch и infinite queries
+54.	Формы и контракты: React Hook Form и Zod
+
+Часть 12. Next.js
+55.	Рендер-стратегии: SPA, SSR, SSG, ISR
+56.	Маршрутизация и компоновка: layout, loading, error
+57.	Data fetching, кэширование и производительность в Next.js
+58.	Server Components и границы ответственности
+
+Часть 13. Безопасность
+59.	Безопасность фронтенда: XSS, CSRF, cookies, токены и OWASP Top-10
+
+Часть 14. Архитектура фронтенда
+60.	Архитектура фронтенда: разделение ответственности, слои и Feature-Sliced Design
+
