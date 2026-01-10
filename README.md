@@ -1,6 +1,6 @@
 # DailyRoutine Learn
 
-Мобильно-ориентированная читалка с поддержкой Markdown. Построена на архитектуре Feature-Sliced Design.
+Мобильно-ориентированная читалка с поддержкой Markdown. Построена на архитектуре Evolution Design.
 
 ## 🚀 Технологии
 
@@ -11,32 +11,7 @@
 - **React Markdown** - рендеринг Markdown контента
 - **Lucide React** - современные иконки
 
-## 📁 Архитектура
-```
-src/
-├── app/                  # Next.js App Router
-│   ├── layout.tsx
-│   ├── page.tsx
-│   └── globals.css
-├── features/            # Фичи приложения
-│   └── reader/          # Фича читалки
-│       ├── ui/          # UI компоненты фичи
-│       └── index.ts
-├── shared/              # Общие ресурсы
-│   ├── lib/             # Утилиты
-│   │   └── utils/
-│   ├── types/           # Типы TypeScript
-│   └── ui/              # Переиспользуемые UI компоненты
-└── data/                # Данные и контент
-```
 ## 🛠 Установка и запуск
-
-### Требования
-
-- Node.js 18+
-- npm, pnpm, yarn или bun
-
-### Команды
 
 ```bash
 # Установка зависимостей
@@ -62,6 +37,3 @@ npm run format
 
 Приложение поддерживает установку как Progressive Web App:
 
-- Установка на домашний экран
-- Native-like интерфейс
-- Поддержка safe area insets
