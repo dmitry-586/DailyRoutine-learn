@@ -1,470 +1,78 @@
-# Глава 12. Формы: валидация и UX ошибок
+# Глава 12. Формы: валидация и UX ошибок (короткий минимум)
 
-Формы — это один из самых важных элементов веб-интерфейса. От качества их реализации зависит конверсия, пользовательский опыт и доступность. Правильная валидация, понятные сообщения об ошибках и хороший UX критичны для успешных форм.
-
-На собеседованиях это проверяют, потому что:
-
-- формы — основа большинства веб-приложений
-- валидация влияет на безопасность и UX
-- доступность форм — требование WCAG
-- работа с формами показывает понимание UX принципов
+Про формы на собеседованиях обычно спрашивают не “перечисли все `input type`”, а **как сделать форму удобной, понятной и безопасной**. Важно помнить две идеи: валидация влияет на UX, а безопасность обеспечивается на сервере.
 
 ---
 
-## 12.1. Нативные элементы форм
+## 12.1. Семантика формы: без неё всё остальное ломается
 
-### Базовые элементы
+Базовый фундамент — нативные элементы и правильные связи:
 
-- `<form>` — контейнер формы
-- `<label>` — подпись поля (обязательна!)
-- `<input>` — поле ввода
-- `<textarea>` — многострочное поле
-- `<select>` — выпадающий список
-- `<button>` — кнопка отправки
+- у каждого поля должен быть `label` (явный через `for/id` или оборачивающий),
+- кнопка отправки должна быть кнопкой (`<button type="submit">`),
+- если есть подсказка или ошибка — она должна быть связана с полем (например, через `aria-describedby`).
 
-Без `<label>` многие screen readers не понимают предназначение поля.
-
-**Обязательное правило:**
-
-```html
-<label for="email">Email</label>
-<input id="email" type="email" />
-```
-
-**Почему?**
-
-- фокус можно поставить по клику на текст
-- читатель вслух связывает label и input
-- помогает автозаполнению
-- улучшает UX
-
-**Альтернативный синтаксис:**
-
-```html
-<label>
-  Email
-  <input type="email" />
-</label>
-```
+`label` важен не только для screen readers: он улучшает UX (клик по тексту фокусирует поле) и помогает автозаполнению.
 
 ---
 
-## 12.2. Типы input
+## 12.2. Валидация: что делать на клиенте и что обязательно на сервере
 
-**text** — обычные поля
+### Клиентская валидация
 
-**email** — проверка email встроена
+Цель — быстро подсказать пользователю, что исправить. Часто достаточно нативной HTML5-валидации:
 
-```html
-<input type="email" required />
-```
+- `required`,
+- корректный `type` (например, `email`),
+- ограничения длины/диапазона (`min`, `max`, `minlength`, `maxlength`),
+- `pattern` там, где формат действительно важен.
 
-**number** — допускает числовой ввод
+Нативная валидация хороша тем, что она “из коробки” работает с доступностью и даёт предсказуемое поведение.
 
-```html
-<input type="number" min="0" max="100" step="1" />
-```
+### Серверная валидация
 
-**tel** — удобная клавиатура на мобильных
-
-```html
-<input type="tel" pattern="[0-9]{10}" />
-```
-
-**date** — календарь
-
-```html
-<input type="date" min="2024-01-01" max="2024-12-31" />
-```
-
-**range** — слайдер
-
-```html
-<input type="range" min="0" max="100" value="50" />
-```
-
-**password** — скрытый ввод
-
-```html
-<input type="password" autocomplete="current-password" />
-```
-
-**search** — поле поиска
-
-```html
-<input type="search" />
-```
-
-**url** — валидация URL
-
-```html
-<input type="url" />
-```
-
-**checkbox** — чекбокс
-
-```html
-<input type="checkbox" id="agree" />
-<label for="agree">Я согласен</label>
-```
-
-**radio** — радио-кнопки
-
-```html
-<input type="radio" id="male" name="gender" value="male" />
-<label for="male">Мужской</label>
-<input type="radio" id="female" name="gender" value="female" />
-<label for="female">Женский</label>
-```
+Это обязательная часть: на сервере проверяются те же правила (и чаще — больше), потому что клиенту доверять нельзя. На собеседовании это ожидают как “гигиену”: **клиент — для удобства, сервер — для истины**.
 
 ---
 
-## 12.3. Валидация HTML5
+## 12.3. UX ошибок: как делать, чтобы не раздражать
 
-Атрибуты валидации:
+Главная задача ошибок — помочь быстро исправить ввод, не превращая форму в “борьбу”.
 
-- `required` — поле обязательно
-- `pattern` — регулярное выражение
-- `min`, `max` — минимальное/максимальное значение
-- `maxlength`, `minlength` — длина строки
-- `type="email"` — валидация email
-- `step` — шаг для number/range
+Практичные правила:
 
-Браузер сам покажет пользователю ошибку.
+- показывать ошибки после попытки отправки и/или после `blur` (когда человек закончил ввод),
+- не спамить ошибками при каждом символе (кроме случаев, где это явно полезно),
+- писать сообщения конкретно: что не так и как исправить,
+- подсвечивать ошибку рядом с полем, а не только “где-то наверху”.
 
-**Пример:**
+Для доступности ошибок обычно достаточно:
 
-```html
-<form>
-  <label for="email">Email</label>
-  <input
-    id="email"
-    type="email"
-    required
-    pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
-  />
-  
-  <label for="age">Возраст</label>
-  <input
-    id="age"
-    type="number"
-    min="18"
-    max="120"
-    required
-  />
-  
-  <label for="phone">Телефон</label>
-  <input
-    id="phone"
-    type="tel"
-    pattern="[0-9]{10}"
-    placeholder="1234567890"
-    required
-  />
-  
-  <button type="submit">Отправить</button>
-</form>
-```
-
-### Custom-валидация через Constraint API
-
-```javascript
-const input = document.querySelector('#email')
-
-// Установить кастомное сообщение
-input.setCustomValidity('Введите корректный email')
-
-// Проверить валидность
-if (input.validity.valid) {
-  // Поле валидно
-} else {
-  // Поле невалидно
-  console.log(input.validity)
-  // validity: {
-  //   valueMissing: true/false
-  //   typeMismatch: true/false
-  //   patternMismatch: true/false
-  //   tooLong: true/false
-  //   tooShort: true/false
-  //   rangeUnderflow: true/false
-  //   rangeOverflow: true/false
-  //   stepMismatch: true/false
-  //   badInput: true/false
-  //   customError: true/false
-  //   valid: true/false
-  // }
-}
-
-// Сбросить кастомное сообщение
-input.setCustomValidity('')
-```
-
-**Почему важно использовать нативную валидацию?**
-
-- она бесплатная
-- работает из коробки
-- идеально интегрирована с доступностью
-- не ломается при выключенном JS
-- автоматически локализуется браузером
+- помечать невалидное поле через `aria-invalid="true"`,
+- связывать поле с текстом ошибки через `aria-describedby`,
+- для динамических сообщений использовать живую область (например, `role="alert"`/`aria-live`), чтобы читатель озвучил изменения.
 
 ---
 
-## 12.4. UX ошибок в формах
+## 12.4. Доступность и удобство: минимум, который должен быть всегда
 
-### Показ ошибок
-
-**Плохо:**
-
-```html
-<!-- Ошибка показывается только после отправки -->
-<form>
-  <input type="email" required />
-  <span class="error" style="display: none;">Неверный email</span>
-</form>
-```
-
-**Хорошо:**
-
-```html
-<form novalidate>
-  <label for="email">Email</label>
-  <input
-    id="email"
-    type="email"
-    required
-    aria-invalid="false"
-    aria-describedby="email-error"
-  />
-  <span id="email-error" class="error" role="alert" aria-live="polite">
-    <!-- Сообщение об ошибке -->
-  </span>
-</form>
-```
-
-**Правила:**
-
-1. Показывать ошибки сразу при потере фокуса (blur)
-2. Использовать `aria-invalid` для screen readers
-3. Использовать `aria-describedby` для связи с сообщением об ошибке
-4. Использовать `role="alert"` для динамических сообщений
-5. Валидировать при вводе (для некоторых полей)
-
-### Сообщения об ошибках
-
-**Хорошие сообщения:**
-
-- Конкретные (не "Ошибка", а "Email должен содержать @")
-- Понятные (не "Pattern mismatch", а "Введите корректный номер телефона")
-- Позитивные (не "Не используйте пробелы", а "Используйте только буквы и цифры")
-- Показывают, что исправить
-
-**Пример:**
-
-```html
-<input
-  type="password"
-  id="password"
-  aria-invalid="false"
-  aria-describedby="password-error password-hint"
-/>
-<span id="password-hint" class="hint">
-  Минимум 8 символов, буквы и цифры
-</span>
-<span id="password-error" class="error" role="alert"></span>
-```
-
-### Визуальная индикация
-
-```css
-input:invalid {
-  border-color: red;
-}
-
-input:valid {
-  border-color: green;
-}
-
-input:focus:invalid {
-  outline-color: red;
-}
-
-.error {
-  color: red;
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
-}
-```
-
----
-
-## 12.5. Доступность форм
-
-### Обязательные поля
-
-```html
-<label for="email">
-  Email
-  <span aria-label="обязательное поле">*</span>
-</label>
-<input id="email" type="email" required aria-required="true" />
-```
-
-### Группировка полей
-
-```html
-<fieldset>
-  <legend>Контактная информация</legend>
-  <label for="email">Email</label>
-  <input id="email" type="email" />
-  
-  <label for="phone">Телефон</label>
-  <input id="phone" type="tel" />
-</fieldset>
-```
-
-### Таблицы в формах
-
-Используем:
-
-- `<thead>`
-- `<tbody>`
-- `<th>`
-
-И главное:
-
-```html
-<th scope="col">Price</th>
-<th scope="row">Tomatoes</th>
-```
-
-Это помогает людям с экранными читалками.
-
----
-
-## 12.6. Практические паттерны
-
-### Валидация в реальном времени
-
-```javascript
-const emailInput = document.querySelector('#email')
-
-emailInput.addEventListener('blur', () => {
-  validateEmail(emailInput)
-})
-
-emailInput.addEventListener('input', () => {
-  if (emailInput.value.length > 0) {
-    validateEmail(emailInput)
-  }
-})
-
-function validateEmail(input) {
-  const email = input.value
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  
-  if (!emailRegex.test(email)) {
-    input.setCustomValidity('Введите корректный email')
-    input.setAttribute('aria-invalid', 'true')
-    showError(input, 'Введите корректный email')
-  } else {
-    input.setCustomValidity('')
-    input.setAttribute('aria-invalid', 'false')
-    hideError(input)
-  }
-}
-```
-
-### Отправка формы
-
-```javascript
-form.addEventListener('submit', async (e) => {
-  e.preventDefault()
-  
-  // Валидация всех полей
-  if (!form.checkValidity()) {
-    form.reportValidity()
-    return
-  }
-  
-  // Показать индикатор загрузки
-  submitButton.disabled = true
-  submitButton.textContent = 'Отправка...'
-  
-  try {
-    const formData = new FormData(form)
-    const response = await fetch('/api/submit', {
-      method: 'POST',
-      body: formData
-    })
-    
-    if (response.ok) {
-      showSuccess('Форма успешно отправлена')
-      form.reset()
-    } else {
-      showError('Ошибка при отправке формы')
-    }
-  } catch (error) {
-    showError('Ошибка сети')
-  } finally {
-    submitButton.disabled = false
-    submitButton.textContent = 'Отправить'
-  }
-})
-```
-
-### Автозаполнение
-
-```html
-<input
-  type="email"
-  autocomplete="email"
-  name="email"
-/>
-
-<input
-  type="password"
-  autocomplete="current-password"
-  name="password"
-/>
-
-<input
-  type="text"
-  autocomplete="name"
-  name="name"
-/>
-```
-
-**Значения autocomplete:**
-
-- `name`, `given-name`, `family-name`
-- `email`, `username`
-- `current-password`, `new-password`
-- `tel`, `address-line1`, `city`, `country`
+- У каждого поля есть `label`.
+- Ошибка связана с полем и понятна без цвета (“красная рамка” — это не сообщение).
+- Логический порядок табуляции сохранён (полями можно пройтись `Tab`).
+- Автозаполнение работает там, где уместно (например, email/пароль/имя) — это реальная экономия времени пользователю.
 
 ---
 
 ## Вопросы на собеседовании
 
-### 1. Почему `<label>` обязателен для форм?
+1. Зачем `label` в формах?  
+   `label` даёт полю понятное имя для пользователя и ассистивных технологий. Плюс это практичный UX: по клику на текст метки фокус переходит в поле, а автозаполнение работает надёжнее. Это и про удобство, и про доступность.
 
-Без label screen readers не понимают предназначение поля. Также label улучшает UX (клик по тексту фокусирует поле).
+2. Когда достаточно HTML5-валидации, а когда нужна кастомная?  
+   Нативной HTML5-валидации часто достаточно для базовых вещей: обязательность, тип (email), длина, диапазон. Кастомная валидация нужна, когда правила завязаны на бизнес-логику или требуется единый формат сообщений. Важно: кастомная валидация не должна ухудшать UX и ломать доступность.
 
-### 2. Как работает нативная валидация HTML5?
+3. Где должна быть “главная” валидация?  
+   На сервере, потому что клиенту доверять нельзя: пользователь может отключить JS, подменить запрос или отправить данные напрямую. Клиентская валидация нужна, чтобы быстрее подсказать пользователю, но она не заменяет серверные проверки. На клиенте — дружелюбная подсказка, на сервере — гарантия корректности.
 
-Браузер автоматически проверяет поля по атрибутам (required, pattern, type) и показывает сообщения об ошибках.
-
-### 3. Как показать кастомное сообщение об ошибке?
-
-Использовать `setCustomValidity()` и `aria-invalid` + `aria-describedby`.
-
-### 4. Когда показывать ошибки в форме?
-
-При потере фокуса (blur) и при отправке формы. Для некоторых полей — при вводе.
-
-### 5. Как сделать форму доступной?
-
-Использовать label, aria-атрибуты, правильную структуру, визуальные индикаторы ошибок.
-
-### 6. Что такое Constraint API?
-
-API для программной валидации форм через `validity`, `setCustomValidity()`, `checkValidity()`.
+4. Как сделать ошибки доступными?  
+   Ошибка должна быть связана с полем через `aria-describedby`, поле помечают как невалидное через `aria-invalid="true"`. Если текст ошибки появляется динамически, важно, чтобы он был озвучен (например, через `aria-live`/`role="alert"`). Ошибка не должна быть “только красной рамкой” — нужен текст, который объясняет, что исправить.
