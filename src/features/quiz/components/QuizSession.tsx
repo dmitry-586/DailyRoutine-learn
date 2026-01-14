@@ -1,6 +1,10 @@
 'use client'
 
-import { getAllQuestionsByPart, getRandomQuestions } from '@/data/questions'
+import {
+  getQuestionsByPartV2,
+  getRandomQuestionsV2,
+  shuffleQuestions,
+} from '@/data-v2/questions-v2'
 import type { QuizResult } from '@/shared/types'
 import { Button } from '@/shared/ui/Button'
 import { ArrowLeft } from 'lucide-react'
@@ -23,15 +27,22 @@ export function QuizSession({
   onFinish,
   onBack,
 }: QuizSessionProps) {
+  const [answerShuffleSeed, setAnswerShuffleSeed] = useState(() =>
+    Date.now().toString(),
+  )
   const [questions, setQuestions] = useState(() => {
     if (allQuestions && partIds && partIds.length === 1) {
-      // Режим "все вопросы раздела"
-      return getAllQuestionsByPart(partIds[0], {
-        shuffle: true,
-        distributeByChapter: true,
+      const allQs = getQuestionsByPartV2(partIds[0])
+      return shuffleQuestions(allQs)
+    }
+    if (partIds && partIds.length > 0) {
+      const allQs = partIds.flatMap((id) => getQuestionsByPartV2(id))
+      return getRandomQuestionsV2(allQs, questionCount, {
+        distributeByChapters: true,
+        shuffleAnswers: true,
       })
     }
-    return getRandomQuestions(questionCount, { partIds })
+    return []
   })
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string[] | string>>({})
@@ -124,14 +135,17 @@ export function QuizSession({
     setCurrentIndex(0)
     setAnswers({})
     setStartTime(Date.now())
-    // Пересоздаём вопросы для нового теста
+    setAnswerShuffleSeed(Date.now().toString())
     const newQuestions =
       allQuestions && partIds && partIds.length === 1
-        ? getAllQuestionsByPart(partIds[0], {
-            shuffle: true,
-            distributeByChapter: true,
-          })
-        : getRandomQuestions(questionCount, { partIds })
+        ? shuffleQuestions(getQuestionsByPartV2(partIds[0]))
+        : partIds && partIds.length > 0
+          ? getRandomQuestionsV2(
+              partIds.flatMap((id) => getQuestionsByPartV2(id)),
+              questionCount,
+              { distributeByChapters: true, shuffleAnswers: true },
+            )
+          : []
     setQuestions(newQuestions)
   }
 
@@ -186,6 +200,7 @@ export function QuizSession({
             question={currentQuestion}
             userAnswer={answers[currentQuestion.id]}
             onAnswer={handleAnswer}
+            shuffleSeed={answerShuffleSeed}
           />
         </div>
       </div>

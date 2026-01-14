@@ -19,10 +19,10 @@ export function QuizResults({ result, onBack, onRestart }: QuizResultsProps) {
   }
 
   const getScoreMessage = (score: number) => {
-    if (score >= 90) return 'Отлично! 🎉'
-    if (score >= 80) return 'Хорошо! 👍'
-    if (score >= 60) return 'Неплохо! 💪'
-    return 'Продолжайте учиться! 📚'
+    if (score >= 90) return 'Отлично!'
+    if (score >= 80) return 'Хорошо!'
+    if (score >= 60) return 'Неплохо!'
+    return 'Продолжайте учиться!'
   }
 
   const getScoreColorClass = (score: number) => {
@@ -31,24 +31,22 @@ export function QuizResults({ result, onBack, onRestart }: QuizResultsProps) {
     return 'text-red-400'
   }
 
+  const incorrectAnswers = Object.values(result.answers).filter(
+    (a) => !a.isCorrect,
+  )
+
   return (
     <div className='bg-background relative mx-auto flex h-screen max-w-5xl flex-col'>
-      {/* Header */}
-      <div className='border-gray bg-background sticky top-0 z-10 border-b px-4 py-3 sm:px-6'>
-        <div className='flex items-center justify-between'>
-          <div className='min-w-0 flex-1'>
-            <h1 className='text-foreground truncate text-lg font-bold sm:text-xl'>
-              Результаты теста
-            </h1>
-            <div className='text-light-gray mt-1 text-xs sm:text-sm'>
-              {getScoreMessage(result.score)}
-            </div>
-          </div>
-        </div>
+      <div className='border-gray bg-background sticky top-0 z-10 border-b px-4 py-3'>
+        <h1 className='text-foreground text-lg font-bold sm:text-xl'>
+          Результаты теста
+        </h1>
+        <p className='text-light-gray mt-1 text-sm'>
+          {getScoreMessage(result.score)}
+        </p>
       </div>
 
-      {/* Content */}
-      <div className='flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8'>
+      <div className='flex-1 overflow-y-auto px-4 py-6'>
         <div className='mx-auto max-w-3xl space-y-6'>
           <div className='text-center'>
             <div
@@ -59,7 +57,7 @@ export function QuizResults({ result, onBack, onRestart }: QuizResultsProps) {
           </div>
 
           <div className='grid gap-4 md:grid-cols-3'>
-            <div className='bg-background border-gray rounded-lg border-2 p-4 text-center'>
+            <div className='bg-background border-gray rounded-lg border p-4 text-center'>
               <div className='flex items-center justify-center gap-2 text-green-400'>
                 <CheckCircle2 className='h-5 w-5' />
                 <span className='text-2xl font-bold'>
@@ -69,7 +67,7 @@ export function QuizResults({ result, onBack, onRestart }: QuizResultsProps) {
               <p className='text-light-gray mt-1 text-sm'>Правильных</p>
             </div>
 
-            <div className='bg-background border-gray rounded-lg border-2 p-4 text-center'>
+            <div className='bg-background border-gray rounded-lg border p-4 text-center'>
               <div className='flex items-center justify-center gap-2 text-red-400'>
                 <XCircle className='h-5 w-5' />
                 <span className='text-2xl font-bold'>
@@ -79,7 +77,7 @@ export function QuizResults({ result, onBack, onRestart }: QuizResultsProps) {
               <p className='text-light-gray mt-1 text-sm'>Неправильных</p>
             </div>
 
-            <div className='bg-background border-gray rounded-lg border-2 p-4 text-center'>
+            <div className='bg-background border-gray rounded-lg border p-4 text-center'>
               <div className='text-primary flex items-center justify-center gap-2'>
                 <Clock className='h-5 w-5' />
                 <span className='text-2xl font-bold'>
@@ -90,50 +88,68 @@ export function QuizResults({ result, onBack, onRestart }: QuizResultsProps) {
             </div>
           </div>
 
-          <div className='space-y-4'>
-            <h3 className='text-foreground text-lg font-semibold'>
-              Детали по вопросам:
-            </h3>
-            <div className='custom-scrollbar max-h-96 space-y-2 overflow-y-auto'>
-              {Object.values(result.answers).map((answer, index) => (
-                <div
-                  key={answer.question.id}
-                  className={`rounded-lg border-2 p-4 ${
-                    answer.isCorrect
-                      ? 'border-green-500/30 bg-green-500/10'
-                      : 'border-red-500/30 bg-red-500/10'
-                  }`}
-                >
-                  <div className='flex items-start justify-between'>
-                    <div className='flex-1'>
-                      <div className='mb-1 flex items-center gap-2'>
-                        {answer.isCorrect ? (
-                          <CheckCircle2 className='h-4 w-4 text-green-400' />
-                        ) : (
-                          <XCircle className='h-4 w-4 text-red-400' />
-                        )}
-                        <span className='text-foreground text-sm font-medium'>
-                          Вопрос {index + 1}
-                        </span>
-                      </div>
-                      <p className='text-foreground text-sm'>
+          {incorrectAnswers.length > 0 && (
+            <div className='space-y-4'>
+              <h3 className='text-foreground text-lg font-semibold'>
+                Разбор ошибок:
+              </h3>
+              <div className='space-y-4'>
+                {incorrectAnswers.map((answer) => {
+                  const correctAnswers = answer.question.answers
+                    .filter((a) => a.isCorrect)
+                    .map((a) => a.text)
+                  const userAnswerIds = Array.isArray(answer.userAnswer)
+                    ? answer.userAnswer
+                    : [answer.userAnswer]
+                  const userAnswerTexts = answer.question.answers
+                    .filter((a) => userAnswerIds.includes(a.id))
+                    .map((a) => a.text)
+
+                  return (
+                    <div
+                      key={answer.question.id}
+                      className='border-gray rounded-lg border p-4'
+                    >
+                      <p className='text-foreground mb-3 text-sm font-medium'>
                         {answer.question.question}
                       </p>
-                      {answer.question.explanation && (
-                        <p className='text-light-gray mt-2 text-xs'>
-                          {answer.question.explanation}
-                        </p>
-                      )}
+
+                      <div className='space-y-2'>
+                        {userAnswerTexts.length > 0 && (
+                          <div className='flex items-start gap-2'>
+                            <XCircle className='mt-0.5 h-4 w-4 shrink-0 text-red-400' />
+                            <div className='flex-1'>
+                              <p className='text-light-gray text-xs'>
+                                Ваш ответ:
+                              </p>
+                              <p className='text-foreground text-sm'>
+                                {userAnswerTexts.join(', ')}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className='flex items-start gap-2'>
+                          <CheckCircle2 className='mt-0.5 h-4 w-4 shrink-0 text-green-400' />
+                          <div className='flex-1'>
+                            <p className='text-light-gray text-xs'>
+                              Правильный ответ:
+                            </p>
+                            <p className='text-foreground text-sm'>
+                              {correctAnswers.join(', ')}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ))}
+                  )
+                })}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Navigation */}
       <div className='fixed bottom-4 left-4 z-50'>
         <Button
           variant='glass-icon'

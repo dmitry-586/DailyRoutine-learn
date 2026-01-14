@@ -1,7 +1,7 @@
 'use client'
 
 import { partsConfig } from '@/data-v2'
-import { getPartsWithQuestionCount } from '@/data/questions'
+import { getPartsWithQuestionCountV2 } from '@/data-v2/questions-v2'
 import { Button } from '@/shared/ui/Button'
 import { ArrowLeft, Play } from 'lucide-react'
 import { useMemo, useState } from 'react'
@@ -19,7 +19,7 @@ export function QuizStart({ onBack }: QuizStartProps) {
   const [isStarted, setIsStarted] = useState(false)
 
   const partsWithCounts = useMemo(() => {
-    const counts = getPartsWithQuestionCount()
+    const counts = getPartsWithQuestionCountV2()
     return new Map(counts.map((c) => [c.partId, c.count]))
   }, [])
 

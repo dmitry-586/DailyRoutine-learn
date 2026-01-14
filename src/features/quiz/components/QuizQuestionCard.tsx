@@ -2,17 +2,21 @@
 
 import type { QuizQuestion } from '@/shared/types'
 import { CheckCircle2, Circle } from 'lucide-react'
+import { useMemo } from 'react'
+import { seededShuffle } from '../utils/seededShuffle'
 
 interface QuizQuestionCardProps {
   question: QuizQuestion
   userAnswer?: string[] | string
   onAnswer: (questionId: string, answer: string[] | string) => void
+  shuffleSeed?: string
 }
 
 export function QuizQuestionCard({
   question,
   userAnswer,
   onAnswer,
+  shuffleSeed,
 }: QuizQuestionCardProps) {
   const handleSingleSelect = (answerId: string) => {
     onAnswer(question.id, answerId)
@@ -32,6 +36,11 @@ export function QuizQuestionCard({
     }
     return Array.isArray(userAnswer) && userAnswer.includes(answerId)
   }
+
+  const answersToRender = useMemo(() => {
+    const seedKey = `${shuffleSeed ?? 'default'}:${question.id}`
+    return seededShuffle(question.answers, seedKey)
+  }, [question.answers, question.id, shuffleSeed])
 
   return (
     <div className='space-y-6'>
@@ -60,7 +69,7 @@ export function QuizQuestionCard({
       </h3>
 
       <div className='space-y-3'>
-        {question.answers.map((answer) => {
+        {answersToRender.map((answer) => {
           const selected = isSelected(answer.id)
           return (
             <button
@@ -70,7 +79,7 @@ export function QuizQuestionCard({
                   ? handleSingleSelect(answer.id)
                   : handleMultipleSelect(answer.id)
               }
-              className={`flex w-full items-start gap-3 rounded-lg border-2 p-4 text-left transition-all ${
+              className={`flex w-full items-start gap-3 rounded-lg border p-4 text-left transition-all ${
                 selected
                   ? 'border-primary bg-gray'
                   : 'border-gray bg-background hover:border-gray hover:bg-muted'
