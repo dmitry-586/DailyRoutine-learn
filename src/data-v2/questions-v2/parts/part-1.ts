@@ -107,7 +107,7 @@ export const part1Questions: QuizQuestion[] = [
       },
       {
         id: 'a-v2-1-4-2',
-        text: 'Промежуточный узел (маршрутизатор) на пути пакета от клиента к серверу',
+        text: 'Промежуточный узел на пути пакета (обычно маршрутизатор)',
         isCorrect: true,
       },
       {
@@ -169,7 +169,7 @@ export const part1Questions: QuizQuestion[] = [
       },
       {
         id: 'a-v2-1-6-2',
-        text: 'Крупные сети (провайдер, компания, дата-центр), которые договариваются о маршрутизации через BGP',
+        text: 'Крупные домены маршрутизации (ASN), обменивающиеся маршрутами через BGP',
         isCorrect: true,
       },
       {
@@ -292,17 +292,17 @@ export const part1Questions: QuizQuestion[] = [
       },
       {
         id: 'a-v2-1-10-2',
-        text: 'Количество байт, передаваемых за секунду',
+        text: 'Пропускная способность канала (сколько байт/сек можно передать)',
         isCorrect: false,
       },
       {
         id: 'a-v2-1-10-3',
-        text: 'Размер TCP окна для control flow',
+        text: 'Размер TCP окна (flow control), который ограничивает объём данных “в полёте”',
         isCorrect: false,
       },
       {
         id: 'a-v2-1-10-4',
-        text: 'Время обработки запроса на сервере',
+        text: 'Время обработки запроса на сервере (server processing time)',
         isCorrect: false,
       },
     ],
@@ -412,7 +412,7 @@ export const part1Questions: QuizQuestion[] = [
     answers: [
       {
         id: 'a-v2-1-14-1',
-        text: 'HTTP/2 мультиплексирует несколько запросов в одном TCP-соединении, а HTTP/1.1 в одном соединении не умеет мультиплексирование (часто приходится открывать несколько TCP-соединений)',
+        text: 'HTTP/2 мультиплексирует несколько запросов в одном TCP-соединении; в HTTP/1.1 в рамках одного соединения мультиплексирования нет',
         isCorrect: true,
       },
       {
@@ -469,26 +469,26 @@ export const part1Questions: QuizQuestion[] = [
   {
     id: 'q-v2-1-16',
     type: 'single',
-    question: 'Какой HTTP-метод является идемпотентным по спецификации REST?',
+    question: 'Какой из перечисленных HTTP-методов является идемпотентным?',
     answers: [
       {
         id: 'a-v2-1-16-1',
-        text: 'POST',
+        text: 'POST (повтор может создать ещё один ресурс/операцию)',
         isCorrect: false,
       },
       {
         id: 'a-v2-1-16-2',
-        text: 'PUT',
+        text: 'PUT (повтор приводит к тому же состоянию ресурса)',
         isCorrect: true,
       },
       {
         id: 'a-v2-1-16-3',
-        text: 'PATCH',
+        text: 'PATCH (часто зависит от формата патча и может быть неидемпотентным)',
         isCorrect: false,
       },
       {
         id: 'a-v2-1-16-4',
-        text: 'Идемпотентность определяется реализацией на сервере, поэтому любой метод может быть идемпотентным',
+        text: 'Любой метод можно сделать идемпотентным на сервере, поэтому спецификация не важна',
         isCorrect: false,
       },
     ],
@@ -654,22 +654,22 @@ export const part1Questions: QuizQuestion[] = [
     answers: [
       {
         id: 'a-v2-1-22-1',
-        text: '200 OK (если сервер возвращает созданный ресурс в теле ответа)',
+        text: '200 OK (успех, но не “создание”)',
         isCorrect: false,
       },
       {
         id: 'a-v2-1-22-2',
-        text: '201 Created',
+        text: '201 Created (ресурс создан на сервере)',
         isCorrect: true,
       },
       {
         id: 'a-v2-1-22-3',
-        text: '204 No Content (если ресурс создан, но сервер не возвращает тело ответа)',
+        text: '204 No Content (успех без тела)',
         isCorrect: false,
       },
       {
         id: 'a-v2-1-22-4',
-        text: '202 Accepted (если создание асинхронное и результат будет позже)',
+        text: '202 Accepted (принято, не завершено)',
         isCorrect: false,
       },
     ],
@@ -685,22 +685,22 @@ export const part1Questions: QuizQuestion[] = [
     answers: [
       {
         id: 'a-v2-1-23-1',
-        text: '400 Bad Request (часто используют для ошибок валидации, если нет отдельной схемы ошибок)',
+        text: '400 Bad Request (часто используют и для ошибок валидации)',
         isCorrect: false,
       },
       {
         id: 'a-v2-1-23-2',
-        text: '422 Unprocessable Entity',
+        text: '422 Unprocessable Entity (валидация не прошла)',
         isCorrect: true,
       },
       {
         id: 'a-v2-1-23-3',
-        text: '409 Conflict (если валидация связана с конфликтом состояния ресурса, например дубликат)',
+        text: '409 Conflict (если это конфликт состояния, например дубликат)',
         isCorrect: false,
       },
       {
         id: 'a-v2-1-23-4',
-        text: '401 Unauthorized (если валидация требует авторизации перед проверкой)',
+        text: '401 Unauthorized (если проблема в аутентификации, а не в полях)',
         isCorrect: false,
       },
     ],
@@ -869,17 +869,17 @@ export const part1Questions: QuizQuestion[] = [
     answers: [
       {
         id: 'a-v2-1-29-1',
-        text: 'В URL: /api/v1/users, /api/v2/users',
+        text: 'В URL (например, `/api/v1/users` → `/api/v2/users`)',
         isCorrect: true,
       },
       {
         id: 'a-v2-1-29-2',
-        text: 'В заголовках (например, Accept или X-API-Version), чтобы не менять URL',
+        text: 'В заголовке (например, `Accept` или `X-API-Version`)',
         isCorrect: false,
       },
       {
         id: 'a-v2-1-29-3',
-        text: 'В поддомене (например, v1.api.example.com), чтобы разделить инфраструктуру по версиям',
+        text: 'В поддомене (например, `v1.api.example.com`)',
         isCorrect: false,
       },
       {
@@ -960,7 +960,7 @@ export const part1Questions: QuizQuestion[] = [
     answers: [
       {
         id: 'a-v2-1-32-1',
-        text: 'protocol + domain + port',
+        text: '`protocol (scheme)` + `domain (host)` + `port`',
         isCorrect: true,
       },
       {
@@ -1021,22 +1021,22 @@ export const part1Questions: QuizQuestion[] = [
     answers: [
       {
         id: 'a-v2-1-34-1',
-        text: 'Любую загрузку ресурсов с другого домена (изображения, CSS, JS) — SOP запрещает cross-origin загрузки',
+        text: 'Любую загрузку ресурсов с другого домена (img, CSS, JS) — SOP запрещает cross-origin загрузки',
         isCorrect: false,
       },
       {
         id: 'a-v2-1-34-2',
-        text: 'Чтение ответов AJAX/fetch запросов к другому origin',
+        text: 'Чтение ответа (тела/заголовков) из XHR/fetch к другому origin',
         isCorrect: true,
       },
       {
         id: 'a-v2-1-34-3',
-        text: 'Загрузку JS/CSS с CDN, потому что это потенциально небезопасно и нарушает политику источников',
+        text: 'Подключение JS/CSS с CDN через `<script>`/`<link>`, потому что это нарушает политику источников',
         isCorrect: false,
       },
       {
         id: 'a-v2-1-34-4',
-        text: 'Отправку форм на другой домен: браузер запрещает submit, если origin отличается',
+        text: 'Отправку HTML-форм на другой origin: браузер запрещает submit при отличающемся источнике',
         isCorrect: false,
       },
     ],
@@ -1172,22 +1172,22 @@ export const part1Questions: QuizQuestion[] = [
     answers: [
       {
         id: 'a-v2-1-39-1',
-        text: 'Cookie недоступна из JavaScript и отправляется только по HTTPS (то есть HttpOnly = Secure)',
+        text: '`HttpOnly` означает “cookie отправляется только по HTTPS” (то же, что `Secure`)',
         isCorrect: false,
       },
       {
         id: 'a-v2-1-39-2',
-        text: 'Cookie недоступна из JavaScript (защита от XSS)',
+        text: 'Cookie недоступна из JavaScript (`document.cookie`), что снижает риск при XSS',
         isCorrect: true,
       },
       {
         id: 'a-v2-1-39-3',
-        text: 'Cookie будет отправляться только в “безопасных” запросах (GET/HEAD), а в POST/PUT её браузер не добавит',
+        text: '`HttpOnly` запрещает отправку cookie в POST/PUT, оставляя только “безопасные” запросы (GET/HEAD)',
         isCorrect: false,
       },
       {
         id: 'a-v2-1-39-4',
-        text: 'HttpOnly влияет на отправку cookie в cross-site запросах, поэтому это основной механизм защиты от CSRF',
+        text: '`HttpOnly` управляет cross-site отправкой cookie, поэтому это основной механизм защиты от CSRF',
         isCorrect: false,
       },
     ],
@@ -1202,22 +1202,22 @@ export const part1Questions: QuizQuestion[] = [
     answers: [
       {
         id: 'a-v2-1-40-1',
-        text: 'Cookie отправляется только по HTTPS, не по HTTP',
+        text: 'Cookie отправляется только по HTTPS (не по HTTP)',
         isCorrect: true,
       },
       {
         id: 'a-v2-1-40-2',
-        text: 'Cookie шифруется при отправке на сервер, поэтому её нельзя перехватить даже без HTTPS',
+        text: '`Secure` шифрует cookie при отправке',
         isCorrect: false,
       },
       {
         id: 'a-v2-1-40-3',
-        text: 'Cookie становится недоступной из JavaScript, поэтому защищает от XSS так же, как HttpOnly',
+        text: '`Secure` делает cookie недоступной из JavaScript (как `HttpOnly`)',
         isCorrect: false,
       },
       {
         id: 'a-v2-1-40-4',
-        text: 'Secure делает cookie “сессионной”: она хранится только до закрытия браузера, потому что относится к HTTPS-сессии',
+        text: '`Secure` делает cookie сессионной (до закрытия браузера)',
         isCorrect: false,
       },
     ],
@@ -1360,22 +1360,22 @@ export const part1Questions: QuizQuestion[] = [
     answers: [
       {
         id: 'a-v2-1-45-1',
-        text: 'С обычного HTTP запроса с заголовком Upgrade: websocket',
+        text: 'С обычного HTTP-запроса с заголовком `Upgrade: websocket` (handshake и апгрейд протокола)',
         isCorrect: true,
       },
       {
         id: 'a-v2-1-45-2',
-        text: 'С отдельного UDP пакета',
+        text: 'С отдельного UDP-пакета на порт сервера, без участия HTTP (поэтому быстрее, чем handshake)',
         isCorrect: false,
       },
       {
         id: 'a-v2-1-45-3',
-        text: 'С TLS handshake без HTTP',
+        text: 'С TLS-handshake “поверх TCP” без HTTP-запроса: после него канал считается WebSocket',
         isCorrect: false,
       },
       {
         id: 'a-v2-1-45-4',
-        text: 'Автоматически при загрузке страницы',
+        text: 'Автоматически при загрузке страницы: браузер сам открывает WebSocket без запроса со стороны JS',
         isCorrect: false,
       },
     ],
@@ -1391,7 +1391,7 @@ export const part1Questions: QuizQuestion[] = [
     answers: [
       {
         id: 'a-v2-1-46-1',
-        text: '1000',
+        text: '1000 (normal closure)',
         isCorrect: true,
       },
       {
@@ -1406,7 +1406,7 @@ export const part1Questions: QuizQuestion[] = [
       },
       {
         id: 'a-v2-1-46-4',
-        text: '200 (OK)',
+        text: '200 (HTTP OK, не WebSocket)',
         isCorrect: false,
       },
     ],
@@ -1421,7 +1421,7 @@ export const part1Questions: QuizQuestion[] = [
     answers: [
       {
         id: 'a-v2-1-47-1',
-        text: 'Только текст (обычно JSON), потому что WebSocket — это “сообщения-строки” поверх TCP',
+        text: 'Только текст (обычно JSON)',
         isCorrect: false,
       },
       {
@@ -1431,12 +1431,12 @@ export const part1Questions: QuizQuestion[] = [
       },
       {
         id: 'a-v2-1-47-3',
-        text: 'Текст и Blob, но не ArrayBuffer (для безопасности бинарные буферы в браузере блокируются)',
+        text: 'Текст и Blob, но не ArrayBuffer (бинарные буферы в браузере блокируются)',
         isCorrect: false,
       },
       {
         id: 'a-v2-1-47-4',
-        text: 'Любые данные, но только если упаковать их в base64-строку (сам WebSocket бинарные данные не пропускает)',
+        text: 'Только base64-строки: бинарные данные через WebSocket не поддерживаются',
         isCorrect: false,
       },
     ],
@@ -1451,22 +1451,22 @@ export const part1Questions: QuizQuestion[] = [
     answers: [
       {
         id: 'a-v2-1-48-1',
-        text: 'Соединение закрывается и не восстанавливается: для продолжения нужно заново создать EventSource вручную',
+        text: 'Соединение закрывается и не восстанавливается: нужно вручную создавать новый `EventSource`',
         isCorrect: false,
       },
       {
         id: 'a-v2-1-48-2',
-        text: 'Браузер автоматически пытается переподключиться',
+        text: 'Браузер (EventSource) автоматически пытается переподключиться с задержкой',
         isCorrect: true,
       },
       {
         id: 'a-v2-1-48-3',
-        text: 'Переподключение нужно реализовать вручную (например, с backoff), иначе события перестанут приходить',
+        text: 'Переподключение нужно реализовать вручную (например, с backoff), иначе события пропадут',
         isCorrect: false,
       },
       {
         id: 'a-v2-1-48-4',
-        text: 'SSE переподключается только если сервер явно указал `retry:` в потоке событий',
+        text: 'Переподключение работает только если сервер явно указал `retry:` в потоке событий',
         isCorrect: false,
       },
     ],
@@ -1543,22 +1543,22 @@ export const part1Questions: QuizQuestion[] = [
     answers: [
       {
         id: 'a-v2-1-51-1',
-        text: '302 Found (часто используют для временных редиректов; метод “обычно сохраняется”)',
+        text: '302 Found (может сменить метод на GET у некоторых клиентов)',
         isCorrect: false,
       },
       {
         id: 'a-v2-1-51-2',
-        text: '307 Temporary Redirect',
+        text: '307 Temporary Redirect (сохраняет метод и тело)',
         isCorrect: true,
       },
       {
         id: 'a-v2-1-51-3',
-        text: '308 Permanent Redirect (сохраняет метод, но считается постоянным)',
+        text: '308 Permanent Redirect (сохраняет метод, но постоянный)',
         isCorrect: false,
       },
       {
         id: 'a-v2-1-51-4',
-        text: '304 Not Modified',
+        text: '304 Not Modified (кэширование, не редирект)',
         isCorrect: false,
       },
     ],

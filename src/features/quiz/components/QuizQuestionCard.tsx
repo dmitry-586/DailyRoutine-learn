@@ -2,14 +2,26 @@
 
 import type { QuizQuestion } from '@/shared/types'
 import { CheckCircle2, Circle } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import { useMemo } from 'react'
 import { seededShuffle } from '../utils/seededShuffle'
+
+const QuizMarkdown = dynamic(
+  () => import('./QuizMarkdown').then((m) => m.QuizMarkdown),
+  { ssr: false },
+)
 
 interface QuizQuestionCardProps {
   question: QuizQuestion
   userAnswer?: string[] | string
   onAnswer: (questionId: string, answer: string[] | string) => void
   shuffleSeed?: string
+}
+
+function hasMarkdown(content: string): boolean {
+  return (
+    content.includes('`') || content.includes('```') || content.includes('\n')
+  )
 }
 
 export function QuizQuestionCard({
@@ -64,13 +76,21 @@ export function QuizQuestionCard({
         </div>
       )}
 
-      <h3 className='text-foreground text-xl font-semibold'>
-        {question.question}
-      </h3>
+      {hasMarkdown(question.question) ? (
+        <QuizMarkdown
+          content={question.question}
+          className='text-foreground text-xl font-semibold'
+        />
+      ) : (
+        <h3 className='text-foreground text-xl font-semibold'>
+          {question.question}
+        </h3>
+      )}
 
       <div className='space-y-3'>
         {answersToRender.map((answer) => {
           const selected = isSelected(answer.id)
+          const useMarkdown = hasMarkdown(answer.text)
           return (
             <button
               key={answer.id}
@@ -98,7 +118,13 @@ export function QuizQuestionCard({
                   <div className='border-light-gray h-5 w-5 rounded border-2' />
                 )}
               </div>
-              <span className='text-foreground flex-1'>{answer.text}</span>
+              <span className='text-foreground flex-1'>
+                {useMarkdown ? (
+                  <QuizMarkdown content={answer.text} />
+                ) : (
+                  <span>{answer.text}</span>
+                )}
+              </span>
             </button>
           )
         })}

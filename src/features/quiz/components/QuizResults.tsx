@@ -3,6 +3,17 @@
 import type { QuizResult } from '@/shared/types'
 import { Button } from '@/shared/ui/Button'
 import { CheckCircle2, Clock, Home, RotateCcw, XCircle } from 'lucide-react'
+import dynamic from 'next/dynamic'
+
+const QuizMarkdown = dynamic(
+  () => import('./QuizMarkdown').then((m) => m.QuizMarkdown),
+  { ssr: false },
+)
+
+function toMarkdownList(items: string[]): string {
+  if (items.length <= 1) return items[0] ?? ''
+  return items.map((t) => `- ${t}`).join('\n')
+}
 
 interface QuizResultsProps {
   result: QuizResult
@@ -110,9 +121,10 @@ export function QuizResults({ result, onBack, onRestart }: QuizResultsProps) {
                       key={answer.question.id}
                       className='border-gray rounded-lg border p-4'
                     >
-                      <p className='text-foreground mb-3 text-sm font-medium'>
-                        {answer.question.question}
-                      </p>
+                      <QuizMarkdown
+                        content={answer.question.question}
+                        className='text-foreground mb-3 text-sm font-medium'
+                      />
 
                       <div className='space-y-2'>
                         {userAnswerTexts.length > 0 && (
@@ -122,9 +134,10 @@ export function QuizResults({ result, onBack, onRestart }: QuizResultsProps) {
                               <p className='text-light-gray text-xs'>
                                 Ваш ответ:
                               </p>
-                              <p className='text-foreground text-sm'>
-                                {userAnswerTexts.join(', ')}
-                              </p>
+                              <QuizMarkdown
+                                content={toMarkdownList(userAnswerTexts)}
+                                className='text-foreground text-sm'
+                              />
                             </div>
                           </div>
                         )}
@@ -135,9 +148,10 @@ export function QuizResults({ result, onBack, onRestart }: QuizResultsProps) {
                             <p className='text-light-gray text-xs'>
                               Правильный ответ:
                             </p>
-                            <p className='text-foreground text-sm'>
-                              {correctAnswers.join(', ')}
-                            </p>
+                            <QuizMarkdown
+                              content={toMarkdownList(correctAnswers)}
+                              className='text-foreground text-sm'
+                            />
                           </div>
                         </div>
                       </div>
