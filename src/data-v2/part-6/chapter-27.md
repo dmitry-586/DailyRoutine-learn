@@ -1,393 +1,148 @@
-# Глава 27. Promise и async/await: состояния, цепочки, ошибки
+# Глава 27. Promise и async/await
 
-Промисы и async/await — основа асинхронного программирования в современном JavaScript. Понимание их работы критично для написания правильного асинхронного кода и обработки ошибок.
-
----
-
-## 27.1. Promise: что это такое
-
-**Promise** — это объект, который представляет результат асинхронной операции.
-
-Состояния промиса:
-
-- `pending` — ожидание результата
-- `fulfilled` — успешно завершён
-- `rejected` — завершён с ошибкой
-
-**Важно:** переход из `pending` в `fulfilled` или `rejected` происходит **один раз и навсегда**. Промис нельзя изменить после разрешения.
+Цель этой главы — понимать промисы на уровне **типовых задач и вопросов на собеседовании**. Без углубления в “как это реализовано внутри движка”.
 
 ---
 
-## 27.2. Создание промиса
+## 27.1. Что такое Promise
 
-```javascript
-const p = new Promise((resolve, reject) => {
-  // асинхронная операция
-  
-  if (success) {
-    resolve(data) // Переход в fulfilled
-  } else {
-    reject(error) // Переход в rejected
-  }
-})
-```
+**Promise** — это объект, который представляет результат операции “когда-нибудь потом”.
 
-**Пример:**
+У промиса есть 3 состояния:
 
-```javascript
-function fetchUser(id) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (id > 0) {
-        resolve({ id, name: 'Alice' })
-      } else {
-        reject(new Error('Invalid ID'))
-      }
-    }, 1000)
-  })
-}
-```
+- `pending` — ещё ждём
+- `fulfilled` — успешно (есть значение)
+- `rejected` — ошибка (есть причина/ошибка)
 
-**Статические методы:**
+Важно:
 
-```javascript
-// Уже выполненный промис
-Promise.resolve(value) // fulfilled с value
-Promise.reject(error) // rejected с error
-```
+- промис переходит из `pending` в `fulfilled/rejected` **один раз** и дальше не меняется
 
 ---
 
-## 27.3. then / catch / finally
+## 27.2. then / catch / finally (главное)
 
 ### then
 
+`then` — обработчик успешного результата.
+
 ```javascript
-promise.then(
-  (value) => {
-    // Обработка успешного результата
-    return newValue
-  },
-  (error) => {
-    // Обработка ошибки (альтернатива catch)
-  }
-)
+fetch('/api/user')
+  .then((res) => res.json())
+  .then((user) => {
+    console.log(user)
+  })
 ```
 
-**Важно:** `then` возвращает **новый промис**, что позволяет строить цепочки.
+Важно:
+
+- `then` возвращает **новый промис**, поэтому можно строить цепочки
 
 ### catch
 
-```javascript
-promise.catch((error) => {
-  // Обработка ошибки
-})
-```
+`catch` — обработчик ошибки (по сути это `then(null, handler)`):
 
-`catch` — это сокращение для `then(null, errorHandler)`.
+```javascript
+fetch('/api/user')
+  .then((res) => res.json())
+  .catch((err) => {
+    console.error('Ошибка запроса', err)
+  })
+```
 
 ### finally
 
-```javascript
-promise.finally(() => {
-  // Выполняется всегда, независимо от результата
-  // Не получает аргументов
-})
-```
-
-**Пример цепочки:**
+`finally` выполняется всегда (успех/ошибка), не получает результат:
 
 ```javascript
-fetch(url)
-  .then((res) => {
-    if (!res.ok) {
-      throw new Error('HTTP error')
-    }
-    return res.json()
-  })
-  .then((data) => {
-    console.log(data)
-    return processData(data)
-  })
-  .catch((error) => {
-    console.error('Request failed', error)
-  })
+doSomething()
   .finally(() => {
-    console.log('Request finished')
+    console.log('cleanup')
   })
 ```
 
 ---
 
-## 27.4. Типичные ошибки
+## 27.3. 3 частые ошибки (то, что реально ломает код)
 
-### Забытый return
+### Ошибка 1: забыли `return` в `then`
 
 ```javascript
-//  Плохо
-fetch(url)
+fetch('/api/user')
   .then((res) => {
-    res.json() // Промис создан, но не возвращён
+    res.json() // промис не возвращён
   })
   .then((data) => {
-    // data === undefined
-  })
-
-//  Хорошо
-fetch(url)
-  .then((res) => {
-    return res.json() // Возвращаем промис
-  })
-  .then((data) => {
-    // data содержит результат
+    console.log(data) // undefined
   })
 ```
 
-**Правило:** Нужно **обязательно возвращать** промис или значение из `then`, если планируешь пользоваться результатом дальше.
-
-### Смешивание then и async/await
+Правильно:
 
 ```javascript
-//  Плохо — смешивание стилей
-async function load() {
-  const res = await fetch(url)
-  return res.json().then(data => processData(data))
-}
-
-//  Хорошо — последовательный await
-async function load() {
-  const res = await fetch(url)
-  const data = await res.json()
-  return processData(data)
-}
-
-//  Хорошо — полностью then
-function load() {
-  return fetch(url)
-    .then(res => res.json())
-    .then(data => processData(data))
-}
+fetch('/api/user')
+  .then((res) => res.json())
+  .then((data) => console.log(data))
 ```
+
+### Ошибка 2: смешали `then` и `await` в одной функции
+
+Лучше выбрать один стиль в конкретной функции: либо цепочки `then`, либо `async/await`.
+
+### Ошибка 3: забыли обработать ошибку
+
+Если не обработать ошибку — получите `UnhandledPromiseRejection` (или событие `unhandledrejection` в браузере).
 
 ---
 
-## 27.5. async / await: синтаксический сахар
+## 27.4. async/await (как это понимать)
 
-`async / await` делают асинхронный код похожим на синхронный, но под капотом это по‑прежнему промисы и microtasks.
+`async/await` — это более читаемый способ работать с промисами.
+
+Факты:
+
+- `async`‑функция **всегда возвращает Promise**
+- `return value` → промис “успешный” со значением `value`
+- `throw error` → промис “ошибка”
+
+Пример:
 
 ```javascript
-async function loadData(url) {
-  const res = await fetch(url)
-  
-  if (!res.ok) {
-    throw new Error('HTTP error')
-  }
-  
-  const data = await res.json()
-  return data
+async function loadUser() {
+  const res = await fetch('/api/user')
+  if (!res.ok) throw new Error('HTTP error')
+  return await res.json()
 }
 ```
 
-**Особенности `async`‑функций:**
-
-- всегда возвращают **промис**
-- любое выброшенное исключение превращается в `rejected`‑состояние промиса
-- `await` останавливает функцию до завершения промиса (не блокируя поток в целом)
-
-**Эквивалент через then:**
+Обработка ошибки:
 
 ```javascript
-function loadData(url) {
-  return fetch(url)
-    .then(res => {
-      if (!res.ok) {
-        throw new Error('HTTP error')
-      }
-      return res.json()
-    })
-}
-```
-
----
-
-## 27.6. Обработка ошибок с async / await
-
-### try / catch
-
-```javascript
-async function safeLoad(url) {
+async function safeLoadUser() {
   try {
-    const data = await loadData(url)
-    return data
-  } catch (error) {
-    console.error('Failed to load', error)
-    throw error // Пробрасываем дальше, если нужно
+    return await loadUser()
+  } catch (e) {
+    console.error(e)
+    return null
   }
-}
-```
-
-### Обработка ошибок в цепочке
-
-```javascript
-async function process() {
-  try {
-    const data = await fetchData()
-    const processed = await processData(data)
-    return processed
-  } catch (error) {
-    // Ловит ошибки из всех await в блоке try
-    handleError(error)
-  }
-}
-```
-
-### Проброс ошибок
-
-```javascript
-async function load() {
-  const data = await fetchData() // Если ошибка, промис будет rejected
-  return data
-}
-
-// Вызывающий код должен обработать ошибку
-load()
-  .then(data => console.log(data))
-  .catch(error => console.error(error))
-```
-
----
-
-## 27.7. Параллельное vs последовательное выполнение
-
-### Последовательное выполнение (плохо для независимых операций)
-
-```javascript
-//  Плохо — запросы выполняются последовательно
-const a = await fetch(url1)
-const b = await fetch(url2)
-// Общее время = время(url1) + время(url2)
-```
-
-### Параллельное выполнение
-
-```javascript
-//  Хорошо — запросы выполняются параллельно
-const [a, b] = await Promise.all([
-  fetch(url1),
-  fetch(url2)
-])
-// Общее время = max(время(url1), время(url2))
-```
-
-**Когда использовать параллельное выполнение:**
-
-- Независимые операции
-- Нет зависимостей между запросами
-- Нужно ускорить выполнение
-
-**Когда использовать последовательное выполнение:**
-
-- Второй запрос зависит от результата первого
-- Нужно контролировать порядок выполнения
-- Ограниченные ресурсы (rate limiting)
-
----
-
-## 27.8. Возвращаемые значения
-
-### async функция всегда возвращает промис
-
-```javascript
-async function getValue() {
-  return 42
-}
-
-getValue() // Promise<42>
-getValue().then(value => console.log(value)) // 42
-```
-
-### Выброс исключения = rejected промис
-
-```javascript
-async function fail() {
-  throw new Error('Oops')
-}
-
-fail() // Promise<rejected>
-fail().catch(error => console.error(error)) // Error: Oops
-```
-
-### await разворачивает промис
-
-```javascript
-async function example() {
-  const value = await Promise.resolve(42)
-  console.log(value) // 42 (не Promise)
-  
-  const error = await Promise.reject(new Error('Oops'))
-  // Выбросит исключение
 }
 ```
 
 ---
 
-## 27.9. Глобальная обработка необработанных отклонений
+## 27.5. Параллельно vs последовательно (типовой вопрос)
+
+Если запросы независимы — делайте параллельно через `Promise.all`:
 
 ```javascript
-window.addEventListener('unhandledrejection', (event) => {
-  console.error('Unhandled promise rejection:', event.reason)
-  // Можно отправить в систему мониторинга
-  // event.preventDefault() — предотвратить вывод в консоль
-})
+const [a, b] = await Promise.all([fetch('/a'), fetch('/b')])
 ```
 
-**Важно:** Это последний рубеж, не замена нормальной обработки ошибок. Всегда обрабатывайте ошибки явно.
-
----
-
-## 27.10. Практические паттерны
-
-### Обработка с fallback
+Если второй зависит от первого — делайте последовательно:
 
 ```javascript
-async function loadWithFallback(url, fallbackUrl) {
-  try {
-    return await fetch(url).then(res => res.json())
-  } catch (error) {
-    console.warn('Primary failed, using fallback')
-    return await fetch(fallbackUrl).then(res => res.json())
-  }
-}
-```
-
-### Таймаут для промиса
-
-```javascript
-function withTimeout(promise, timeout) {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Timeout')), timeout)
-    )
-  ])
-}
-
-const data = await withTimeout(fetch(url), 5000)
-```
-
-### Retry логика
-
-```javascript
-async function retry(fn, maxAttempts = 3) {
-  for (let i = 0; i < maxAttempts; i++) {
-    try {
-      return await fn()
-    } catch (error) {
-      if (i === maxAttempts - 1) throw error
-      await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)))
-    }
-  }
-}
+const a = await fetch('/a')
+const b = await fetch(`/b?from=${a.id}`)
 ```
 
 ---
@@ -396,28 +151,17 @@ async function retry(fn, maxAttempts = 3) {
 
 ### 1. Что такое Promise?
 
-Объект, представляющий результат асинхронной операции. Может быть в состоянии pending, fulfilled или rejected.
+Объект-обёртка над будущим результатом (успех или ошибка).
 
-### 2. В чём разница между then и await?
+### 2. `then` vs `await`?
 
-`then` — метод промиса для обработки результата. `await` — синтаксис для ожидания промиса в async функции. `await` делает код более читаемым.
+`await` — синтаксис поверх промисов, делает код линейным. `then` — цепочки коллбеков. По смыслу одно и то же.
 
-### 3. Как обработать ошибки в async функции?
+### 3. Как обработать ошибку?
 
-Использовать try/catch блок вокруг await выражений.
+`catch` для цепочек или `try/catch` для `async/await`.
 
-### 4. Что возвращает async функция?
+### 4. Как выполнить несколько промисов параллельно?
 
-Всегда возвращает промис. Если функция возвращает значение, оно оборачивается в fulfilled промис.
+`Promise.all`.
 
-### 5. Что произойдёт, если забыть return в then?
-
-Следующий then получит undefined вместо результата предыдущего промиса.
-
-### 6. Как выполнить несколько промисов параллельно?
-
-Использовать `Promise.all` или `await Promise.all([...])`.
-
-### 7. Что такое unhandledrejection?
-
-Событие, которое срабатывает, когда промис отклонён, но ошибка не обработана. Последний рубеж для обработки ошибок.

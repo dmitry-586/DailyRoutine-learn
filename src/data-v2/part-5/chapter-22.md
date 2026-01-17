@@ -1,6 +1,6 @@
 # Глава 22. this и правила привязки
 
-`this` — одна из самых сложных и важных концепций JavaScript. Понимание правил привязки `this` критично для работы с методами объектов, классами, событиями и React-компонентами.
+`this` — одна из самых «скользких» тем в JavaScript, потому что значение `this` зависит не от того, **где** функция написана, а от того, **как** она вызвана.
 
 ---
 
@@ -10,7 +10,7 @@
 
 > **`this` в JavaScript определяется в момент вызова функции, а не в момент её объявления.**
 
-`this` — это ссылка на объект, в контексте которого выполняется функция. Значение `this` зависит от того, **как** функция была вызвана.
+`this` — это значение, которое движок подставляет внутрь функции при вызове. Какое именно — решают правила ниже.
 
 ---
 
@@ -20,13 +20,13 @@
 
 ### 1. Глобальный контекст
 
-В браузере:
+В браузере (в нестрогом режиме):
 
 ```javascript
 console.log(this) // window
 ```
 
-В строгом режиме (`'use strict'`):
+В strict mode (и в ES-модулях):
 
 ```javascript
 'use strict'
@@ -40,7 +40,7 @@ const user = {
   name: 'Alex',
   say() {
     console.log(this.name)
-  }
+  },
 }
 
 user.say() // 'Alex'
@@ -55,7 +55,7 @@ const user = {
   name: 'Alex',
   say() {
     console.log(this.name)
-  }
+  },
 }
 
 const say = user.say
@@ -142,24 +142,7 @@ console.log(u.name) // 'Alice'
 3. вызывает функцию с `this = новый объект`
 4. возвращает `this` (если явно не вернуть другой объект)
 
-**Проверка:**
-
-```javascript
-function User(name) {
-  if (!(this instanceof User)) {
-    throw new Error('Must be called with new')
-  }
-  this.name = name
-}
-
-// Или в ES6:
-function User(name) {
-  if (new.target === undefined) {
-    throw new Error('Must be called with new')
-  }
-  this.name = name
-}
-```
+Практически: если вызываете функцию через `new`, `this` будет новым объектом.
 
 ---
 
@@ -174,7 +157,7 @@ const obj = {
     setTimeout(() => {
       console.log(this.value) // 42 — this из printLater
     }, 100)
-  }
+  },
 }
 
 obj.printLater()
@@ -189,7 +172,7 @@ const user = {
   name: 'Alice',
   say: () => {
     console.log(this.name) // undefined
-  }
+  },
 }
 
 user.say()
@@ -217,7 +200,7 @@ const user = {
   name: 'Alice',
   say() {
     console.log(this.name)
-  }
+  },
 }
 
 setTimeout(user.say, 1000) // что выведет?
@@ -240,194 +223,76 @@ setTimeout(() => user.say(), 1000)
 setTimeout(user.say.bind(user), 1000)
 
 // 3. Обёртка
-setTimeout(function() {
+setTimeout(function () {
   user.say()
 }, 1000)
 ```
 
-То же самое происходит при работе с методами классов и React-компонентами.
+То же самое происходит везде, где вы передаёте метод как коллбек: `setTimeout`, обработчики событий, `forEach` и т.п.
 
 ---
 
-## 22.5. Приоритет правил привязки
+## 22.5. Частые ловушки и как их чинить
 
-Правила применяются в следующем порядке:
-
-1. **`new`** — самый высокий приоритет
-2. **Явная привязка** (`call`, `apply`, `bind`)
-3. **Вызов как метод** (`obj.method()`)
-4. **Обычный вызов** (`fn()`)
-5. **Стрелочная функция** — берёт `this` из внешнего контекста
-
-**Пример:**
+### Ловушка 1: «оторвали» метод и потеряли this
 
 ```javascript
-const obj = { name: 'Object' }
-
-function test() {
-  console.log(this.name)
-}
-
-// 1. new (игнорирует bind)
-const Bound = test.bind(obj)
-const instance = new Bound() // undefined (новый объект)
-
-// 2. bind
-const bound = test.bind(obj)
-bound() // 'Object'
-
-// 3. call/apply
-test.call(obj) // 'Object'
-
-// 4. Обычный вызов
-test() // undefined (в strict mode)
-```
-
----
-
-## 22.6. Практические примеры
-
-### React компоненты
-
-```javascript
-class Button extends React.Component {
-  constructor(props) {
-    super(props)
-    // Вариант 1: bind в конструкторе
-    this.handleClick = this.handleClick.bind(this)
-  }
-  
-  handleClick() {
-    console.log(this.props) // this = экземпляр компонента
-  }
-  
-  render() {
-    // Вариант 2: стрелочная функция
-    return <button onClick={() => this.handleClick()}>Click</button>
-    
-    // Вариант 3: bind в JSX (не рекомендуется)
-    // return <button onClick={this.handleClick.bind(this)}>Click</button>
-  }
-}
-```
-
-### Обработчики событий
-
-```javascript
-const button = document.querySelector('button')
-
-const handler = {
-  count: 0,
-  handleClick() {
-    this.count++
-    console.log(this.count)
-  }
-}
-
-//  Плохо — потеря контекста
-button.addEventListener('click', handler.handleClick)
-
-//  Хорошо — bind
-button.addEventListener('click', handler.handleClick.bind(handler))
-
-//  Хорошо — стрелка
-button.addEventListener('click', () => handler.handleClick())
-```
-
-### Цепочки вызовов
-
-```javascript
-const calculator = {
-  value: 0,
-  add(n) {
-    this.value += n
-    return this // Возвращаем this для цепочки
-  },
-  multiply(n) {
-    this.value *= n
-    return this
-  },
-  getValue() {
-    return this.value
-  }
-}
-
-calculator.add(5).multiply(2).getValue() // 10
-```
-
----
-
-## 22.7. Частые ошибки
-
-### Ошибка 1: Потеря контекста в коллбеках
-
-```javascript
-//  Плохо
-const obj = {
-  data: [1, 2, 3],
-  process() {
-    this.data.forEach(function(item) {
-      console.log(this.data) // undefined
-    })
-  }
-}
-
-//  Хорошо
-const obj = {
-  data: [1, 2, 3],
-  process() {
-    this.data.forEach((item) => {
-      console.log(this.data) // [1, 2, 3]
-    })
-  }
-}
-```
-
-### Ошибка 2: Стрелка как метод объекта
-
-```javascript
-//  Плохо
-const obj = {
-  name: 'Alice',
-  say: () => {
-    console.log(this.name) // undefined
-  }
-}
-
-//  Хорошо
-const obj = {
+const user = {
   name: 'Alice',
   say() {
-    console.log(this.name) // 'Alice'
-  }
+    console.log(this.name)
+  },
 }
+
+const say = user.say
+say() // undefined в strict mode
 ```
 
-### Ошибка 3: Забыли bind в React
+**Решение:** `bind` или обёртка.
 
 ```javascript
-//  Плохо
-class Component extends React.Component {
-  handleClick() {
-    console.log(this.props) // TypeError
-  }
-  
-  render() {
-    return <button onClick={this.handleClick}>Click</button>
-  }
-}
+const sayFixed = user.say.bind(user)
+sayFixed() // 'Alice'
+```
 
-//  Хорошо
-class Component extends React.Component {
-  handleClick = () => {
-    console.log(this.props) // Работает
-  }
-  
-  render() {
-    return <button onClick={this.handleClick}>Click</button>
-  }
+### Ловушка 2: обычная функция внутри метода
+
+```javascript
+const obj = {
+  data: [1, 2, 3],
+  print() {
+    this.data.forEach(function () {
+      console.log(this) // undefined в strict mode
+    })
+  },
 }
 ```
+
+**Решение:** стрелка (берёт `this` снаружи) или `bind`.
+
+```javascript
+const obj = {
+  data: [1, 2, 3],
+  print() {
+    this.data.forEach(() => {
+      console.log(this.data) // [1, 2, 3]
+    })
+  },
+}
+```
+
+### Ловушка 3: стрелка как метод объекта
+
+```javascript
+const user = {
+  name: 'Alice',
+  say: () => console.log(this.name),
+}
+
+user.say() // undefined
+```
+
+**Правило:** если метод должен видеть `this` объекта — пишите обычную функцию `say() { ... }`.
 
 ---
 
@@ -439,7 +304,7 @@ class Component extends React.Component {
 
 ### 2. Как определяется this?
 
-По правилам: new → явная привязка (call/apply/bind) → вызов как метод → обычный вызов → стрелочная функция (из внешнего контекста).
+Коротко: `obj.method()` → this=obj; `fn()` → undefined (в strict mode); `call/apply/bind` задают this; `new` делает this новым объектом; у стрелок this берётся снаружи.
 
 ### 3. В чём разница между call, apply и bind?
 
@@ -462,7 +327,7 @@ call и apply вызывают функцию сразу с привязанны
 ```javascript
 const obj = {
   name: 'Alice',
-  say: () => console.log(this.name)
+  say: () => console.log(this.name),
 }
 obj.say()
 ```

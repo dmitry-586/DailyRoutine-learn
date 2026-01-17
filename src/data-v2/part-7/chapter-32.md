@@ -145,7 +145,13 @@ observer.disconnect()
 
 ## 32.2. MutationObserver
 
-Отслеживает изменения в DOM‑дереве.
+**MutationObserver** — API браузера, которое позволяет **наблюдать за изменениями DOM**.
+Проще: вы “подписываетесь” на изменения (добавили/удалили узел, поменяли атрибут), и браузер вызывает ваш callback с описанием этих изменений.
+
+Важно:
+
+- это не “событие” на каждый чих, а **батч** изменений (в callback приходит список `mutations`)
+- callback вызывается **асинхронно** (в виде microtask), то есть “после текущего синхронного кода”
 
 **Применения:**
 
@@ -158,81 +164,43 @@ observer.disconnect()
 
 ```javascript
 const observer = new MutationObserver((mutations) => {
-  mutations.forEach((mutation) => {
-    console.log('Type:', mutation.type)
-    console.log('Target:', mutation.target)
-
-    if (mutation.type === 'childList') {
-      console.log('Added nodes:', mutation.addedNodes)
-      console.log('Removed nodes:', mutation.removedNodes)
+  for (const m of mutations) {
+    if (m.type === 'childList') {
+      // кто-то добавил/удалил узлы
+      console.log('added:', m.addedNodes)
+      console.log('removed:', m.removedNodes)
     }
 
-    if (mutation.type === 'attributes') {
-      console.log('Attribute:', mutation.attributeName)
-      console.log('Old value:', mutation.oldValue)
+    if (m.type === 'attributes') {
+      // кто-то поменял атрибут
+      console.log('attr:', m.attributeName)
     }
-  })
+  }
 })
 
 observer.observe(targetElement, {
-  childList: true, // Изменения дочерних элементов
-  attributes: true, // Изменения атрибутов
-  subtree: true, // Включая поддерево
-  attributeOldValue: true, // Сохранять старое значение атрибута
+  childList: true,
+  attributes: true,
+  subtree: true,
 })
 ```
 
-### Опции наблюдения
+### Самые нужные опции (обычно хватает этого)
 
 ```javascript
 observer.observe(element, {
   childList: true, // Добавление/удаление дочерних элементов
   attributes: true, // Изменения атрибутов
-  characterData: true, // Изменения текстового содержимого
   subtree: true, // Наблюдать за всем поддеревом
-  attributeOldValue: true, // Сохранять старое значение атрибута
-  characterDataOldValue: true, // Сохранять старое значение текста
   attributeFilter: ['class', 'id'], // Только указанные атрибуты
 })
 ```
 
-### Отслеживание изменений классов
+### Когда НЕ стоит использовать
 
-```javascript
-const observer = new MutationObserver((mutations) => {
-  mutations.forEach((mutation) => {
-    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-      const newClasses = mutation.target.classList
-      console.log('Classes changed:', newClasses)
-    }
-  })
-})
-
-observer.observe(element, {
-  attributes: true,
-  attributeFilter: ['class'],
-})
-```
-
-### Отслеживание добавления элементов
-
-```javascript
-const observer = new MutationObserver((mutations) => {
-  mutations.forEach((mutation) => {
-    mutation.addedNodes.forEach((node) => {
-      if (node.nodeType === Node.ELEMENT_NODE) {
-        // Обработать новый элемент
-        initializeComponent(node)
-      }
-    })
-  })
-})
-
-observer.observe(container, {
-  childList: true,
-  subtree: true,
-})
-```
+- если можно подписаться на обычные события (`click`, `input`, `submit`) — **используйте события**
+- если нужен “реактивный UI” — чаще лучше фреймворк/стейт, а не наблюдатель DOM
+  (MutationObserver полезен именно для “внешних” изменений DOM или интеграций)
 
 ### disconnect
 

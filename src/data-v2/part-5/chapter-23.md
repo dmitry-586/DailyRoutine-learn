@@ -1,475 +1,208 @@
 # Глава 23. Прототипы, наследование и классы
 
-JavaScript — **прототипно‑ориентированный** язык. Классы в ES6 — это **синтаксический сахар**, а не новая модель. Понимание прототипов критично для работы с наследованием, классами и объектно-ориентированным программированием в JavaScript.
+Эта тема кажется сложной, потому что в JavaScript исторически две «упаковки» одной и той же идеи:
+
+- **прототипы** (как язык реально работает под капотом)
+- **классы** (удобный синтаксис поверх прототипов)
+
+Цель главы — понять **одну ключевую механику**: *как движок ищет свойства/методы у объекта*.
 
 ---
 
-## 23.1. Что такое прототип
+## 23.1. Главная идея: у объекта есть «запасной» объект
 
-У каждого объекта есть скрытая ссылка `[[Prototype]]` (в браузерах доступна через `__proto__`), которая указывает на другой объект.
+У каждого объекта есть скрытая ссылка на другой объект — `[[Prototype]]`.
+Если коротко:
 
-При обращении к свойству объекта движок делает:
+> Если у объекта нет свойства, движок идёт искать его в прототипе, затем в прототипе прототипа, и так далее.
 
-1. ищет свойство в самом объекте
-2. если нет — идёт по цепочке в прототип: `Object.getPrototypeOf(obj)`
-3. так доходит до `Object.prototype`
-4. если не нашёл — возвращает `undefined`
+Эта цепочка называется **цепочка прототипов (prototype chain)**.
 
-Это и есть **цепочка прототипов (prototype chain)**.
+---
 
-**Пример:**
+## 23.2. Как происходит поиск свойства (самое важное)
+
+Когда вы пишете `obj.someMethod`, движок делает примерно так:
+
+1. Проверяет: есть ли `someMethod` прямо в `obj`
+2. Если нет — смотрит в `obj.[[Prototype]]`
+3. Если нет — идёт дальше по цепочке
+4. Если дошёл до конца цепочки (там `null`) — возвращает `undefined`
+
+Минимальный пример:
 
 ```javascript
 const obj = {}
-obj.toString() // '[object Object]' — метод из Object.prototype
+obj.toString() // метод найден не в obj, а в Object.prototype
 ```
 
-**Проверка прототипа:**
+Практический вывод: **объект может “уметь” что-то не потому, что у него есть метод, а потому что метод есть у прототипа**.
+
+---
+
+## 23.3. `[[Prototype]]`, `__proto__` и `Object.getPrototypeOf`
+
+- `[[Prototype]]` — внутренняя (скрытая) ссылка.
+- `__proto__` — исторический аксессор к `[[Prototype]]` (в учебных примерах встречается, но в коде лучше не использовать).
+- `Object.getPrototypeOf(obj)` — нормальный способ посмотреть прототип.
 
 ```javascript
 const obj = {}
 Object.getPrototypeOf(obj) === Object.prototype // true
-obj.__proto__ === Object.prototype // true (не рекомендуется использовать)
 ```
 
 ---
 
-## 23.2. Функции-конструкторы и свойство prototype
+## 23.4. `prototype` у функций и `[[Prototype]]` у объектов — это разное
 
-До появления классов использовались функции-конструкторы:
+Тут чаще всего и начинается путаница.
 
-```javascript
-function User(name) {
-  this.name = name
-}
+### `[[Prototype]]` есть у объектов
 
-User.prototype.say = function () {
-  console.log(this.name)
-}
+Это «куда идти дальше», если свойства не нашлось.
 
-const u = new User('Alex')
-u.say() // 'Alex'
-```
+### `prototype` есть у функций (конструкторов)
 
-**Что происходит:**
+`User.prototype` — это объект, который станет прототипом (`[[Prototype]]`) для экземпляров, созданных через `new User()`.
 
-- у функции `User` есть объект `User.prototype`
-- при вызове `new User()` движок создаёт новый объект и делает:
+Запоминалка:
 
-```javascript
-instance.__proto__ === User.prototype // true
-```
-
-То есть все методы, записанные в `User.prototype`, становятся доступны всем экземплярам.
-
-**Преимущество:**
-
-Методы хранятся в одном месте (в прототипе), а не копируются в каждый экземпляр.
+- **`prototype`** — «шаблон прототипа для будущих экземпляров»
+- **`[[Prototype]]`** — «прототип конкретного объекта прямо сейчас»
 
 ---
 
-## 23.3. Алгоритм `new` в 4 шага
+## 23.5. Что делает `new`
 
-При вызове `new Constructor()` движок выполняет:
+`new` нужен, чтобы создать объект и привязать его прототип к `Constructor.prototype`.
 
-1. **Создаётся пустой объект** `{}`
-2. **Его прототип связывается** с `Constructor.prototype`
-3. **Вызывается конструктор** с `this = новый объект`
-4. **Если конструктор вернул объект** — он и будет результатом; иначе вернётся `this`
+Если очень коротко, `new` делает так:
 
-**Ручная реализация `new`:**
+1. Создаёт новый объект
+2. Ставит ему `[[Prototype]] = Constructor.prototype`
+3. Вызывает конструктор с `this = новый объект`
+4. Возвращает новый объект
 
-```javascript
-function myNew(Constructor, ...args) {
-  // 1. Создаём пустой объект
-  const obj = {}
-
-  // 2. Связываем прототип
-  Object.setPrototypeOf(obj, Constructor.prototype)
-
-  // 3. Вызываем конструктор
-  const result = Constructor.apply(obj, args)
-
-  // 4. Возвращаем результат
-  return result instanceof Object ? result : obj
-}
-
-// Использование
-const u = myNew(User, 'Alex')
-```
-
-Это любят спрашивать на собеседованиях, чтобы проверить понимание прототипной модели.
+Важная мысль: **именно из-за шага (2) экземпляр получает методы через прототип**.
 
 ---
 
-## 23.4. Цепочка прототипов
+## 23.6. Классы: удобный синтаксис над прототипами
 
-```javascript
-function Animal(name) {
-  this.name = name
-}
+В современном коде чаще всего используют `class`, но под капотом всё равно работает прототипная цепочка.
 
-Animal.prototype.eat = function () {
-  console.log(this.name, 'eats')
-}
+### Методы класса находятся в прототипе
 
-function Dog(name) {
-  Animal.call(this, name)
-}
-
-Dog.prototype = Object.create(Animal.prototype)
-Dog.prototype.constructor = Dog
-
-Dog.prototype.bark = function () {
-  console.log(this.name, 'barks')
-}
-
-const dog = new Dog('Rex')
-dog.eat() // 'Rex eats' — из Animal.prototype
-dog.bark() // 'Rex barks' — из Dog.prototype
-```
-
-**Цепочка:**
-
-```
-dog → Dog.prototype → Animal.prototype → Object.prototype → null
-```
-
----
-
-## 23.5. ES6‑классы: синтаксический сахар над прототипами
-
-Современный синтаксис:
-
-```javascript
-class Animal {
-  constructor(name) {
-    this.name = name
-  }
-
-  eat() {
-    console.log(this.name, 'eats')
-  }
-}
-
-class Dog extends Animal {
-  bark() {
-    console.log(this.name, 'barks')
-  }
-}
-
-const d = new Dog('Rex')
-d.eat() // 'Rex eats'
-d.bark() // 'Rex barks'
-```
-
-Под капотом это всё те же **функции‑конструкторы и прототипы**.
-
-**Эквивалент через функции:**
-
-```javascript
-function Animal(name) {
-  this.name = name
-}
-
-Animal.prototype.eat = function () {
-  console.log(this.name, 'eats')
-}
-
-function Dog(name) {
-  Animal.call(this, name)
-}
-
-Dog.prototype = Object.create(Animal.prototype)
-Dog.prototype.constructor = Dog
-
-Dog.prototype.bark = function () {
-  console.log(this.name, 'barks')
-}
-```
-
----
-
-## 23.6. Важные особенности классов
-
-### Классы не поднимаются (hoisting)
-
-```javascript
-const instance = new MyClass() // ReferenceError
-
-class MyClass {}
-```
-
-В отличие от Function Declaration, классы не поднимаются.
-
-### Strict mode по умолчанию
-
-Внутри классов по умолчанию strict mode, даже без `'use strict'`.
-
-### Методы автоматически попадают в prototype
+Когда вы пишете:
 
 ```javascript
 class User {
   say() {
-    // Попадает в User.prototype.say
+    return 'hi'
   }
 }
 ```
 
-### Класс нельзя вызвать без `new`
-
-```javascript
-class User {}
-
-User() // TypeError: Class constructor User cannot be invoked without 'new'
-```
+Движок фактически делает так, что метод `say` лежит не в каждом объекте отдельно, а в `User.prototype`.
 
 ---
 
-## 23.7. Наследование и `super`
+## 23.7. Наследование: `extends` и `super`
 
-### extends
+### Что делает `extends`
 
-```javascript
-class Animal {
-  constructor(name) {
-    this.name = name
-  }
+`extends` настраивает цепочку прототипов так, чтобы:
 
-  eat() {
-    console.log(this.name, 'eats')
-  }
-}
+- экземпляр наследника мог найти методы родителя
+- и сам класс наследника мог наследовать статические методы/свойства родителя
 
-class Dog extends Animal {
-  constructor(name, breed) {
-    super(name) // Вызов конструктора родителя
-    this.breed = breed
-  }
+### Зачем нужен `super`
 
-  bark() {
-    console.log(this.name, 'barks')
-  }
-}
-```
+- `super()` в конструкторе вызывает конструктор родителя и инициализирует `this`.
+- `super.method()` вызывает метод родителя с текущим `this`.
 
-### super в методах
+Ключевое правило:
 
-```javascript
-class A {
-  say() {
-    console.log('A')
-  }
-}
-
-class B extends A {
-  say() {
-    super.say() // Вызов метода родителя
-    console.log('B')
-  }
-}
-
-new B().say() // A \n B
-```
-
-**Правила:**
-
-- `super()` в конструкторе — вызов конструктора родителя (обязательно до `this`)
-- `super.method()` — вызов метода родителя
-- `super` можно использовать только в методах классов
+> В наследнике нельзя использовать `this` до `super()` в конструкторе.
 
 ---
 
-## 23.8. Статические методы и свойства
+## 23.8. Статические методы
 
-Статические методы принадлежат классу, а не экземпляру:
+**Статические методы** принадлежат классу, а не экземпляру.
 
 ```javascript
 class MathUtils {
   static sum(a, b) {
     return a + b
   }
-
-  static PI = 3.14159
 }
 
 MathUtils.sum(1, 2) // 3
-MathUtils.PI // 3.14159
-
-const instance = new MathUtils()
-instance.sum(1, 2) // TypeError: instance.sum is not a function
 ```
 
-**Под капотом:**
-
-```javascript
-MathUtils.sum = function (a, b) {
-  return a + b
-}
-```
+У экземпляра `new MathUtils()` этого метода не будет.
 
 ---
 
-## 23.9. Приватные поля (#)
+## 23.9. Приватные поля `#`
 
-Современный стандарт приватности:
+Поля с `#` доступны только внутри класса:
 
 ```javascript
 class User {
   #password = 'secret'
-  #email = 'user@example.com'
-
   getPassword() {
     return this.#password
   }
-
-  setEmail(email) {
-    this.#email = email
-  }
-}
-
-const user = new User()
-user.#password // SyntaxError: Private field '#password' must be declared in an enclosing class
-user.getPassword() // 'secret'
-```
-
-**Особенности:**
-
-- Приватные поля начинаются с `#`
-- Доступны только внутри класса
-- Не наследуются (каждый класс имеет свои приватные поля)
-- Нельзя получить доступ извне даже через `user['#password']`
-
-**Статические приватные поля:**
-
-```javascript
-class Counter {
-  static #count = 0
-
-  static increment() {
-    Counter.#count++
-  }
-
-  static getCount() {
-    return Counter.#count
-  }
 }
 ```
+
+Снаружи обратиться к `user.#password` нельзя — это синтаксическая ошибка.
 
 ---
 
-## 23.10. Геттеры и сеттеры
+## 23.10. Как проверять «принадлежность» (instanceof)
 
-```javascript
-class User {
-  constructor(firstName, lastName) {
-    this.firstName = firstName
-    this.lastName = lastName
-  }
+`instanceof` отвечает на вопрос:
 
-  get fullName() {
-    return `${this.firstName} ${this.lastName}`
-  }
-
-  set fullName(value) {
-    ;[this.firstName, this.lastName] = value.split(' ')
-  }
-}
-
-const user = new User('John', 'Doe')
-console.log(user.fullName) // 'John Doe'
-user.fullName = 'Jane Smith'
-console.log(user.firstName) // 'Jane'
-```
-
----
-
-## 23.11. Проверка принадлежности
-
-### instanceof
+> Есть ли `Prototype.prototype` где-то в цепочке `obj`?
 
 ```javascript
 class Animal {}
 class Dog extends Animal {}
 
 const dog = new Dog()
-
 dog instanceof Dog // true
 dog instanceof Animal // true
-dog instanceof Object // true
-```
-
-`instanceof` проверяет всю цепочку прототипов.
-
-### Object.prototype.isPrototypeOf
-
-```javascript
-Dog.prototype.isPrototypeOf(dog) // true
-Animal.prototype.isPrototypeOf(dog) // true
 ```
 
 ---
 
-## 23.12. Сравнение: функции-конструкторы vs классы
+## Короткое резюме (что нужно реально унести)
 
-**Функции-конструкторы:**
-
-- Синтаксис: старый
-- Hoisting: да
-- Strict mode: нет (по умолчанию)
-- Вызов без new: возможно
-- Наследование: сложное
-- Приватные поля: нет
-- Статические методы: вручную
-
-**Классы:**
-
-- Синтаксис: современный
-- Hoisting: нет
-- Strict mode: да
-- Вызов без new: ошибка
-- Наследование: простое (extends)
-- Приватные поля: да (#)
-- Статические методы: синтаксис static
-
-**Рекомендация:** Используйте классы в новом коде.
+- **Прототипная цепочка** — механизм поиска свойств/методов.
+- **`prototype`** (у функций/классов) — «что будет прототипом у экземпляров».
+- **`[[Prototype]]`** (у объектов) — «куда идти за свойствами, если их нет в самом объекте».
+- **Классы** — просто удобный синтаксис; суть — всё та же цепочка прототипов.
 
 ---
 
-## Вопросы на собеседовании
+## Вопросы на собеседовании (простые ответы)
 
 ### 1. Что такое прототип?
 
-Скрытая ссылка `[[Prototype]]`, которая указывает на другой объект. Используется для поиска свойств по цепочке.
+Объект, на который указывает `[[Prototype]]`. Если у объекта нет свойства, оно ищется в прототипе по цепочке.
 
-### 2. Как работает new?
+### 2. В чём разница между `prototype` и `__proto__`?
 
-1. Создаётся пустой объект
-2. Его прототип связывается с Constructor.prototype
-3. Вызывается конструктор с this = новый объект
-4. Возвращается объект (или this, если конструктор не вернул объект)
+`prototype` — свойство функции/класса (шаблон прототипа для экземпляров). `__proto__` — доступ к `[[Prototype]]` у конкретного объекта (лучше использовать `Object.getPrototypeOf`).
 
-### 3. В чём разница между `__proto__` и `prototype`?
+### 3. Что делает `new`?
 
-`__proto__` — ссылка на прототип экземпляра. `prototype` — объект, который используется как прототип для новых экземпляров.
+Создаёт объект, связывает его `[[Prototype]]` с `Constructor.prototype`, вызывает конструктор с `this = новый объект`.
 
-### 4. Почему классы — это синтаксический сахар?
+### 4. Зачем `extends` и `super`?
 
-Под капотом классы компилируются в функции-конструкторы и прототипы. Это не новая модель, а удобный синтаксис.
-
-### 5. Что такое super?
-
-`super` используется для вызова методов и конструктора родительского класса. `super()` в конструкторе обязательно до `this`.
-
-### 6. Как работают приватные поля?
-
-Приватные поля начинаются с `#` и доступны только внутри класса. Не наследуются и недоступны извне.
-
-### 7. Что такое статические методы?
-
-Методы, принадлежащие классу, а не экземпляру. Вызываются через имя класса, а не через экземпляр.
-
-### 8. Как проверить, является ли объект экземпляром класса?
-
-Использовать `instanceof`, который проверяет всю цепочку прототипов.
+`extends` настраивает наследование (цепочку прототипов). `super()` вызывает конструктор родителя, `super.method()` — метод родителя.
 
