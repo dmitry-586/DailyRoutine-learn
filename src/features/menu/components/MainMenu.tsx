@@ -1,6 +1,6 @@
 'use client'
 
-import { BookOpen, Code, GraduationCap } from 'lucide-react'
+import { BookOpen, Code, GraduationCap, Headphones } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 export function MainMenu() {
@@ -18,7 +18,7 @@ export function MainMenu() {
           </p>
         </div>
 
-        <div className='grid gap-4 md:grid-cols-3'>
+        <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
           <MenuCard
             icon={<BookOpen className='h-8 w-8' />}
             title='Учебник'
@@ -38,6 +38,13 @@ export function MainMenu() {
             title='Тесты'
             description='Проверьте знания теоретическими вопросами'
             onClick={() => router.push('/quiz')}
+          />
+
+          <MenuCard
+            icon={<Headphones className='h-8 w-8' />}
+            title='Подкасты'
+            description='Слушайте теорию в аудиоформате'
+            onClick={() => router.push('/podcasts')}
           />
         </div>
       </div>
