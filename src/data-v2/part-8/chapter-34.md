@@ -4,7 +4,35 @@
 
 ---
 
-## 34.1. any — отключение проверки типов
+## 34.1. Иерархия типов
+
+TypeScript имеет иерархию типов, где каждый тип занимает своё место:
+
+**Ключевые понятия:**
+
+- **`unknown`** — верхушечный тип (супертип для всего). Любой тип можно присвоить `unknown`, но использовать его нельзя без проверки. Это самый широкий тип в системе.
+- **`never`** — низший тип (подтип для всего). `never` можно присвоить любому типу, но значение типа `never` получить невозможно. Это самый узкий тип в системе.
+
+Между ними находятся все остальные типы: `object`, `number`, `string`, `Array<T>` и другие. Эта иерархия — основа для понимания совместимости типов в TypeScript.
+
+```typescript
+// unknown — супертип, принимает всё
+let value: unknown = 42
+value = 'hello'
+value = { data: 'test' }
+
+// never — подтип, можно присвоить куда угодно
+function fail(): never {
+  throw new Error()
+}
+
+let num: number = fail() // OK
+let str: string = fail() // OK
+```
+
+---
+
+## 34.2. any — отключение проверки типов
 
 `any` полностью отключает проверку типов. Использовать **крайне редко**.
 
@@ -32,7 +60,7 @@ process({ value: 42 }) // Runtime error!
 
 ---
 
-## 34.2. unknown — безопасная альтернатива any
+## 34.3. unknown — безопасная альтернатива any
 
 `unknown` требует проверки типа перед использованием:
 
@@ -66,7 +94,7 @@ function safeProcess(data: unknown) {
 
 ---
 
-## 34.3. never — тип для невозможных значений
+## 34.4. never — тип для невозможных значений
 
 `never` означает, что значение никогда не появится:
 
@@ -126,7 +154,7 @@ first([]) // Error: Type '[]' is not assignable to type 'NonEmptyArray<never>'
 
 ---
 
-## 34.4. Union types (|)
+## 34.5. Union types (|)
 
 Позволяет ограничить набор допустимых значений:
 
@@ -181,7 +209,7 @@ function handleResult(result: Result) {
 
 ---
 
-## 34.5. Intersection types (&)
+## 34.6. Intersection types (&)
 
 Объединяет несколько типов:
 
@@ -234,7 +262,7 @@ const logger: Logger = {
 
 ---
 
-## 34.6. Literal types
+## 34.7. Literal types
 
 Тип, который может быть только конкретным значением:
 
@@ -249,6 +277,40 @@ function setTheme(theme: 'light' | 'dark') {
 
 setTheme('light') // OK
 setTheme('auto') // Error: Argument of type '"auto"' is not assignable
+```
+
+### Вывод максимально узких типов через const
+
+Ключевое слово `const` заставляет TypeScript выводить максимально узкий тип — литеральный тип вместо общего:
+
+```typescript
+// let — выводит общий тип
+let value = true // тип: boolean
+
+// const — выводит литеральный тип
+const value = true // тип: true (не boolean!)
+
+// Это уникальная фишка TypeScript
+const theme = 'dark' // тип: "dark" (не string)
+const count = 42 // тип: 42 (не number)
+```
+
+Это позволяет создавать точные типы без явных аннотаций:
+
+```typescript
+// Без const — общий тип
+let config = {
+  theme: 'dark',
+  size: 10,
+}
+// тип: { theme: string; size: number }
+
+// С const — литеральные типы
+const config = {
+  theme: 'dark',
+  size: 10,
+}
+// тип: { theme: "dark"; size: 10 }
 ```
 
 ### String literal types
@@ -293,9 +355,9 @@ enable(false) // Error
 
 ---
 
-## 34.7. const assertions
+## 34.8. const assertions
 
-Делает объект/массив неизменяемым и выводит максимально узкие типы:
+Делает объект/массив **рекурсивно readonly** и выводит максимально узкие типы (литеральные типы):
 
 ```typescript
 // Без const assertion
@@ -305,12 +367,23 @@ const config = {
 }
 // Тип: { theme: string; size: number }
 
-// С const assertion
+// С const assertion — рекурсивно readonly
 const config = {
   theme: 'dark',
   size: 10,
+  nested: {
+    value: 'test',
+  },
 } as const
-// Тип: { readonly theme: "dark"; readonly size: 10 }
+// Тип: { 
+//   readonly theme: "dark"; 
+//   readonly size: 10;
+//   readonly nested: { readonly value: "test" }
+// }
+
+// Все свойства становятся readonly, включая вложенные
+config.theme = 'light' // Error: Cannot assign to 'theme' because it is a read-only property
+config.nested.value = 'new' // Error: Cannot assign to 'value' because it is a read-only property
 
 // Массивы
 const colors = ['red', 'green', 'blue'] as const
@@ -337,9 +410,9 @@ type Config = typeof config
 
 ---
 
-## 34.8. Кортежи (Tuples)
+## 34.9. Кортежи (Tuples)
 
-Кортеж — массив с фиксированной длиной и известными типами элементов:
+Кортеж — массив с **фиксированной длиной** и известными типами элементов на каждой позиции:
 
 ```typescript
 type Point = [number, number]
@@ -353,6 +426,8 @@ const x = point[0] // number
 const name = user[0] // string
 ```
 
+**Ключевая особенность:** Кортеж гарантирует фиксированную структуру — количество элементов и их типы на каждой позиции известны заранее.
+
 ### Optional элементы в кортежах
 
 ```typescript
@@ -360,18 +435,6 @@ type OptionalTuple = [string, number?]
 
 const t1: OptionalTuple = ['hello'] // OK
 const t2: OptionalTuple = ['hello', 42] // OK
-```
-
-### Rest элементы в кортежах
-
-```typescript
-type StringNumberBooleans = [string, number, ...boolean[]]
-type StringBooleansNumber = [string, ...boolean[], number]
-type BooleansStringNumber = [...boolean[], string, number]
-
-const a: StringNumberBooleans = ['hello', 1, true, false]
-const b: StringBooleansNumber = ['hello', true, false, 1]
-const c: BooleansStringNumber = [true, false, 'hello', 1]
 ```
 
 ### Readonly кортежи

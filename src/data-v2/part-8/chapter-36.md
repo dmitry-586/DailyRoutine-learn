@@ -134,6 +134,41 @@ interface Calculator {
 }
 ```
 
+### Полная сигнатура вызова
+
+Разница между краткой записью `() => T` и полной `{ (): T }`:
+
+**Краткая запись** — только тип функции:
+```typescript
+type Handler = () => void
+
+const handler: Handler = () => {
+  console.log('clicked')
+}
+```
+
+**Полная сигнатура** — позволяет добавлять свойства к функции:
+```typescript
+type Handler = {
+  (): void
+  once?: boolean
+}
+
+const handler: Handler = () => {
+  console.log('clicked')
+}
+handler.once = true // OK — можно добавить свойство
+
+// Или функция с дополнительными свойствами
+function createHandler(): Handler {
+  const fn = () => console.log('clicked')
+  fn.once = true
+  return fn
+}
+```
+
+Это нужно, когда функция должна иметь дополнительные свойства (например, `once`, `priority`).
+
 ---
 
 ## 36.6. Перегрузка функций (Function Overloads)
@@ -153,12 +188,15 @@ format(42) // string
 format(true) // string
 ```
 
+**Важно:** Сигнатура реализации (последняя функция) **невидима для вызывающего кода**. TypeScript использует только сигнатуры перегрузок для проверки типов.
+
 **Практический пример:**
 
 ```typescript
 // Разные сигнатуры для разных случаев
 function getData(id: number): Promise<User>
 function getData(ids: number[]): Promise<User[]>
+// Сигнатура реализации невидима для вызывающего кода
 function getData(idOrIds: number | number[]): Promise<User | User[]> {
   if (Array.isArray(idOrIds)) {
     return fetchUsers(idOrIds)
@@ -166,7 +204,7 @@ function getData(idOrIds: number | number[]): Promise<User | User[]> {
   return fetchUser(idOrIds)
 }
 
-// TypeScript знает тип возвращаемого значения
+// TypeScript знает тип возвращаемого значения на основе сигнатур перегрузок
 const user = await getData(1) // Promise<User>
 const users = await getData([1, 2, 3]) // Promise<User[]>
 ```
@@ -187,13 +225,38 @@ const span = createElement('span') // HTMLSpanElement
 
 ---
 
-## 36.7. this в функциях
+## 36.7. Контекстная типизация
 
-### Типизация this
-
-TypeScript позволяет явно указать тип `this`:
+TypeScript выводит типы параметров функции на основе места, где она вызывается (контекста):
 
 ```typescript
+// Тип параметра выводится из контекста использования
+const numbers = [1, 2, 3]
+
+// TypeScript знает, что item — number
+numbers.forEach((item) => {
+  console.log(item.toFixed(2)) // OK, item: number
+})
+
+// В коллбэках
+function processItems<T>(
+  items: T[],
+  callback: (item: T, index: number) => void,
+): void {
+  items.forEach(callback)
+}
+
+// Тип T выводится из первого аргумента
+processItems([1, 2, 3], (item) => {
+  // item автоматически имеет тип number
+  console.log(item.toFixed(2))
+})
+```
+
+**Практический пример:**
+
+```typescript
+// Типизация this в методах
 interface User {
   name: string
   greet(this: User): void
@@ -209,28 +272,6 @@ const user: User = {
 user.greet() // OK
 const greet = user.greet
 greet() // Error: The 'this' context of type 'void' is not assignable
-```
-
-### Связанные функции (Bound functions)
-
-```typescript
-class Button {
-  constructor(public label: string) {}
-
-  onClick(this: Button) {
-    console.log(`Clicked: ${this.label}`)
-  }
-}
-
-const button = new Button('Submit')
-button.onClick() // OK
-
-const onClick = button.onClick
-onClick() // Error: 'this' context is lost
-
-// Решение: bind
-const boundOnClick = button.onClick.bind(button)
-boundOnClick() // OK
 ```
 
 ---
@@ -266,35 +307,7 @@ async function getUser(id: number): Promise<User> {
 
 ---
 
-## 36.9. Типизация генераторов
-
-```typescript
-function* generateNumbers(): Generator<number, void, unknown> {
-  yield 1
-  yield 2
-  yield 3
-}
-
-async function* fetchUsersBatch(
-  ids: number[],
-): AsyncGenerator<User, void, unknown> {
-  for (const id of ids) {
-    yield await fetchUser(id)
-  }
-}
-
-// Использование
-async function processUsers() {
-  const generator = fetchUsersBatch([1, 2, 3])
-  for await (const user of generator) {
-    console.log(user)
-  }
-}
-```
-
----
-
-## 36.10. Типизация коллбеков
+## 36.8. Типизация коллбеков
 
 ```typescript
 function processItems(
@@ -325,7 +338,7 @@ addClickListener((event) => {
 
 ---
 
-## 36.11. Условные типы в функциях
+## 36.9. Условные типы в функциях
 
 ```typescript
 type ReturnType<T> = T extends (...args: any[]) => infer R ? R : never
@@ -350,9 +363,9 @@ type User = ReturnType<typeof getUser>
 
 Несколько сигнатур для одной функции, позволяющие описать разные варианты использования.
 
-### 3. Как типизировать this в функции?
+### 3. Что такое контекстная типизация?
 
-Использовать параметр `this: Type` в сигнатуре функции.
+Механизм, при котором TypeScript выводит типы параметров функции на основе места, где она вызывается (например, в коллбэках).
 
 ### 4. В чём разница между опциональными параметрами и параметрами по умолчанию?
 

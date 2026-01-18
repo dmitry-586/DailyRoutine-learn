@@ -109,7 +109,271 @@ type UserValue = Awaited<UserPromise> // User
 
 ---
 
-## 38.2. Discriminated Unions
+## 38.2. Вариантность (Variance): Ковариантность и Контрвариантность
+
+**Вариантность** — это «сердце» Middle-собеседований. Это определяет, как совместимость типов работает для сложных типов (функций, массивов, объектов).
+
+### Ковариантность (Covariance)
+
+Тип сохраняет направление совместимости:
+
+```typescript
+// Массивы ковариантны
+type Animal = { name: string }
+type Dog = Animal & { breed: string }
+
+let animals: Animal[] = []
+let dogs: Dog[] = []
+
+animals = dogs // OK — ковариантность
+// dogs = animals // Error — нельзя присвоить обратно
+```
+
+### Контрвариантность (Contravariance)
+
+Тип инвертирует направление совместимости:
+
+```typescript
+// Параметры функций контрвариантны
+type Animal = { name: string }
+type Dog = Animal & { breed: string }
+
+type AnimalHandler = (animal: Animal) => void
+type DogHandler = (dog: Dog) => void
+
+let animalHandler: AnimalHandler = (animal) => {
+  console.log(animal.name)
+}
+
+let dogHandler: DogHandler = (dog) => {
+  console.log(dog.name, dog.breed)
+}
+
+// Контрвариантность параметров
+dogHandler = animalHandler // OK — можно использовать более общий обработчик
+// animalHandler = dogHandler // Error — нельзя использовать более специфичный
+```
+
+**Почему это безопасно:**
+
+```typescript
+// animalHandler может обработать любое Animal
+// Dog является Animal, поэтому animalHandler может обработать Dog
+dogHandler = animalHandler // OK
+
+// Но dogHandler ожидает Dog с полем breed
+// Если присвоить его animalHandler, может не хватить поля breed
+animalHandler = dogHandler // Error — небезопасно!
+```
+
+### Ковариантность возвращаемых типов
+
+Функции **ковариантны** в возвращаемых типах:
+
+```typescript
+type Animal = { name: string }
+type Dog = Animal & { breed: string }
+
+type GetAnimal = () => Animal
+type GetDog = () => Dog
+
+let getAnimal: GetAnimal = () => ({ name: 'Animal' })
+let getDog: GetDog = () => ({ name: 'Dog', breed: 'Labrador' })
+
+// Возвращаемый тип ковариантен
+getAnimal = getDog // OK — можно вернуть более специфичный тип
+// getDog = getAnimal // Error — нельзя вернуть менее специфичный тип
+```
+
+### Итоговое правило
+
+**Функции:**
+- **Контрвариантны** в типах параметров
+- **Ковариантны** в возвращаемых типах
+
+```typescript
+type Animal = { name: string }
+type Dog = Animal & { breed: string }
+
+// Функция с контрвариантными параметрами и ковариантным возвратом
+type ProcessAnimal = (animal: Animal) => Animal
+type ProcessDog = (dog: Dog) => Dog
+
+let processAnimal: ProcessAnimal = (animal) => animal
+let processDog: ProcessDog = (dog) => dog
+
+// processDog = processAnimal // OK — параметры контрвариантны, возврат ковариантен
+// processAnimal = processDog // Error — небезопасно
+```
+
+**Практический пример:**
+
+```typescript
+// Event handlers
+type BaseEvent = { timestamp: number }
+type ClickEvent = BaseEvent & { x: number; y: number }
+
+type BaseHandler = (event: BaseEvent) => void
+type ClickHandler = (event: ClickEvent) => void
+
+// Можно использовать более общий обработчик для более специфичного события
+let clickHandler: ClickHandler = (event) => {
+  console.log(event.x, event.y)
+}
+
+let baseHandler: BaseHandler = (event) => {
+  console.log(event.timestamp)
+}
+
+clickHandler = baseHandler // OK — контрвариантность параметров
+```
+
+---
+
+## 38.3. Проверка лишних свойств (Excess Property Checks)
+
+TypeScript проверяет лишние свойства **только в новых объектных литералах**:
+
+```typescript
+interface User {
+  name: string
+  age: number
+}
+
+// Лишнее свойство в новом объектном литерале — ошибка
+const user1: User = {
+  name: 'Alice',
+  age: 30,
+  email: 'alice@example.com', // Error: Object literal may only specify known properties
+}
+
+// Но если сначала присвоить переменной — ошибки нет
+const obj = {
+  name: 'Alice',
+  age: 30,
+  email: 'alice@example.com',
+}
+const user2: User = obj // OK — лишнее свойство пропускается
+```
+
+**Почему так работает:**
+
+TypeScript использует структурную типизацию. Если объект имеет все нужные свойства, он совместим с типом. Но при создании нового литерала TypeScript строже проверяет, чтобы предотвратить опечатки.
+
+**Практический пример:**
+
+```typescript
+interface Config {
+  apiUrl: string
+  timeout: number
+}
+
+function setConfig(config: Config) {
+  // ...
+}
+
+// Ошибка — лишнее свойство
+setConfig({
+  apiUrl: 'https://api.example.com',
+  timeout: 5000,
+  retries: 3, // Error: Object literal may only specify known properties
+})
+
+// Решение 1: Сначала присвоить переменной
+const config = {
+  apiUrl: 'https://api.example.com',
+  timeout: 5000,
+  retries: 3,
+}
+setConfig(config) // OK
+
+// Решение 2: Использовать type assertion
+setConfig({
+  apiUrl: 'https://api.example.com',
+  timeout: 5000,
+  retries: 3,
+} as Config) // OK, но теряем проверку
+```
+
+---
+
+## 38.4. Тотальность (Totality)
+
+**Тотальность** — гарантия, что все ветки кода обработаны. TypeScript может проверить это через флаг `noImplicitReturns` и exhaustive checks.
+
+### Флаг noImplicitReturns
+
+Требует явного возврата во всех ветках:
+
+```typescript
+// С noImplicitReturns: true
+function process(value: string | number): string {
+  if (typeof value === 'string') {
+    return value.toUpperCase()
+  }
+  // Error: Not all code paths return a value
+  // Нужно добавить return для number
+  return value.toString()
+}
+```
+
+### Exhaustive checks в switch
+
+TypeScript гарантирует, что все ветки `switch/case` обработаны:
+
+```typescript
+type Status = 'idle' | 'loading' | 'success' | 'error'
+
+function handleStatus(status: Status): string {
+  switch (status) {
+    case 'idle':
+      return 'Ready'
+    case 'loading':
+      return 'Loading...'
+    case 'success':
+      return 'Done'
+    case 'error':
+      return 'Error occurred'
+    default:
+      // Если добавить новый статус, будет ошибка
+      const _exhaustive: never = status
+      return _exhaustive
+  }
+}
+
+// Если добавить новый вариант:
+type Status = 'idle' | 'loading' | 'success' | 'error' | 'pending'
+
+// TypeScript выдаст ошибку в default, потому что 'pending' не обработан
+```
+
+**Практический пример:**
+
+```typescript
+type Result<T> =
+  | { type: 'success'; data: T }
+  | { type: 'error'; message: string }
+  | { type: 'loading' }
+
+function processResult<T>(result: Result<T>): string {
+  switch (result.type) {
+    case 'success':
+      return `Success: ${result.data}`
+    case 'error':
+      return `Error: ${result.message}`
+    case 'loading':
+      return 'Loading...'
+    default:
+      // Гарантия тотальности
+      const _exhaustive: never = result
+      return _exhaustive
+  }
+}
+```
+
+---
+
+## 38.5. Discriminated Unions
 
 Один из самых мощных паттернов TypeScript. Позволяет TypeScript точно определять тип на основе дискриминанта.
 
@@ -181,7 +445,7 @@ function handleStatus(status: Status) {
 
 ---
 
-## 38.3. Type Guards
+## 38.6. Type Guards
 
 Позволяют сузить тип в условных блоках.
 
@@ -264,7 +528,7 @@ function processUser(user: User | Admin) {
 
 ---
 
-## 38.4. Conditional Types
+## 38.7. Conditional Types
 
 Условные типы позволяют выбирать тип на основе условия.
 
@@ -355,7 +619,7 @@ type Required = RequiredKeys<User>
 
 ---
 
-## 38.5. Mapped Types
+## 38.8. Mapped Types
 
 Позволяют создавать новые типы на основе существующих.
 
@@ -369,6 +633,18 @@ type Optional<T> = {
 type Readonly<T> = {
   readonly [K in keyof T]: T[K]
 }
+```
+
+**Важно:** По умолчанию `keyof` возвращает `string | number | symbol`. Если проект работает со старыми окружениями, можно использовать флаг `keyofStringsOnly: true`, который ограничит `keyof` только строками:
+
+```typescript
+// С keyofStringsOnly: true
+type Keys = keyof { a: 1; 0: 2 }
+// Keys = "a" | "0" (только строки, даже числовые ключи становятся строками)
+
+// Без keyofStringsOnly (по умолчанию)
+type Keys = keyof { a: 1; 0: 2 }
+// Keys = "a" | 0 | "0" (включает number и symbol)
 ```
 
 ### Key Remapping
@@ -428,7 +704,7 @@ type StateSetters = Setters<State>
 
 ---
 
-## 38.6. Template Literal Types
+## 38.9. Template Literal Types
 
 Позволяют создавать типы на основе строковых шаблонов.
 
@@ -485,7 +761,7 @@ type PathSegments = Split<Path, '.'>
 
 ---
 
-## 38.7. Рекурсивные типы
+## 38.10. Рекурсивные типы
 
 ### DeepReadonly
 
@@ -581,5 +857,17 @@ Union типы с общим полем-дискриминантом, позво
 ### 7. Как работает infer в Conditional Types?
 
 Позволяет извлекать типы из других типов, например, тип возвращаемого значения функции.
+
+### 8. Что такое вариантность?
+
+Вариантность определяет, как совместимость типов работает для сложных типов. Функции контрвариантны в параметрах и ковариантны в возвращаемых типах.
+
+### 9. Что такое проверка лишних свойств?
+
+TypeScript проверяет лишние свойства только в новых объектных литералах, но пропускает их, если объект сначала присвоить переменной.
+
+### 10. Что такое тотальность?
+
+Гарантия, что все ветки кода обработаны. Проверяется через флаг `noImplicitReturns` и exhaustive checks в switch/case.
 
 - Понимание продвинутых типов критично для Senior уровня

@@ -187,14 +187,17 @@ type Readonly<T> = {
 
 **Ограничения:**
 
+-  Интерфейс может описывать только «формы» (объекты, классы, функции)
 -  Не поддерживает union types напрямую
 -  Не поддерживает intersection напрямую (но можно через extends)
+-  Не может содержать произвольные выражения типов
 
 ### type
 
 **Преимущества:**
 
 -  Поддерживает union, intersection, mapped types
+-  Может содержать любые выражения типов (например, `type A = number | string`)
 -  Лучше для композиций и утилитарных типов
 -  Более гибкий
 
@@ -203,16 +206,47 @@ type Readonly<T> = {
 -  Нельзя расширять (но можно использовать intersection)
 -  Не поддерживает declaration merging
 
+**Ключевое различие:**
+
+```typescript
+// Интерфейс — только для «форм»
+interface User {
+  name: string
+}
+
+// Тип — может содержать любые выражения
+type ID = number | string // Нельзя переписать в интерфейс!
+type Status = 'active' | 'inactive' // Нельзя переписать в интерфейс!
+```
+
 ---
 
 ## 35.4. Когда использовать interface
 
 **Используй interface для:**
 
-- Публичных API
+- **Публичных библиотек** — благодаря механизму declaration merging интерфейсы идеальны для расширения типов из внешних библиотек
 - Объектов и классов
 - Когда нужна расширяемость
 - Когда нужен declaration merging
+
+**Почему интерфейсы лучше для публичных библиотек:**
+
+```typescript
+// В библиотеке
+export interface Config {
+  apiUrl: string
+}
+
+// Пользователь библиотеки может расширить тип
+declare module 'my-library' {
+  interface Config {
+    customOption?: string
+  }
+}
+
+// С type это невозможно — нет declaration merging
+```
 
 ```typescript
 interface ButtonProps {
@@ -319,6 +353,38 @@ type TUser = {
 const user1: IUser = { name: 'Alice' }
 const user2: TUser = user1 // OK
 const user3: IUser = user2 // OK
+```
+
+### Проверка совместимости при расширении
+
+**При расширении интерфейса через `extends`:**
+
+TypeScript проверяет совместимость с родителем — если дочерний интерфейс несовместим, будет ошибка:
+
+```typescript
+interface Base {
+  value: number
+}
+
+// TypeScript проверяет совместимость
+interface Extended extends Base {
+  value: string // Error: Property 'value' of type 'string' is not assignable to type 'number'
+}
+```
+
+**При использовании пересечений (`&`):**
+
+TypeScript просто пытается объединить типы, что может привести к `never`:
+
+```typescript
+type Base = {
+  value: number
+}
+
+// Пересечение создаёт never, если типы конфликтуют
+type Extended = Base & {
+  value: string // value: never (number & string = never)
+}
 ```
 
 **Но есть нюансы:**

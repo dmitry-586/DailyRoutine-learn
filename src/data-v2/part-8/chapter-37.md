@@ -6,7 +6,7 @@
 
 ## 37.1. Зачем нужны дженерики
 
-Дженерики позволяют писать переиспользуемый типобезопасный код:
+Дженерики (полиморфные типы) позволяют писать переиспользуемый типобезопасный код:
 
 ```typescript
 // Без дженериков — нужно дублировать код
@@ -18,7 +18,7 @@ function identityString(value: string): string {
   return value
 }
 
-// С дженериками — один код для всех типов
+// С дженериками (полиморфными типами) — один код для всех типов
 function identity<T>(value: T): T {
   return value
 }
@@ -26,9 +26,11 @@ function identity<T>(value: T): T {
 const num = identity<number>(42) // number
 const str = identity<string>('hello') // string
 
-// TypeScript может вывести тип
+// TypeScript может вывести полиморфный тип
 const num2 = identity(42) // автоматически number
 ```
+
+**Терминология:** `T` здесь — это **полиморфный тип** (параметр типа), который может быть заменён на конкретный тип при использовании.
 
 ---
 
@@ -39,10 +41,10 @@ function identity<T>(value: T): T {
   return value
 }
 
-// Явное указание типа
+// Явное указание полиморфного типа
 const result = identity<number>(42)
 
-// Вывод типа
+// Вывод полиморфного типа
 const result2 = identity(42) // автоматически number
 ```
 
@@ -80,9 +82,29 @@ const stringContainer = new Container<string>()
 stringContainer.add('hello')
 ```
 
+**Важно:** Статические методы класса **не имеют доступа** к полиморфным типам самого класса:
+
+```typescript
+class Container<T> {
+  private items: T[] = []
+
+  // Статический метод не может использовать T
+  static create<U>(items: U[]): Container<U> {
+    const container = new Container<U>()
+    items.forEach((item) => container.add(item))
+    return container
+  }
+}
+
+// Статический метод имеет свой собственный полиморфный тип
+const container = Container.create([1, 2, 3]) // Container<number>
+```
+
 ---
 
-## 37.3. Ограничения дженериков (Constraints)
+## 37.3. Ограниченный полиморфизм (Constrained Generics)
+
+Ограничения позволяют сохранять информацию о конкретном подтипе после манипуляций:
 
 ```typescript
 // Без ограничений
@@ -99,6 +121,44 @@ getLength('hello') // 5
 getLength([1, 2, 3]) // 3
 getLength(42) // Error: Argument of type 'number' is not assignable
 ```
+
+### Сохранение информации о подтипе
+
+Ограниченный полиморфизм критичен для сохранения информации о конкретном подтипе:
+
+```typescript
+interface TreeNode {
+  value: number
+  children: TreeNode[]
+}
+
+// Без ограничения — теряем информацию о подтипе
+function processNode<T>(node: T): T {
+  return node
+}
+
+// С ограничением — сохраняем информацию о конкретном подтипе
+function processNode<T extends TreeNode>(node: T): T {
+  // TypeScript знает, что возвращается именно T, а не просто TreeNode
+  return node
+}
+
+interface SpecificNode extends TreeNode {
+  customProperty: string
+}
+
+const specific: SpecificNode = {
+  value: 1,
+  children: [],
+  customProperty: 'test',
+}
+
+const processed = processNode(specific)
+// processed имеет тип SpecificNode, а не TreeNode!
+processed.customProperty // OK — информация о подтипе сохранена
+```
+
+Это позволяет создавать функции, которые работают с базовым типом, но сохраняют информацию о конкретном подтипе в возвращаемом значении.
 
 ### Ограничение через keyof
 
@@ -307,13 +367,13 @@ type ReadonlyUser = DeepReadonly<User>
 
 ## Вопросы на собеседовании
 
-### 1. Что такое дженерики?
+### 1. Что такое дженерики (полиморфные типы)?
 
-Механизм для создания переиспользуемого типобезопасного кода, работающего с разными типами.
+Механизм для создания переиспользуемого типобезопасного кода, работающего с разными типами через параметры типа.
 
-### 2. Как ограничить дженерик?
+### 2. Что такое ограниченный полиморфизм?
 
-Использовать `extends`: `function example<T extends Constraint>(value: T) {}`
+Использование `extends` для ограничения полиморфного типа: `function example<T extends Constraint>(value: T) {}`. Это позволяет сохранять информацию о конкретном подтипе после манипуляций.
 
 ### 3. Можно ли использовать несколько параметров типа?
 
@@ -329,4 +389,8 @@ type ReadonlyUser = DeepReadonly<User>
 
 ### 6. В чём разница между дженериками и any?
 
-Дженерики сохраняют типобезопасность, `any` отключает проверку типов.
+Полиморфные типы (дженерики) сохраняют типобезопасность, `any` отключает проверку типов.
+
+### 7. Могут ли статические методы использовать полиморфные типы класса?
+
+Нет, статические методы не имеют доступа к полиморфным типам класса. Они должны объявлять свои собственные параметры типа.
