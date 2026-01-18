@@ -65,6 +65,19 @@ button.addEventListener('click', handler)
 button.removeEventListener('click', handler)
 ```
 
+**Предостережение про `.bind()`:** если вы делаете `el.addEventListener('click', this.handler.bind(this))`, вы создаёте **новую функцию** при каждом вызове `.bind()`. Чтобы отписаться, вам придётся передать ровно ту же ссылку, что невозможно без сохранения её в переменную:
+
+```javascript
+//  Плохо — не получится отписаться
+el.addEventListener('click', this.handler.bind(this))
+el.removeEventListener('click', this.handler.bind(this)) // Другая функция!
+
+//  Хорошо — сохраняем ссылку
+const boundHandler = this.handler.bind(this)
+el.addEventListener('click', boundHandler)
+el.removeEventListener('click', boundHandler) // Работает
+```
+
 ---
 
 ## 31.2. Фазы события

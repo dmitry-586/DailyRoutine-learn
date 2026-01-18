@@ -56,6 +56,19 @@ setTimeout(() => {
 }, 5000)
 ```
 
+### Отмена обработчиков событий через AbortController
+
+`AbortController` также можно использовать в `addEventListener` через опцию `signal`. Это изящный способ отписаться от события без использования `removeEventListener`, особенно если обработчик — анонимная функция:
+
+```javascript
+const controller = new AbortController()
+
+button.addEventListener('click', handler, { signal: controller.signal })
+
+// Отменяет подписку автоматически
+controller.abort()
+```
+
 ### Отмена нескольких операций
 
 ```javascript

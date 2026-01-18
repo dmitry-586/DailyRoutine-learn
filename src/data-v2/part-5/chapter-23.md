@@ -160,6 +160,21 @@ class User {
 
 Снаружи обратиться к `user.#password` нельзя — это синтаксическая ошибка.
 
+**Важно:** это **жесткая инкапсуляция**. В отличие от старого соглашения с нижним подчёркиванием (`_protected`), к полям с `#` невозможно обратиться извне класса даже через квадратные скобки (динамический доступ):
+
+```javascript
+class User {
+  #password = 'secret'
+  _oldStyle = 'accessible'
+}
+
+const user = new User()
+user._oldStyle // 'accessible' — работает
+user['_oldStyle'] // 'accessible' — работает
+user.#password // SyntaxError
+user['#password'] // undefined — не работает
+```
+
 ---
 
 ## 23.10. Как проверять «принадлежность» (instanceof)
