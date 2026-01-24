@@ -267,30 +267,23 @@ export const partsConfig = [
   },
   {
     id: 'part-9',
-    title: 'Часть 9. Инструменты, сборка и тестирование',
+    title: 'Часть 9. Инструменты и сборка',
     folder: 'part-9',
     chapters: [
       {
         id: 'chapter-40',
-        title: '40. Зависимости: package.json, semver, lockfiles и обновления',
+        title: '40. Зависимости: package.json, semver, lockfiles и выбор менеджера',
         file: 'chapter-40.md',
       },
       {
         id: 'chapter-41',
-        title:
-          '41. Сборка: Vite, Webpack, Turbopack, Babel и TypeScript в пайплайне',
+        title: '41. Сборка: что это и зачем нужно',
         file: 'chapter-41.md',
       },
       {
         id: 'chapter-42',
-        title:
-          '42. Оптимизация бандла: tree-shaking, side effects, code splitting и динамические импорты',
+        title: '42. Оптимизация бандла: логика и последовательность',
         file: 'chapter-42.md',
-      },
-      {
-        id: 'chapter-43',
-        title: '43. Тестирование: unit, integration, e2e, стратегии',
-        file: 'chapter-43.md',
       },
     ],
   },
@@ -300,120 +293,169 @@ export const partsConfig = [
     folder: 'part-10',
     chapters: [
       {
+        id: 'chapter-43',
+        title: '43. Рендеринг и reconciliation, keys',
+        file: 'chapter-43.md',
+      },
+      {
         id: 'chapter-44',
-        title: '44. Рендеринг и reconciliation, keys',
+        title: '44. Состояние: useState и useReducer',
         file: 'chapter-44.md',
       },
       {
         id: 'chapter-45',
-        title: '45. Состояние: useState и useReducer',
+        title: '45. useEffect: зависимости, cleanup, ловушки',
         file: 'chapter-45.md',
       },
       {
         id: 'chapter-46',
-        title: '46. useEffect: зависимости, cleanup, ловушки',
+        title: '46. Оптимизация рендеров: useRef, useMemo и useCallback',
         file: 'chapter-46.md',
       },
       {
         id: 'chapter-47',
-        title: '47. Оптимизация рендеров: useRef, useMemo и useCallback',
+        title: '47. Context API и перерендеры',
         file: 'chapter-47.md',
       },
       {
         id: 'chapter-48',
-        title: '48. Context API и перерендеры',
+        title: '48. Кастомные хуки',
         file: 'chapter-48.md',
       },
       {
         id: 'chapter-49',
-        title: '49. Кастомные хуки',
+        title: '49. Error boundaries и стратегия обработки ошибок',
         file: 'chapter-49.md',
-      },
-      {
-        id: 'chapter-50',
-        title: '50. Error boundaries и стратегия обработки ошибок',
-        file: 'chapter-50.md',
       },
     ],
   },
   {
     id: 'part-11',
-    title: 'Часть 11. Server state, формы и валидация',
+    title: 'Часть 11. Тестирование',
     folder: 'part-11',
     chapters: [
       {
+        id: 'chapter-50',
+        title: '50. Тестирование: зачем, где помогает и где мешает',
+        file: 'chapter-50.md',
+      },
+      {
         id: 'chapter-51',
-        title: '51. Server state и client state',
+        title: '51. Инструменты тестирования: Unit/Integration/E2E и как их запускать',
         file: 'chapter-51.md',
-      },
-      {
-        id: 'chapter-52',
-        title: '52. TanStack Query: useQuery, кэширование и query keys',
-        file: 'chapter-52.md',
-      },
-      {
-        id: 'chapter-53',
-        title:
-          '53. TanStack Query: мутации, invalidation, optimistic updates, prefetch и infinite queries',
-        file: 'chapter-53.md',
-      },
-      {
-        id: 'chapter-54',
-        title: '54. Формы и контракты: React Hook Form и Zod',
-        file: 'chapter-54.md',
       },
     ],
   },
   {
     id: 'part-12',
-    title: 'Часть 12. Next.js',
+    title: 'Часть 12. Server state, формы и валидация',
     folder: 'part-12',
     chapters: [
       {
+        id: 'chapter-52',
+        title: '52. Server state и client state',
+        file: 'chapter-52.md',
+      },
+      {
+        id: 'chapter-53',
+        title: '53. TanStack Query: useQuery, кэширование и query keys',
+        file: 'chapter-53.md',
+      },
+      {
+        id: 'chapter-54',
+        title:
+          '54. TanStack Query: мутации, invalidation, optimistic updates, prefetch и infinite queries',
+        file: 'chapter-54.md',
+      },
+      {
         id: 'chapter-55',
-        title: '55. Рендер-стратегии: SPA, SSR, SSG, ISR',
+        title: '55. Формы и контракты: React Hook Form и Zod',
         file: 'chapter-55.md',
-      },
-      {
-        id: 'chapter-56',
-        title: '56. Маршрутизация и компоновка: layout, loading, error',
-        file: 'chapter-56.md',
-      },
-      {
-        id: 'chapter-57',
-        title: '57. Data fetching, кэширование и производительность в Next.js',
-        file: 'chapter-57.md',
-      },
-      {
-        id: 'chapter-58',
-        title: '58. Server Components и границы ответственности',
-        file: 'chapter-58.md',
       },
     ],
   },
   {
     id: 'part-13',
-    title: 'Часть 13. Безопасность',
+    title: 'Часть 13. Next.js',
     folder: 'part-13',
     chapters: [
       {
+        id: 'chapter-56',
+        title: '56. Рендер-стратегии: SPA, SSR, SSG, ISR',
+        file: 'chapter-56.md',
+      },
+      {
+        id: 'chapter-57',
+        title: '57. Маршрутизация и компоновка: layout, template, loading, error',
+        file: 'chapter-57.md',
+      },
+      {
+        id: 'chapter-58',
+        title: '58. Data fetching, кэширование и производительность в Next.js',
+        file: 'chapter-58.md',
+      },
+      {
         id: 'chapter-59',
-        title:
-          '59. Безопасность фронтенда: XSS, CSRF, cookies, токены и OWASP Top-10',
+        title: '59. Server Components и границы ответственности',
         file: 'chapter-59.md',
       },
     ],
   },
   {
     id: 'part-14',
-    title: 'Часть 14. Архитектура фронтенда',
+    title: 'Часть 14. Безопасность',
     folder: 'part-14',
     chapters: [
       {
         id: 'chapter-60',
         title:
-          '60. Архитектура фронтенда: разделение ответственности, слои и Feature-Sliced Design',
+          '60. Безопасность фронтенда: XSS, CSRF, cookies, токены и OWASP Top-10',
         file: 'chapter-60.md',
+      },
+      {
+        id: 'chapter-61',
+        title: '61. Безопасность на проекте: ввод, контент, секреты',
+        file: 'chapter-61.md',
+      },
+    ],
+  },
+  {
+    id: 'part-15',
+    title: 'Часть 15. Архитектура фронтенда',
+    folder: 'part-15',
+    chapters: [
+      {
+        id: 'chapter-62',
+        title:
+          '62. Архитектура фронтенда: разделение ответственности, слои и Feature-Sliced Design',
+        file: 'chapter-62.md',
+      },
+      {
+        id: 'chapter-63',
+        title: '63. Архитектурные договоренности и поддержка проекта',
+        file: 'chapter-63.md',
+      },
+    ],
+  },
+  {
+    id: 'part-16',
+    title: 'Часть 16. Заключение и карьера',
+    folder: 'part-16',
+    chapters: [
+      {
+        id: 'chapter-64',
+        title: '64. Заключение: как закрепить знания',
+        file: 'chapter-64.md',
+      },
+      {
+        id: 'chapter-65',
+        title: '65. Собеседование: подготовка и поведение',
+        file: 'chapter-65.md',
+      },
+      {
+        id: 'chapter-66',
+        title: '66. Грейды и ожидания',
+        file: 'chapter-66.md',
       },
     ],
   },

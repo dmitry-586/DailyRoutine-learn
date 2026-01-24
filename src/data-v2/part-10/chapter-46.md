@@ -1,398 +1,410 @@
-# Глава 46. useEffect: зависимости, cleanup, ловушки
+# Глава 46. Оптимизация рендеров: useRef, useMemo и useCallback
 
-`useEffect` — один из самых важных и сложных хуков в React. Понимание его работы, зависимостей и cleanup критично для написания корректного кода.
+Оптимизация рендеров — важная часть работы с React. `useRef`, `useMemo` и `useCallback` помогают избежать лишних ререндеров и оптимизировать производительность.
 
 ---
 
-## 46.1. Базовое использование
+## 46.1. useRef: мутабельные значения без ререндеров
 
-`useEffect` используется для побочных эффектов:
-
-- запросы к API;
-- подписки на события;
-- таймеры и интервалы;
-- работа с DOM напрямую;
-- синхронизация с внешними системами.
-
-### Синтаксис
+### Базовое использование
 
 ```jsx
-useEffect(() => {
-  // effect — код, который выполняется
-  return () => {
-    // cleanup — код, который выполняется перед следующим эффектом или размонтированием
+const inputRef = useRef(null)
+```
+
+`useRef` возвращает объект с свойством `current`, которое можно изменять без вызова ререндера.
+
+**Особенности:**
+
+- значение сохраняется между рендерами;
+- изменение `current` **не вызывает ререндер**;
+- можно использовать для хранения любых значений, не только DOM-элементов.
+
+### Использование для DOM-элементов
+
+```jsx
+function Input() {
+  const inputRef = useRef(null)
+
+  const focusInput = () => {
+    inputRef.current?.focus()
   }
-}, [deps]) // массив зависимостей
+
+  return (
+    <>
+      <input ref={inputRef} />
+      <button onClick={focusInput}>Focus</button>
+    </>
+  )
+}
+```
+
+### Использование для хранения предыдущих значений
+
+```jsx
+function Component({ value }) {
+  const prevValueRef = useRef()
+
+  useEffect(() => {
+    prevValueRef.current = value
+  })
+
+  const prevValue = prevValueRef.current
+
+  return (
+    <div>
+      Current: {value}, Previous: {prevValue}
+    </div>
+  )
+}
+```
+
+### Использование для таймеров и интервалов
+
+```jsx
+function Timer() {
+  const intervalRef = useRef(null)
+
+  const start = () => {
+    intervalRef.current = setInterval(() => {
+      console.log('Tick')
+    }, 1000)
+  }
+
+  const stop = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+      }
+    }
+  }, [])
+
+  return (
+    <>
+      <button onClick={start}>Start</button>
+      <button onClick={stop}>Stop</button>
+    </>
+  )
+}
+```
+
+### forwardRef: передача ref в дочерний компонент
+
+`forwardRef` позволяет передавать `ref` в дочерний компонент:
+
+```jsx
+const Input = forwardRef((props, ref) => {
+  return <input ref={ref} {...props} />
+})
+
+// Использование
+function Form() {
+  const inputRef = useRef(null)
+
+  return <Input ref={inputRef} />
+}
+```
+
+**Когда использовать:**
+
+- создаёшь библиотечный компонент, который должен поддерживать `ref`;
+- нужно получить доступ к DOM-элементу внутри дочернего компонента;
+- передаёшь `ref` через несколько уровней компонентов.
+
+---
+
+## 46.2. useMemo: мемоизация значений
+
+`useMemo` мемоизирует результат вычисления и пересчитывает его только при изменении зависимостей:
+
+```jsx
+const expensiveValue = useMemo(() => {
+  return expensiveCalculation(items)
+}, [items])
+```
+
+### Когда использовать
+
+**useMemo подходит для:**
+
+- вычисление **дорогое** (сложные алгоритмы, большие массивы);
+- значение передаётся в дочерние компоненты как проп;
+- нужно предотвратить лишние вычисления при ререндерах.
+
+**Когда НЕ использовать:**
+
+- простые вычисления (сложение, конкатенация строк);
+- преждевременная оптимизация без профилирования;
+- когда зависимости меняются часто (мемоизация не поможет).
+
+### Пример: фильтрация и сортировка
+
+```jsx
+function ProductList({ products, filter, sortBy }) {
+  const filteredAndSorted = useMemo(() => {
+    return products
+      .filter((p) => p.category === filter)
+      .sort((a, b) => {
+        if (sortBy === 'price') return a.price - b.price
+        return a.name.localeCompare(b.name)
+      })
+  }, [products, filter, sortBy])
+
+  return (
+    <ul>
+      {filteredAndSorted.map((product) => (
+        <li key={product.id}>{product.name}</li>
+      ))}
+    </ul>
+  )
+}
+```
+
+### Пример: мемоизация объекта
+
+```jsx
+function Component({ userId, userName }) {
+  const user = useMemo(
+    () => ({
+      id: userId,
+      name: userName,
+    }),
+    [userId, userName]
+  )
+
+  useEffect(() => {
+    fetchUserData(user)
+  }, [user])
+
+  return <div>{user.name}</div>
+}
 ```
 
 ---
 
-## 46.2. Массив зависимостей
+## 46.3. useCallback: мемоизация функций
 
-### deps отсутствует
+`useCallback` мемоизирует функцию и создаёт новую только при изменении зависимостей:
 
 ```jsx
-useEffect(() => {
-  console.log('Выполняется при каждом рендере')
+const handleClick = useCallback(() => {
+  setCount((c) => c + 1)
+}, [])
+```
+
+### Когда использовать
+
+**useCallback подходит для:**
+
+- функция передаётся в дочерние компоненты как проп;
+- функция используется в зависимостях других хуков (`useEffect`, `useMemo`);
+- нужно предотвратить лишние ререндеры дочерних компонентов.
+
+**Когда НЕ использовать:**
+
+- функция не передаётся в дочерние компоненты;
+- функция не используется в зависимостях других хуков;
+- преждевременная оптимизация без доказанной необходимости.
+
+### Пример: передача функции в дочерний компонент
+
+```jsx
+function Parent() {
+  const [count, setCount] = useState(0)
+  const [name, setName] = useState('')
+
+  //  Плохо: новая функция при каждом рендере
+  const handleClick = () => {
+    setCount(count + 1)
+  }
+
+  //  Хорошо: функция мемоизирована
+  const handleClick = useCallback(() => {
+    setCount((c) => c + 1)
+  }, [])
+
+  return (
+    <div>
+      <input value={name} onChange={(e) => setName(e.target.value)} />
+      <Child onClick={handleClick} />
+    </div>
+  )
+}
+
+const Child = memo(({ onClick }) => {
+  return <button onClick={onClick}>Increment</button>
 })
 ```
 
-**Поведение:** эффект выполняется **при каждом рендере**. Обычно это антипаттерн.
-
-### deps = `[]`
-
-```jsx
-useEffect(() => {
-  console.log('Выполняется только при монтировании')
-}, [])
-```
-
-**Поведение:** эффект выполняется **только один раз** при монтировании компонента.
-
-### deps = `[a, b]`
-
-```jsx
-useEffect(() => {
-  console.log('Выполняется при изменении a или b')
-}, [a, b])
-```
-
-**Поведение:** эффект выполняется при изменении любого из значений в массиве зависимостей.
-
----
-
-## 46.3. Cleanup функция
-
-Cleanup функция выполняется:
-
-- **перед следующим эффектом** — если зависимости изменились;
-- **при размонтировании компонента** — если компонент удаляется из DOM.
-
-```jsx
-useEffect(() => {
-  const timer = setInterval(() => {
-    console.log('Tick')
-  }, 1000)
-
-  return () => {
-    clearInterval(timer) // cleanup
-  }
-}, [])
-```
-
-**Зачем нужен cleanup:**
-
-- предотвращает утечки памяти (таймеры, подписки);
-- отменяет запросы, которые больше не нужны;
-- очищает ресурсы, которые были выделены в эффекте.
-
-### Пример: подписка на события
-
-```jsx
-useEffect(() => {
-  const handleResize = () => {
-    console.log('Window resized')
-  }
-
-  window.addEventListener('resize', handleResize)
-
-  return () => {
-    window.removeEventListener('resize', handleResize)
-  }
-}, [])
-```
-
-### Пример: отмена запроса
-
-```jsx
-useEffect(() => {
-  const controller = new AbortController()
-
-  fetch('/api/data', { signal: controller.signal })
-    .then((res) => res.json())
-    .then(setData)
-    .catch((error) => {
-      if (error.name !== 'AbortError') {
-        console.error(error)
-      }
-    })
-
-  return () => {
-    controller.abort()
-  }
-}, [])
-```
-
----
-
-## 46.4. Типичные ошибки в useEffect
-
-### 1. Забытые зависимости
+### Пример: функция в зависимостях useEffect
 
 ```jsx
 function Component({ userId }) {
-  const [data, setData] = useState(null)
-
-  useEffect(() => {
-    fetch(`/api/user/${userId}`).then(setData)
-  }, []) //  userId не в зависимостях!
-}
-```
-
-**Проблема:** если `userId` изменится, запрос не выполнится заново.
-
-**Решение:**
-
-```jsx
-useEffect(() => {
-  fetch(`/api/user/${userId}`).then(setData)
-}, [userId]) // 
-```
-
-### 2. Stale closures
-
-```jsx
-function Component() {
-  const [count, setCount] = useState(0)
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      console.log(count) // всегда выводит 0!
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, []) //  count не в зависимостях
-}
-```
-
-**Проблема:** `count` в замыкании всегда будет равен начальному значению (0).
-
-**Решение 1: функциональное обновление**
-
-```jsx
-useEffect(() => {
-  const timer = setInterval(() => {
-    setCount((prev) => {
-      console.log(prev) // актуальное значение
-      return prev + 1
-    })
-  }, 1000)
-
-  return () => clearInterval(timer)
-}, []) // можно оставить пустым, т.к. используем функциональное обновление
-```
-
-**Решение 2: добавить в зависимости**
-
-```jsx
-useEffect(() => {
-  const timer = setInterval(() => {
-    console.log(count)
-  }, 1000)
-
-  return () => clearInterval(timer)
-}, [count]) // 
-```
-
-### 3. Бесконечные циклы
-
-```jsx
-function Component() {
-  const [data, setData] = useState(null)
-
-  useEffect(() => {
-    fetch('/api/data')
-      .then((res) => res.json())
-      .then(setData)
-  }, [data]) //  data в зависимостях → бесконечный цикл
-}
-```
-
-**Проблема:** эффект обновляет `data`, что вызывает новый эффект, который снова обновляет `data`, и так далее.
-
-**Решение:**
-
-```jsx
-useEffect(() => {
-  fetch('/api/data')
-    .then((res) => res.json())
-    .then(setData)
-}, []) //  выполнится только один раз
-```
-
-### 4. Отсутствие cleanup для подписок
-
-```jsx
-useEffect(() => {
-  const subscription = subscribe()
-  //  нет cleanup → утечка памяти
-}, [])
-```
-
-**Решение:**
-
-```jsx
-useEffect(() => {
-  const subscription = subscribe()
-  return () => {
-    subscription.unsubscribe() //  cleanup
+  //  Плохо: новая функция при каждом рендере
+  const fetchUser = () => {
+    return fetch(`/api/users/${userId}`).then((res) => res.json())
   }
-}, [])
-```
 
-### 5. Объекты и функции в зависимостях
-
-```jsx
-function Component({ user }) {
   useEffect(() => {
-    fetchUserData(user.id)
-  }, [user]) //  user — объект, ссылка меняется при каждом рендере
+    fetchUser().then(setUser)
+  }, [fetchUser]) //  бесконечный цикл
+
+  //  Хорошо: функция мемоизирована
+  const fetchUser = useCallback(() => {
+    return fetch(`/api/users/${userId}`).then((res) => res.json())
+  }, [userId])
+
+  useEffect(() => {
+    fetchUser().then(setUser)
+  }, [fetchUser]) //  работает корректно
 }
-```
-
-**Проблема:** объект `user` создаётся заново при каждом рендере, даже если его содержимое не изменилось.
-
-**Решение:**
-
-```jsx
-useEffect(() => {
-  fetchUserData(user.id)
-}, [user.id]) //  только нужное значение
 ```
 
 ---
 
-## 46.5. Паттерны использования
+## 46.4. Важно: не злоупотребляй оптимизацией
 
-### Запрос данных при монтировании
+**Правило:** сначала пиши код без оптимизаций, затем **профилируй** и оптимизируй только то, что действительно медленно.
+
+`useMemo` и `useCallback` сами по себе имеют накладные расходы:
+
+- нужно хранить предыдущие значения;
+- нужно сравнивать зависимости;
+- может усложнить код и сделать его менее читаемым.
+
+### Пример неправильного использования
 
 ```jsx
-useEffect(() => {
-  let cancelled = false
-
-  async function fetchData() {
-    const data = await fetch('/api/data').then((res) => res.json())
-    if (!cancelled) {
-      setData(data)
-    }
-  }
-
-  fetchData()
-
-  return () => {
-    cancelled = true
-  }
-}, [])
+//  Избыточная оптимизация
+const sum = useMemo(() => a + b, [a, b])
+const handleClick = useCallback(() => console.log('click'), [])
 ```
 
-### Синхронизация с пропсами
+### Пример правильного использования
 
 ```jsx
-useEffect(() => {
-  // Выполняется при изменении userId
-  fetchUser(userId)
-}, [userId])
-```
+//  Оправданная оптимизация
+const sortedItems = useMemo(() => {
+  return items.sort((a, b) => a.price - b.price)
+}, [items])
 
-### Подписка на события
-
-```jsx
-useEffect(() => {
-  const handleKeyPress = (e) => {
-    if (e.key === 'Escape') {
-      onClose()
-    }
-  }
-
-  document.addEventListener('keydown', handleKeyPress)
-
-  return () => {
-    document.removeEventListener('keydown', handleKeyPress)
-  }
-}, [onClose])
-```
-
-### Таймеры
-
-```jsx
-useEffect(() => {
-  const timer = setInterval(() => {
-    setTime(new Date())
-  }, 1000)
-
-  return () => {
-    clearInterval(timer)
-  }
-}, [])
+const handleItemClick = useCallback(
+  (id) => {
+    onItemSelect(id)
+  },
+  [onItemSelect]
+)
 ```
 
 ---
 
-## 46.6. Правила работы с зависимостями
+## 46.5. React.memo: мемоизация компонентов
 
-### 1. Включай все используемые значения
-
-Если в эффекте используется значение из области видимости компонента, оно должно быть в зависимостях:
+`React.memo` — это HOC (Higher-Order Component), который мемоизирует результат рендера компонента:
 
 ```jsx
-//  Плохо
-useEffect(() => {
-  console.log(count)
-}, [])
-
-//  Хорошо
-useEffect(() => {
-  console.log(count)
-}, [count])
+const ExpensiveComponent = memo(({ data }) => {
+  // Сложные вычисления
+  return <div>{/* ... */}</div>
+})
 ```
 
-### 2. Используй функциональное обновление для setState
+**Когда использовать:**
 
-Если нужно обновить состояние на основе предыдущего значения, используй функциональное обновление:
+- компонент рендерится часто;
+- пропсы меняются редко;
+- компонент выполняет дорогие вычисления.
+
+**Когда НЕ использовать:**
+
+- компонент рендерится редко;
+- пропсы меняются часто;
+- преждевременная оптимизация.
+
+### Пример с кастомным сравнением
 
 ```jsx
-//  Не нужно добавлять count в зависимости
-useEffect(() => {
-  const timer = setInterval(() => {
-    setCount((prev) => prev + 1)
-  }, 1000)
-
-  return () => clearInterval(timer)
-}, [])
+const UserCard = memo(
+  ({ user }) => {
+    return <div>{user.name}</div>
+  },
+  (prevProps, nextProps) => {
+    // Возвращает true, если пропсы равны (не нужно ререндерить)
+    return prevProps.user.id === nextProps.user.id
+  }
+)
 ```
 
-### 3. Мемоизируй объекты и функции в зависимостях
+---
 
-Если объект или функция создаётся при каждом рендере, используй `useMemo` или `useCallback`:
+## 46.6. Комбинация оптимизаций
+
+### Пример: оптимизированный список
 
 ```jsx
-const user = useMemo(() => ({ id: userId, name: userName }), [userId, userName])
+function ProductList({ products, onSelect }) {
+  // Мемоизация отфильтрованного списка
+  const filteredProducts = useMemo(() => {
+    return products.filter((p) => p.inStock)
+  }, [products])
 
-useEffect(() => {
-  fetchUserData(user)
-}, [user])
+  // Мемоизация обработчика
+  const handleSelect = useCallback(
+    (id) => {
+      onSelect(id)
+    },
+    [onSelect]
+  )
+
+  return (
+    <ul>
+      {filteredProducts.map((product) => (
+        <ProductItem
+          key={product.id}
+          product={product}
+          onSelect={handleSelect}
+        />
+      ))}
+    </ul>
+  )
+}
+
+// Мемоизация компонента
+const ProductItem = memo(({ product, onSelect }) => {
+  return (
+    <li onClick={() => onSelect(product.id)}>
+      {product.name}
+    </li>
+  )
+})
 ```
 
 ---
 
 ## Вопросы на собеседовании
 
-### 1. Что такое cleanup функция в useEffect?
+### 1. В чём разница между useMemo и useCallback?
 
-Функция, которая выполняется перед следующим эффектом или при размонтировании компонента. Используется для очистки ресурсов (таймеры, подписки, запросы).
+`useMemo` мемоизирует значение, `useCallback` мемоизирует функцию. Оба пересчитывают/создают новое только при изменении зависимостей.
 
-### 2. Что произойдёт, если не указать зависимости?
+### 2. Когда использовать useRef?
 
-Эффект будет выполняться при каждом рендере, что обычно является антипаттерном.
+Для хранения мутабельных значений без ререндеров: DOM-элементы, таймеры, предыдущие значения.
 
-### 3. Что такое stale closure в useEffect?
+### 3. Всегда ли нужны useMemo и useCallback?
 
-Проблема, когда значение в замыкании устарело из-за отсутствия в зависимостях. Решается функциональным обновлением или добавлением в зависимости.
+Нет. Только когда есть доказанная необходимость: дорогие вычисления, передача в дочерние компоненты, использование в зависимостях других хуков.
 
-### 4. Почему возникает бесконечный цикл в useEffect?
+### 4. Что такое React.memo?
 
-Когда эффект обновляет значение, которое находится в зависимостях, что вызывает новый эффект.
+HOC для мемоизации компонентов. Предотвращает ререндер, если пропсы не изменились.
 
-### 5. Как отменить запрос в useEffect?
+### 5. Почему преждевременная оптимизация вредна?
 
-Использовать `AbortController` и вызвать `abort()` в cleanup функции.
+Усложняет код, добавляет накладные расходы, может не дать ожидаемого эффекта. Сначала профилируй, потом оптимизируй.

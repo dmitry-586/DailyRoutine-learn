@@ -1,474 +1,398 @@
-# Глава 45. Состояние: useState и useReducer
+# Глава 45. useEffect: зависимости, cleanup, ловушки
 
-Управление состоянием — основа React-приложений. `useState` и `useReducer` — два основных способа управления состоянием в функциональных компонентах.
-
----
-
-## 45.1. useState: управление локальным состоянием
-
-### Базовое использование
-
-```jsx
-const [count, setCount] = useState(0)
-```
-
-`useState` возвращает массив из двух элементов:
-
-1. **Текущее значение состояния** — `count`.
-2. **Функция для обновления** — `setCount`.
-
-**Важно понимать:**
-
-- `useState` вызывается **при каждом рендере**, но React запоминает значение между рендерами;
-- обновление состояния **асинхронное** — изменения применяются не сразу;
-- обновление состояния **вызывает повторный рендер** компонента.
-
-### Функциональное обновление
-
-Когда новое значение зависит от предыдущего, нужно использовать **функциональное обновление**:
-
-```jsx
-// Проблема: count может быть устаревшим
-setCount(count + 1)
-setCount(count + 1) // не сработает как ожидается
-
-// Правильно: гарантирует актуальное значение
-setCount((prev) => prev + 1)
-setCount((prev) => prev + 1) // теперь работает корректно
-```
-
-**Почему это важно:**
-
-- React может батчить (группировать) обновления состояния;
-- при батчинге несколько вызовов `setCount(count + 1)` будут использовать одно и то же значение `count`;
-- функциональное обновление всегда получает актуальное значение из предыдущего обновления.
-
-### Ленивая инициализация
-
-Если начальное значение дорого вычислять, можно передать функцию:
-
-```jsx
-// Плохо: вычисляется при каждом рендере (даже если не используется)
-const [data, setData] = useState(expensiveCalculation())
-
-// Хорошо: вычисляется только один раз при первом рендере
-const [data, setData] = useState(() => expensiveCalculation())
-```
-
-**Когда использовать:**
-
-- когда начальное значение требует сложных вычислений;
-- когда нужно прочитать значение из localStorage или другого источника;
-- когда инициализация должна происходить только один раз.
-
-### Объекты и массивы в состоянии
-
-При обновлении объектов и массивов нужно создавать **новые** объекты/массивы, а не мутировать существующие:
-
-```jsx
-const [user, setUser] = useState({ name: 'John', age: 30 })
-
-// Плохо: мутация — React не заметит изменение
-user.age = 31
-setUser(user)
-
-// Хорошо: создание нового объекта
-setUser({ ...user, age: 31 })
-
-// Или для вложенных объектов
-setUser({ ...user, profile: { ...user.profile, email: 'new@email.com' } })
-```
-
-**Почему это важно:**
-
-- React сравнивает ссылки на объекты, а не их содержимое;
-- если ссылка не изменилась, React считает, что состояние не изменилось;
-- это может привести к пропуску обновлений и багам.
-
-### Пример: счётчик
-
-```jsx
-function Counter() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <div>
-      <p>Count: {count}</p>
-      <button onClick={() => setCount(count + 1)}>Increment</button>
-      <button onClick={() => setCount((prev) => prev - 1)}>Decrement</button>
-      <button onClick={() => setCount(0)}>Reset</button>
-    </div>
-  )
-}
-```
+`useEffect` — один из самых важных и сложных хуков в React. Понимание его работы, зависимостей и cleanup критично для написания корректного кода.
 
 ---
 
-## 45.2. useReducer: управление сложным состоянием
+## 45.1. Базовое использование
 
-`useReducer` — альтернатива `useState` для сложного состояния с множеством переходов.
+`useEffect` используется для побочных эффектов:
+
+- запросы к API;
+- подписки на события;
+- таймеры и интервалы;
+- работа с DOM напрямую;
+- синхронизация с внешними системами.
 
 ### Синтаксис
 
 ```jsx
-function reducer(state, action) {
-  switch (action.type) {
-    case 'increment':
-      return { count: state.count + 1 }
-    case 'decrement':
-      return { count: state.count - 1 }
-    case 'reset':
-      return { count: 0 }
-    default:
-      return state
+useEffect(() => {
+  // effect — код, который выполняется
+  return () => {
+    // cleanup — код, который выполняется перед следующим эффектом или размонтированием
   }
-}
-
-function Counter() {
-  const [state, dispatch] = useReducer(reducer, { count: 0 })
-
-  return (
-    <div>
-      <p>Count: {state.count}</p>
-      <button onClick={() => dispatch({ type: 'increment' })}>+</button>
-      <button onClick={() => dispatch({ type: 'decrement' })}>-</button>
-      <button onClick={() => dispatch({ type: 'reset' })}>Reset</button>
-    </div>
-  )
-}
+}, [deps]) // массив зависимостей
 ```
-
-### Когда использовать useReducer
-
-**useReducer подходит для:**
-
-- сложной логики обновления состояния (много условий, вложенные объекты);
-- состояния с множеством переходов (формы, многошаговые процессы);
-- когда логику обновления нужно вынести из компонента;
-- подготовки к миграции на Redux (похожий паттерн).
-
-**useState подходит для:**
-
-- простого состояния (число, строка, булево значение);
-- независимых значений состояния;
-- когда логика обновления простая.
-
-### Преимущества useReducer
-
-- **Централизованная логика** — вся логика обновления в одном месте (reducer);
-- **Предсказуемые обновления** — все изменения проходят через reducer;
-- **Легче тестировать** — reducer — чистая функция;
-- **Поддержка сложных действий** — можно передавать дополнительные данные в `action`.
-
-### Пример: форма с валидацией
-
-```jsx
-function formReducer(state, action) {
-  switch (action.type) {
-    case 'SET_FIELD':
-      return {
-        ...state,
-        fields: {
-          ...state.fields,
-          [action.field]: action.value,
-        },
-      }
-    case 'SET_ERROR':
-      return {
-        ...state,
-        errors: {
-          ...state.errors,
-          [action.field]: action.error,
-        },
-      }
-    case 'RESET':
-      return initialState
-    default:
-      return state
-  }
-}
-
-function Form() {
-  const [state, dispatch] = useReducer(formReducer, initialState)
-
-  const handleChange = (field, value) => {
-    dispatch({ type: 'SET_FIELD', field, value })
-    // валидация...
-  }
-
-  return <form>{/* поля формы */}</form>
-}
-```
-
-### Передача данных в action
-
-```jsx
-function reducer(state, action) {
-  switch (action.type) {
-    case 'increment':
-      return { count: state.count + (action.payload || 1) }
-    case 'set':
-      return { count: action.payload }
-    default:
-      return state
-  }
-}
-
-function Counter() {
-  const [state, dispatch] = useReducer(reducer, { count: 0 })
-
-  return (
-    <div>
-      <p>Count: {state.count}</p>
-      <button onClick={() => dispatch({ type: 'increment' })}>+1</button>
-      <button onClick={() => dispatch({ type: 'increment', payload: 5 })}>
-        +5
-      </button>
-      <button onClick={() => dispatch({ type: 'set', payload: 100 })}>
-        Set to 100
-      </button>
-    </div>
-  )
-}
-```
-
-### Ленивая инициализация
-
-Как и в `useState`, можно передать функцию для инициализации начального состояния:
-
-```jsx
-function init(initialCount) {
-  return { count: initialCount }
-}
-
-function reducer(state, action) {
-  switch (action.type) {
-    case 'increment':
-      return { count: state.count + 1 }
-    case 'reset':
-      return init(action.payload)
-    default:
-      return state
-  }
-}
-
-function Counter({ initialCount = 0 }) {
-  // Третий параметр — функция инициализации
-  const [state, dispatch] = useReducer(reducer, initialCount, init)
-
-  return (
-    <div>
-      <p>Count: {state.count}</p>
-      <button onClick={() => dispatch({ type: 'increment' })}>+</button>
-      <button
-        onClick={() => dispatch({ type: 'reset', payload: initialCount })}
-      >
-        Reset
-      </button>
-    </div>
-  )
-}
-```
-
-**Когда использовать:** когда начальное состояние требует вычислений или чтения из localStorage.
-
-### Типизация с TypeScript
-
-Для типобезопасности определите типы для state и action:
-
-```tsx
-interface CounterState {
-  count: number
-}
-
-type CounterAction =
-  | { type: 'increment' }
-  | { type: 'decrement' }
-  | { type: 'reset' }
-  | { type: 'set'; payload: number }
-
-function reducer(state: CounterState, action: CounterAction): CounterState {
-  switch (action.type) {
-    case 'increment':
-      return { count: state.count + 1 }
-    case 'decrement':
-      return { count: state.count - 1 }
-    case 'reset':
-      return { count: 0 }
-    case 'set':
-      return { count: action.payload }
-    default:
-      return state
-  }
-}
-
-function Counter() {
-  const [state, dispatch] = useReducer(reducer, { count: 0 })
-  // TypeScript знает типы state и action
-}
-```
-
-### Action Creators
-
-Для удобства создавайте функции-создатели действий:
-
-```tsx
-const increment = () => ({ type: 'increment' as const })
-const decrement = () => ({ type: 'decrement' as const })
-const setCount = (payload: number) => ({ type: 'set' as const, payload })
-
-function Counter() {
-  const [state, dispatch] = useReducer(reducer, { count: 0 })
-
-  return (
-    <div>
-      <button onClick={() => dispatch(increment())}>+</button>
-      <button onClick={() => dispatch(decrement())}>-</button>
-      <button onClick={() => dispatch(setCount(100))}>Set to 100</button>
-    </div>
-  )
-}
-```
-
-**Преимущества:** централизованное управление действиями, меньше опечаток, легче рефакторить.
-
-### Интеграция с Context API
-
-`useReducer` часто используется вместе с Context для глобального состояния:
-
-```tsx
-interface AppState {
-  user: User | null
-  theme: 'light' | 'dark'
-}
-
-type AppAction =
-  | { type: 'SET_USER'; payload: User }
-  | { type: 'SET_THEME'; payload: 'light' | 'dark' }
-
-function appReducer(state: AppState, action: AppAction): AppState {
-  switch (action.type) {
-    case 'SET_USER':
-      return { ...state, user: action.payload }
-    case 'SET_THEME':
-      return { ...state, theme: action.payload }
-    default:
-      return state
-  }
-}
-
-const AppContext = createContext<{
-  state: AppState
-  dispatch: React.Dispatch<AppAction>
-} | null>(null)
-
-function AppProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(appReducer, {
-    user: null,
-    theme: 'light',
-  })
-
-  return (
-    <AppContext.Provider value={{ state, dispatch }}>
-      {children}
-    </AppContext.Provider>
-  )
-}
-
-function useApp() {
-  const context = useContext(AppContext)
-  if (!context) throw new Error('useApp must be used within AppProvider')
-  return context
-}
-```
-
-**Когда использовать:** для простого глобального состояния без необходимости в Redux.
 
 ---
 
-## 45.3. Сравнение useState и useReducer
+## 45.2. Массив зависимостей
 
-**useState:**
+### deps отсутствует
 
-- Простота: проще
-- Логика: в компоненте
-- Тестируемость: сложнее
-- Сложное состояние: неудобно
-- Множество действий: много setState
-- Предсказуемость: меньше
+```jsx
+useEffect(() => {
+  console.log('Выполняется при каждом рендере')
+})
+```
 
-**useReducer:**
+**Поведение:** эффект выполняется **при каждом рендере**. Обычно это антипаттерн.
 
-- Простота: сложнее
-- Логика: в reducer
-- Тестируемость: легче (чистая функция)
-- Сложное состояние: удобно
-- Множество действий: один dispatch
-- Предсказуемость: больше
+### deps = `[]`
 
-**Правило выбора:**
+```jsx
+useEffect(() => {
+  console.log('Выполняется только при монтировании')
+}, [])
+```
 
-- **useState** — для простого состояния (число, строка, булево значение, простой объект).
-- **useReducer** — для сложного состояния с множеством переходов (формы, многошаговые процессы, сложная логика).
+**Поведение:** эффект выполняется **только один раз** при монтировании компонента.
+
+### deps = `[a, b]`
+
+```jsx
+useEffect(() => {
+  console.log('Выполняется при изменении a или b')
+}, [a, b])
+```
+
+**Поведение:** эффект выполняется при изменении любого из значений в массиве зависимостей.
 
 ---
 
-## 45.4. Типичные ошибки
+## 45.3. Cleanup функция
 
-### 1. Мутация состояния
+Cleanup функция выполняется:
+
+- **перед следующим эффектом** — если зависимости изменились;
+- **при размонтировании компонента** — если компонент удаляется из DOM.
 
 ```jsx
-// Плохо
-const [items, setItems] = useState([1, 2, 3])
-items.push(4)
-setItems(items)
+useEffect(() => {
+  const timer = setInterval(() => {
+    console.log('Tick')
+  }, 1000)
 
-// Хорошо
-setItems([...items, 4])
+  return () => {
+    clearInterval(timer) // cleanup
+  }
+}, [])
 ```
 
-### 2. Забытое функциональное обновление
+**Зачем нужен cleanup:**
+
+- предотвращает утечки памяти (таймеры, подписки);
+- отменяет запросы, которые больше не нужны;
+- очищает ресурсы, которые были выделены в эффекте.
+
+### Пример: подписка на события
 
 ```jsx
-// Проблема при батчинге
-setCount(count + 1)
-setCount(count + 1)
+useEffect(() => {
+  const handleResize = () => {
+    console.log('Window resized')
+  }
 
-// Правильно
-setCount((prev) => prev + 1)
-setCount((prev) => prev + 1)
+  window.addEventListener('resize', handleResize)
+
+  return () => {
+    window.removeEventListener('resize', handleResize)
+  }
+}, [])
 ```
 
-### 3. Неправильная инициализация
+### Пример: отмена запроса
 
 ```jsx
-// Плохо: вычисляется при каждом рендере
-const [data, setData] = useState(expensiveCalculation())
+useEffect(() => {
+  const controller = new AbortController()
 
-// Хорошо: вычисляется один раз
-const [data, setData] = useState(() => expensiveCalculation())
+  fetch('/api/data', { signal: controller.signal })
+    .then((res) => res.json())
+    .then(setData)
+    .catch((error) => {
+      if (error.name !== 'AbortError') {
+        console.error(error)
+      }
+    })
+
+  return () => {
+    controller.abort()
+  }
+}, [])
+```
+
+---
+
+## 45.4. Типичные ошибки в useEffect
+
+### 1. Забытые зависимости
+
+```jsx
+function Component({ userId }) {
+  const [data, setData] = useState(null)
+
+  useEffect(() => {
+    fetch(`/api/user/${userId}`).then(setData)
+  }, []) //  userId не в зависимостях!
+}
+```
+
+**Проблема:** если `userId` изменится, запрос не выполнится заново.
+
+**Решение:**
+
+```jsx
+useEffect(() => {
+  fetch(`/api/user/${userId}`).then(setData)
+}, [userId]) // 
+```
+
+### 2. Stale closures
+
+```jsx
+function Component() {
+  const [count, setCount] = useState(0)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      console.log(count) // всегда выводит 0!
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, []) //  count не в зависимостях
+}
+```
+
+**Проблема:** `count` в замыкании всегда будет равен начальному значению (0).
+
+**Решение 1: функциональное обновление**
+
+```jsx
+useEffect(() => {
+  const timer = setInterval(() => {
+    setCount((prev) => {
+      console.log(prev) // актуальное значение
+      return prev + 1
+    })
+  }, 1000)
+
+  return () => clearInterval(timer)
+}, []) // можно оставить пустым, т.к. используем функциональное обновление
+```
+
+**Решение 2: добавить в зависимости**
+
+```jsx
+useEffect(() => {
+  const timer = setInterval(() => {
+    console.log(count)
+  }, 1000)
+
+  return () => clearInterval(timer)
+}, [count]) // 
+```
+
+### 3. Бесконечные циклы
+
+```jsx
+function Component() {
+  const [data, setData] = useState(null)
+
+  useEffect(() => {
+    fetch('/api/data')
+      .then((res) => res.json())
+      .then(setData)
+  }, [data]) //  data в зависимостях → бесконечный цикл
+}
+```
+
+**Проблема:** эффект обновляет `data`, что вызывает новый эффект, который снова обновляет `data`, и так далее.
+
+**Решение:**
+
+```jsx
+useEffect(() => {
+  fetch('/api/data')
+    .then((res) => res.json())
+    .then(setData)
+}, []) //  выполнится только один раз
+```
+
+### 4. Отсутствие cleanup для подписок
+
+```jsx
+useEffect(() => {
+  const subscription = subscribe()
+  //  нет cleanup → утечка памяти
+}, [])
+```
+
+**Решение:**
+
+```jsx
+useEffect(() => {
+  const subscription = subscribe()
+  return () => {
+    subscription.unsubscribe() //  cleanup
+  }
+}, [])
+```
+
+### 5. Объекты и функции в зависимостях
+
+```jsx
+function Component({ user }) {
+  useEffect(() => {
+    fetchUserData(user.id)
+  }, [user]) //  user — объект, ссылка меняется при каждом рендере
+}
+```
+
+**Проблема:** объект `user` создаётся заново при каждом рендере, даже если его содержимое не изменилось.
+
+**Решение:**
+
+```jsx
+useEffect(() => {
+  fetchUserData(user.id)
+}, [user.id]) //  только нужное значение
+```
+
+---
+
+## 45.5. Паттерны использования
+
+### Запрос данных при монтировании
+
+```jsx
+useEffect(() => {
+  let cancelled = false
+
+  async function fetchData() {
+    const data = await fetch('/api/data').then((res) => res.json())
+    if (!cancelled) {
+      setData(data)
+    }
+  }
+
+  fetchData()
+
+  return () => {
+    cancelled = true
+  }
+}, [])
+```
+
+### Синхронизация с пропсами
+
+```jsx
+useEffect(() => {
+  // Выполняется при изменении userId
+  fetchUser(userId)
+}, [userId])
+```
+
+### Подписка на события
+
+```jsx
+useEffect(() => {
+  const handleKeyPress = (e) => {
+    if (e.key === 'Escape') {
+      onClose()
+    }
+  }
+
+  document.addEventListener('keydown', handleKeyPress)
+
+  return () => {
+    document.removeEventListener('keydown', handleKeyPress)
+  }
+}, [onClose])
+```
+
+### Таймеры
+
+```jsx
+useEffect(() => {
+  const timer = setInterval(() => {
+    setTime(new Date())
+  }, 1000)
+
+  return () => {
+    clearInterval(timer)
+  }
+}, [])
+```
+
+---
+
+## 45.6. Правила работы с зависимостями
+
+### 1. Включай все используемые значения
+
+Если в эффекте используется значение из области видимости компонента, оно должно быть в зависимостях:
+
+```jsx
+//  Плохо
+useEffect(() => {
+  console.log(count)
+}, [])
+
+//  Хорошо
+useEffect(() => {
+  console.log(count)
+}, [count])
+```
+
+### 2. Используй функциональное обновление для setState
+
+Если нужно обновить состояние на основе предыдущего значения, используй функциональное обновление:
+
+```jsx
+//  Не нужно добавлять count в зависимости
+useEffect(() => {
+  const timer = setInterval(() => {
+    setCount((prev) => prev + 1)
+  }, 1000)
+
+  return () => clearInterval(timer)
+}, [])
+```
+
+### 3. Мемоизируй объекты и функции в зависимостях
+
+Если объект или функция создаётся при каждом рендере, используй `useMemo` или `useCallback`:
+
+```jsx
+const user = useMemo(() => ({ id: userId, name: userName }), [userId, userName])
+
+useEffect(() => {
+  fetchUserData(user)
+}, [user])
 ```
 
 ---
 
 ## Вопросы на собеседовании
 
-### 1. В чём разница между useState и useReducer?
+### 1. Что такое cleanup функция в useEffect?
 
-`useState` для простого состояния, `useReducer` для сложного состояния с множеством переходов. `useReducer` централизует логику обновления в reducer.
+Функция, которая выполняется перед следующим эффектом или при размонтировании компонента. Используется для очистки ресурсов (таймеры, подписки, запросы).
 
-### 2. Когда использовать функциональное обновление?
+### 2. Что произойдёт, если не указать зависимости?
 
-Когда новое значение зависит от предыдущего, особенно при батчинге обновлений.
+Эффект будет выполняться при каждом рендере, что обычно является антипаттерном.
 
-### 3. Почему нужно создавать новые объекты/массивы?
+### 3. Что такое stale closure в useEffect?
 
-React сравнивает ссылки, а не содержимое. Если ссылка не изменилась, React не заметит изменение.
+Проблема, когда значение в замыкании устарело из-за отсутствия в зависимостях. Решается функциональным обновлением или добавлением в зависимости.
 
-### 4. Зачем нужна ленивая инициализация?
+### 4. Почему возникает бесконечный цикл в useEffect?
 
-Чтобы дорогие вычисления выполнялись только один раз при первом рендере, а не при каждом.
+Когда эффект обновляет значение, которое находится в зависимостях, что вызывает новый эффект.
 
-### 5. Когда использовать useReducer вместо useState?
+### 5. Как отменить запрос в useEffect?
 
-Для сложного состояния с множеством переходов, когда логику обновления нужно вынести из компонента.
+Использовать `AbortController` и вызвать `abort()` в cleanup функции.

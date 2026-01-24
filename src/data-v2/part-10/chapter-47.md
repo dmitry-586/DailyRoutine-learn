@@ -1,410 +1,391 @@
-# Глава 47. Оптимизация рендеров: useRef, useMemo и useCallback
+# Глава 47. Context API и перерендеры
 
-Оптимизация рендеров — важная часть работы с React. `useRef`, `useMemo` и `useCallback` помогают избежать лишних ререндеров и оптимизировать производительность.
+Context API позволяет передавать данные через дерево компонентов без явной передачи пропсов на каждом уровне. Однако неправильное использование может привести к проблемам с производительностью.
 
 ---
 
-## 47.1. useRef: мутабельные значения без ререндеров
+## 47.1. Создание и использование контекста
 
 ### Базовое использование
 
 ```jsx
-const inputRef = useRef(null)
-```
+const ThemeContext = createContext('light')
 
-`useRef` возвращает объект с свойством `current`, которое можно изменять без вызова ререндера.
-
-**Особенности:**
-
-- значение сохраняется между рендерами;
-- изменение `current` **не вызывает ререндер**;
-- можно использовать для хранения любых значений, не только DOM-элементов.
-
-### Использование для DOM-элементов
-
-```jsx
-function Input() {
-  const inputRef = useRef(null)
-
-  const focusInput = () => {
-    inputRef.current?.focus()
-  }
-
+function App() {
   return (
-    <>
-      <input ref={inputRef} />
-      <button onClick={focusInput}>Focus</button>
-    </>
+    <ThemeContext.Provider value='dark'>
+      <Child />
+    </ThemeContext.Provider>
   )
+}
+
+function Child() {
+  const theme = useContext(ThemeContext)
+  return <div className={theme}>Content</div>
 }
 ```
 
-### Использование для хранения предыдущих значений
+### Контекст с состоянием
 
 ```jsx
-function Component({ value }) {
-  const prevValueRef = useRef()
+const ThemeContext = createContext({
+  theme: 'light',
+  toggleTheme: () => {},
+})
 
-  useEffect(() => {
-    prevValueRef.current = value
-  })
+function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState('light')
 
-  const prevValue = prevValueRef.current
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
+  }
 
   return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  )
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <Child />
+    </ThemeProvider>
+  )
+}
+
+function Child() {
+  const { theme, toggleTheme } = useContext(ThemeContext)
+  return (
     <div>
-      Current: {value}, Previous: {prevValue}
+      <p>Current theme: {theme}</p>
+      <button onClick={toggleTheme}>Toggle</button>
     </div>
   )
 }
 ```
 
-### Использование для таймеров и интервалов
+---
+
+## 47.2. Проблемы Context API
+
+### 1. Ререндер всех потребителей
+
+При изменении значения контекста **все** компоненты, использующие этот контекст, перерендериваются, даже если они используют только часть данных:
 
 ```jsx
-function Timer() {
-  const intervalRef = useRef(null)
+const AppContext = createContext({ user: null, theme: 'light' })
 
-  const start = () => {
-    intervalRef.current = setInterval(() => {
-      console.log('Tick')
-    }, 1000)
-  }
-
-  const stop = () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-    }
-  }
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-      }
-    }
-  }, [])
+function App() {
+  const [state, setState] = useState({ user: null, theme: 'light' })
 
   return (
-    <>
-      <button onClick={start}>Start</button>
-      <button onClick={stop}>Stop</button>
-    </>
+    <AppContext.Provider value={state}>
+      <UserProfile /> {/* перерендерится при изменении theme */}
+      <ThemeSwitcher /> {/* перерендерится при изменении user */}
+    </AppContext.Provider>
   )
 }
 ```
 
-### forwardRef: передача ref в дочерний компонент
+**Проблема:** изменение `theme` вызывает ререндер `UserProfile`, хотя он использует только `user`.
 
-`forwardRef` позволяет передавать `ref` в дочерний компонент:
+### Решение: разделение контекстов
 
 ```jsx
-const Input = forwardRef((props, ref) => {
-  return <input ref={ref} {...props} />
+const UserContext = createContext(null)
+const ThemeContext = createContext('light')
+
+function App() {
+  const [user, setUser] = useState(null)
+  const [theme, setTheme] = useState('light')
+
+  return (
+    <UserContext.Provider value={user}>
+      <ThemeContext.Provider value={theme}>
+        <UserProfile /> {/* перерендерится только при изменении user */}
+        <ThemeSwitcher /> {/* перерендерится только при изменении theme */}
+      </ThemeContext.Provider>
+    </UserContext.Provider>
+  )
+}
+```
+
+### 2. Объекты в value
+
+Если передавать объект напрямую, он создаётся заново при каждом рендере:
+
+```jsx
+//  Плохо: новый объект при каждом рендере
+function App() {
+  const [user, setUser] = useState(null)
+
+  return (
+    <UserContext.Provider value={{ user, setUser }}>
+      <Child />
+    </UserContext.Provider>
+  )
+}
+```
+
+**Проблема:** новый объект при каждом рендере вызывает ререндер всех потребителей.
+
+**Решение: мемоизация**
+
+```jsx
+//  Хорошо: объект мемоизирован
+function App() {
+  const [user, setUser] = useState(null)
+
+  const value = useMemo(
+    () => ({
+      user,
+      setUser,
+    }),
+    [user]
+  )
+
+  return (
+    <UserContext.Provider value={value}>
+      <Child />
+    </UserContext.Provider>
+  )
+}
+```
+
+### 3. Context — не замена Redux
+
+Context API подходит для:
+
+- темы, языка интерфейса;
+- данных пользователя (если не меняются часто);
+- простого глобального состояния.
+
+Context API НЕ подходит для:
+
+- сложного состояния с множеством переходов;
+- частых обновлений (каждое обновление вызывает ререндер всех потребителей);
+- когда нужны middleware, time-travel debugging и другие возможности Redux.
+
+---
+
+## 47.3. Оптимизация Context API
+
+### Разделение контекстов
+
+Разделяй контексты по частоте обновления и области использования:
+
+```jsx
+// Контекст для редко меняющихся данных
+const UserContext = createContext(null)
+
+// Контекст для часто меняющихся данных
+const UIStateContext = createContext({
+  sidebarOpen: false,
+  modalOpen: false,
 })
+```
+
+### Мемоизация значения
+
+```jsx
+function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState('light')
+
+  const value = useMemo(
+    () => ({
+      theme,
+      toggleTheme: () => {
+        setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
+      },
+    }),
+    [theme]
+  )
+
+  return (
+    <ThemeContext.Provider value={value}>
+      {children}
+    </ThemeContext.Provider>
+  )
+}
+```
+
+### Селекторы (как в Redux)
+
+Можно создать хук с селектором для подписки только на нужную часть контекста:
+
+```jsx
+function useTheme() {
+  const context = useContext(ThemeContext)
+  return context.theme
+}
+
+function useToggleTheme() {
+  const context = useContext(ThemeContext)
+  return context.toggleTheme
+}
 
 // Использование
-function Form() {
-  const inputRef = useRef(null)
-
-  return <Input ref={inputRef} />
+function Component() {
+  const theme = useTheme() // подписывается только на theme
+  const toggleTheme = useToggleTheme() // подписывается только на toggleTheme
 }
 ```
 
-**Когда использовать:**
+Однако это не предотвращает ререндеры полностью — React всё равно ререндерит при изменении контекста.
 
-- создаёшь библиотечный компонент, который должен поддерживать `ref`;
-- нужно получить доступ к DOM-элементу внутри дочернего компонента;
-- передаёшь `ref` через несколько уровней компонентов.
-
----
-
-## 47.2. useMemo: мемоизация значений
-
-`useMemo` мемоизирует результат вычисления и пересчитывает его только при изменении зависимостей:
+### Разделение на Provider и Consumer
 
 ```jsx
-const expensiveValue = useMemo(() => {
-  return expensiveCalculation(items)
-}, [items])
-```
+const ThemeStateContext = createContext(null)
+const ThemeDispatchContext = createContext(null)
 
-### Когда использовать
-
-**useMemo подходит для:**
-
-- вычисление **дорогое** (сложные алгоритмы, большие массивы);
-- значение передаётся в дочерние компоненты как проп;
-- нужно предотвратить лишние вычисления при ререндерах.
-
-**Когда НЕ использовать:**
-
-- простые вычисления (сложение, конкатенация строк);
-- преждевременная оптимизация без профилирования;
-- когда зависимости меняются часто (мемоизация не поможет).
-
-### Пример: фильтрация и сортировка
-
-```jsx
-function ProductList({ products, filter, sortBy }) {
-  const filteredAndSorted = useMemo(() => {
-    return products
-      .filter((p) => p.category === filter)
-      .sort((a, b) => {
-        if (sortBy === 'price') return a.price - b.price
-        return a.name.localeCompare(b.name)
-      })
-  }, [products, filter, sortBy])
+function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState('light')
 
   return (
-    <ul>
-      {filteredAndSorted.map((product) => (
-        <li key={product.id}>{product.name}</li>
-      ))}
-    </ul>
+    <ThemeStateContext.Provider value={theme}>
+      <ThemeDispatchContext.Provider value={setTheme}>
+        {children}
+      </ThemeDispatchContext.Provider>
+    </ThemeStateContext.Provider>
   )
 }
-```
 
-### Пример: мемоизация объекта
+function useThemeState() {
+  return useContext(ThemeStateContext)
+}
 
-```jsx
-function Component({ userId, userName }) {
-  const user = useMemo(
-    () => ({
-      id: userId,
-      name: userName,
-    }),
-    [userId, userName]
-  )
+function useThemeDispatch() {
+  return useContext(ThemeDispatchContext)
+}
 
-  useEffect(() => {
-    fetchUserData(user)
-  }, [user])
-
-  return <div>{user.name}</div>
+// Использование
+function Component() {
+  const theme = useThemeState() // ререндерится только при изменении theme
+  const setTheme = useThemeDispatch() // не ререндерится (функция стабильна)
 }
 ```
 
 ---
 
-## 47.3. useCallback: мемоизация функций
+## 47.4. Паттерны использования
 
-`useCallback` мемоизирует функцию и создаёт новую только при изменении зависимостей:
-
-```jsx
-const handleClick = useCallback(() => {
-  setCount((c) => c + 1)
-}, [])
-```
-
-### Когда использовать
-
-**useCallback подходит для:**
-
-- функция передаётся в дочерние компоненты как проп;
-- функция используется в зависимостях других хуков (`useEffect`, `useMemo`);
-- нужно предотвратить лишние ререндеры дочерних компонентов.
-
-**Когда НЕ использовать:**
-
-- функция не передаётся в дочерние компоненты;
-- функция не используется в зависимостях других хуков;
-- преждевременная оптимизация без доказанной необходимости.
-
-### Пример: передача функции в дочерний компонент
+### Паттерн: Provider с хуками
 
 ```jsx
-function Parent() {
-  const [count, setCount] = useState(0)
-  const [name, setName] = useState('')
+const AuthContext = createContext(null)
 
-  //  Плохо: новая функция при каждом рендере
-  const handleClick = () => {
-    setCount(count + 1)
-  }
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  //  Хорошо: функция мемоизирована
-  const handleClick = useCallback(() => {
-    setCount((c) => c + 1)
+  useEffect(() => {
+    // Загрузка пользователя
+    fetchUser().then((user) => {
+      setUser(user)
+      setLoading(false)
+    })
   }, [])
 
-  return (
-    <div>
-      <input value={name} onChange={(e) => setName(e.target.value)} />
-      <Child onClick={handleClick} />
-    </div>
+  const value = useMemo(
+    () => ({
+      user,
+      loading,
+      login: async (credentials) => {
+        const user = await login(credentials)
+        setUser(user)
+      },
+      logout: () => {
+        setUser(null)
+      },
+    }),
+    [user, loading]
   )
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-const Child = memo(({ onClick }) => {
-  return <button onClick={onClick}>Increment</button>
-})
-```
-
-### Пример: функция в зависимостях useEffect
-
-```jsx
-function Component({ userId }) {
-  //  Плохо: новая функция при каждом рендере
-  const fetchUser = () => {
-    return fetch(`/api/users/${userId}`).then((res) => res.json())
+export function useAuth() {
+  const context = useContext(AuthContext)
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider')
   }
+  return context
+}
+```
 
-  useEffect(() => {
-    fetchUser().then(setUser)
-  }, [fetchUser]) //  бесконечный цикл
+### Паттерн: разделение State и Dispatch
 
-  //  Хорошо: функция мемоизирована
-  const fetchUser = useCallback(() => {
-    return fetch(`/api/users/${userId}`).then((res) => res.json())
-  }, [userId])
+```jsx
+const CountStateContext = createContext(0)
+const CountDispatchContext = createContext(null)
 
-  useEffect(() => {
-    fetchUser().then(setUser)
-  }, [fetchUser]) //  работает корректно
+function CountProvider({ children }) {
+  const [count, setCount] = useState(0)
+
+  return (
+    <CountStateContext.Provider value={count}>
+      <CountDispatchContext.Provider value={setCount}>
+        {children}
+      </CountDispatchContext.Provider>
+    </CountStateContext.Provider>
+  )
+}
+
+function useCountState() {
+  return useContext(CountStateContext)
+}
+
+function useCountDispatch() {
+  return useContext(CountDispatchContext)
 }
 ```
 
 ---
 
-## 47.4. Важно: не злоупотребляй оптимизацией
+## 47.5. Когда использовать Context API
 
-**Правило:** сначала пиши код без оптимизаций, затем **профилируй** и оптимизируй только то, что действительно медленно.
+###  Подходит для
 
-`useMemo` и `useCallback` сами по себе имеют накладные расходы:
+- Тема (light/dark)
+- Язык интерфейса
+- Данные пользователя (редко меняются)
+- Простое глобальное состояние
 
-- нужно хранить предыдущие значения;
-- нужно сравнивать зависимости;
-- может усложнить код и сделать его менее читаемым.
+###  НЕ подходит для
 
-### Пример неправильного использования
+- Частые обновления (каждое обновление → ререндер всех потребителей)
+- Сложное состояние (много переходов, middleware)
+- Когда нужны селекторы, time-travel debugging
 
-```jsx
-//  Избыточная оптимизация
-const sum = useMemo(() => a + b, [a, b])
-const handleClick = useCallback(() => console.log('click'), [])
-```
+### Альтернативы
 
-### Пример правильного использования
-
-```jsx
-//  Оправданная оптимизация
-const sortedItems = useMemo(() => {
-  return items.sort((a, b) => a.price - b.price)
-}, [items])
-
-const handleItemClick = useCallback(
-  (id) => {
-    onItemSelect(id)
-  },
-  [onItemSelect]
-)
-```
-
----
-
-## 47.5. React.memo: мемоизация компонентов
-
-`React.memo` — это HOC (Higher-Order Component), который мемоизирует результат рендера компонента:
-
-```jsx
-const ExpensiveComponent = memo(({ data }) => {
-  // Сложные вычисления
-  return <div>{/* ... */}</div>
-})
-```
-
-**Когда использовать:**
-
-- компонент рендерится часто;
-- пропсы меняются редко;
-- компонент выполняет дорогие вычисления.
-
-**Когда НЕ использовать:**
-
-- компонент рендерится редко;
-- пропсы меняются часто;
-- преждевременная оптимизация.
-
-### Пример с кастомным сравнением
-
-```jsx
-const UserCard = memo(
-  ({ user }) => {
-    return <div>{user.name}</div>
-  },
-  (prevProps, nextProps) => {
-    // Возвращает true, если пропсы равны (не нужно ререндерить)
-    return prevProps.user.id === nextProps.user.id
-  }
-)
-```
-
----
-
-## 47.6. Комбинация оптимизаций
-
-### Пример: оптимизированный список
-
-```jsx
-function ProductList({ products, onSelect }) {
-  // Мемоизация отфильтрованного списка
-  const filteredProducts = useMemo(() => {
-    return products.filter((p) => p.inStock)
-  }, [products])
-
-  // Мемоизация обработчика
-  const handleSelect = useCallback(
-    (id) => {
-      onSelect(id)
-    },
-    [onSelect]
-  )
-
-  return (
-    <ul>
-      {filteredProducts.map((product) => (
-        <ProductItem
-          key={product.id}
-          product={product}
-          onSelect={handleSelect}
-        />
-      ))}
-    </ul>
-  )
-}
-
-// Мемоизация компонента
-const ProductItem = memo(({ product, onSelect }) => {
-  return (
-    <li onClick={() => onSelect(product.id)}>
-      {product.name}
-    </li>
-  )
-})
-```
+- **Zustand** — для клиентского состояния
+- **TanStack Query** — для серверного состояния
+- **Redux** — для сложного состояния с middleware
 
 ---
 
 ## Вопросы на собеседовании
 
-### 1. В чём разница между useMemo и useCallback?
+### 1. В чём проблема Context API с производительностью?
 
-`useMemo` мемоизирует значение, `useCallback` мемоизирует функцию. Оба пересчитывают/создают новое только при изменении зависимостей.
+При изменении значения контекста все потребители перерендериваются, даже если используют только часть данных.
 
-### 2. Когда использовать useRef?
+### 2. Как оптимизировать Context API?
 
-Для хранения мутабельных значений без ререндеров: DOM-элементы, таймеры, предыдущие значения.
+Разделять контексты, мемоизировать значения, разделять State и Dispatch.
 
-### 3. Всегда ли нужны useMemo и useCallback?
+### 3. Когда использовать Context API?
 
-Нет. Только когда есть доказанная необходимость: дорогие вычисления, передача в дочерние компоненты, использование в зависимостях других хуков.
+Для редко меняющихся данных (тема, язык, данные пользователя). Не для частых обновлений.
 
-### 4. Что такое React.memo?
+### 4. В чём разница между Context API и Redux?
 
-HOC для мемоизации компонентов. Предотвращает ререндер, если пропсы не изменились.
+Context API проще, но не подходит для сложного состояния и частых обновлений. Redux предоставляет middleware, time-travel debugging, селекторы.
 
-### 5. Почему преждевременная оптимизация вредна?
+### 5. Как предотвратить ререндеры при использовании Context?
 
-Усложняет код, добавляет накладные расходы, может не дать ожидаемого эффекта. Сначала профилируй, потом оптимизируй.
+Разделять контексты, мемоизировать значения, использовать селекторы (частично помогает).

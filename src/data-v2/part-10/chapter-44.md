@@ -1,288 +1,474 @@
-# Глава 44. Рендеринг и reconciliation, keys
+# Глава 44. Состояние: useState и useReducer
 
-React — это библиотека для декларативного описания интерфейсов, основанная на идее, что **UI — это функция от состояния**. Понимание процесса рендеринга и reconciliation критично для эффективной работы с React.
+Управление состоянием — основа React-приложений. `useState` и `useReducer` — два основных способа управления состоянием в функциональных компонентах.
 
 ---
 
-## 44.1. Virtual DOM и Fiber
+## 44.1. useState: управление локальным состоянием
 
-### Что такое Virtual DOM
-
-**Virtual DOM** — это объектное представление реального DOM в памяти JavaScript.
-
-Когда ты пишешь JSX:
+### Базовое использование
 
 ```jsx
-const element = <h1 className='title'>Hello</h1>
+const [count, setCount] = useState(0)
 ```
 
-Под капотом это компилируется в вызов `React.createElement`:
+`useState` возвращает массив из двух элементов:
 
-```javascript
-React.createElement('h1', { className: 'title' }, 'Hello')
-```
-
-Который возвращает обычный JavaScript-объект:
-
-```javascript
-{
-  type: "h1",
-  props: {
-    className: "title",
-    children: "Hello"
-  }
-}
-```
-
-Это и есть Virtual DOM элемент — легковесное представление того, как должен выглядеть реальный DOM.
-
-### Зачем нужен Virtual DOM
-
-Прямые операции с DOM **дорогие**. Каждое изменение:
-
-- вызывает пересчёт стилей (reflow);
-- может вызвать перерисовку (repaint);
-- может затронуть другие элементы (каскадные обновления).
-
-React решает это через **алгоритм reconciliation**:
-
-1. **Строит Virtual DOM** — создаёт объектное представление желаемого состояния UI.
-2. **Сравнивает с предыдущей версией** (diffing) — находит минимальный набор изменений.
-3. **Минимально обновляет реальный DOM** — применяет только найденные различия.
-
-Это позволяет React эффективно обновлять только изменённые части интерфейса, избегая лишних операций с DOM.
-
-### Пример: почему Virtual DOM эффективнее
-
-Представь, что у тебя есть список из 1000 элементов, и изменился только один:
-
-**Без Virtual DOM (наивный подход):**
-
-- нужно вручную найти, какой элемент изменился;
-- обновить его в DOM;
-- убедиться, что не сломались другие элементы.
-
-**С Virtual DOM:**
-
-- React сравнивает два дерева объектов в памяти (быстро);
-- находит, что изменился только один элемент;
-- обновляет только этот элемент в реальном DOM.
-
-### Fiber Architecture
-
-**Fiber** — это внутренняя архитектура React, которая пришла на смену старому стековому алгоритму в React 16.
-
-**Что она даёт:**
-
-- **приоритеты обновлений** — React может отложить менее важные обновления (например, анимации) и сначала обработать критичные (ввод пользователя);
-- **прерываемый рендеринг** — React может «поставить на паузу» рендер сложного компонента, чтобы обработать более важную задачу;
-- **concurrent features** — основа для Suspense, `startTransition`, `useDeferredValue` и других современных возможностей.
-
-Проще говоря: React может ставить рендер «на паузу», чтобы интерфейс оставался отзывчивым. Это основа для всех concurrent features.
+1. **Текущее значение состояния** — `count`.
+2. **Функция для обновления** — `setCount`.
 
 **Важно понимать:**
 
-- Fiber — это не то, что ты используешь напрямую в коде;
-- это внутренняя реализация, которая делает React быстрее и отзывчивее;
-- на собеседованиях важно показать, что ты понимаешь, **зачем** это нужно, а не зубришь детали реализации.
+- `useState` вызывается **при каждом рендере**, но React запоминает значение между рендерами;
+- обновление состояния **асинхронное** — изменения применяются не сразу;
+- обновление состояния **вызывает повторный рендер** компонента.
+
+### Функциональное обновление
+
+Когда новое значение зависит от предыдущего, нужно использовать **функциональное обновление**:
+
+```jsx
+// Проблема: count может быть устаревшим
+setCount(count + 1)
+setCount(count + 1) // не сработает как ожидается
+
+// Правильно: гарантирует актуальное значение
+setCount((prev) => prev + 1)
+setCount((prev) => prev + 1) // теперь работает корректно
+```
+
+**Почему это важно:**
+
+- React может батчить (группировать) обновления состояния;
+- при батчинге несколько вызовов `setCount(count + 1)` будут использовать одно и то же значение `count`;
+- функциональное обновление всегда получает актуальное значение из предыдущего обновления.
+
+### Ленивая инициализация
+
+Если начальное значение дорого вычислять, можно передать функцию:
+
+```jsx
+// Плохо: вычисляется при каждом рендере (даже если не используется)
+const [data, setData] = useState(expensiveCalculation())
+
+// Хорошо: вычисляется только один раз при первом рендере
+const [data, setData] = useState(() => expensiveCalculation())
+```
+
+**Когда использовать:**
+
+- когда начальное значение требует сложных вычислений;
+- когда нужно прочитать значение из localStorage или другого источника;
+- когда инициализация должна происходить только один раз.
+
+### Объекты и массивы в состоянии
+
+При обновлении объектов и массивов нужно создавать **новые** объекты/массивы, а не мутировать существующие:
+
+```jsx
+const [user, setUser] = useState({ name: 'John', age: 30 })
+
+// Плохо: мутация — React не заметит изменение
+user.age = 31
+setUser(user)
+
+// Хорошо: создание нового объекта
+setUser({ ...user, age: 31 })
+
+// Или для вложенных объектов
+setUser({ ...user, profile: { ...user.profile, email: 'new@email.com' } })
+```
+
+**Почему это важно:**
+
+- React сравнивает ссылки на объекты, а не их содержимое;
+- если ссылка не изменилась, React считает, что состояние не изменилось;
+- это может привести к пропуску обновлений и багам.
+
+### Пример: счётчик
+
+```jsx
+function Counter() {
+  const [count, setCount] = useState(0)
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(count + 1)}>Increment</button>
+      <button onClick={() => setCount((prev) => prev - 1)}>Decrement</button>
+      <button onClick={() => setCount(0)}>Reset</button>
+    </div>
+  )
+}
+```
 
 ---
 
-## 44.2. Процесс рендера
+## 44.2. useReducer: управление сложным состоянием
 
-Когда изменяется состояние компонента, React запускает процесс обновления:
+`useReducer` — альтернатива `useState` для сложного состояния с множеством переходов.
 
-1. **Изменилось состояние** — вызван `setState` или обновлён проп.
-2. **Компонент перерендерился** — вызвалась функция компонента заново.
-3. **React сравнил деревья** (diffing) — сравнение нового Virtual DOM с предыдущим.
-4. **Применил минимальные изменения в DOM** — обновление только изменённых узлов.
-
-### Важно понимать: рендер ≠ обновление DOM
-
-**Рендер** — это вызов функции компонента. React может вызывать компонент много раз, даже если DOM не изменился.
-
-**Обновление DOM** — это физическое изменение в браузере. React обновляет DOM только при необходимости.
+### Синтаксис
 
 ```jsx
-function Counter({ count }) {
-  console.log('Рендер компонента')
-
-  return <div>{count}</div>
+function reducer(state, action) {
+  switch (action.type) {
+    case 'increment':
+      return { count: state.count + 1 }
+    case 'decrement':
+      return { count: state.count - 1 }
+    case 'reset':
+      return { count: 0 }
+    default:
+      return state
+  }
 }
 
-// Если count не изменился, компонент всё равно может перерендериться,
-// но React не будет обновлять DOM, если результат JSX идентичен
+function Counter() {
+  const [state, dispatch] = useReducer(reducer, { count: 0 })
+
+  return (
+    <div>
+      <p>Count: {state.count}</p>
+      <button onClick={() => dispatch({ type: 'increment' })}>+</button>
+      <button onClick={() => dispatch({ type: 'decrement' })}>-</button>
+      <button onClick={() => dispatch({ type: 'reset' })}>Reset</button>
+    </div>
+  )
+}
 ```
+
+### Когда использовать useReducer
+
+**useReducer подходит для:**
+
+- сложной логики обновления состояния (много условий, вложенные объекты);
+- состояния с множеством переходов (формы, многошаговые процессы);
+- когда логику обновления нужно вынести из компонента;
+- подготовки к миграции на Redux (похожий паттерн).
+
+**useState подходит для:**
+
+- простого состояния (число, строка, булево значение);
+- независимых значений состояния;
+- когда логика обновления простая.
+
+### Преимущества useReducer
+
+- **Централизованная логика** — вся логика обновления в одном месте (reducer);
+- **Предсказуемые обновления** — все изменения проходят через reducer;
+- **Легче тестировать** — reducer — чистая функция;
+- **Поддержка сложных действий** — можно передавать дополнительные данные в `action`.
+
+### Пример: форма с валидацией
+
+```jsx
+function formReducer(state, action) {
+  switch (action.type) {
+    case 'SET_FIELD':
+      return {
+        ...state,
+        fields: {
+          ...state.fields,
+          [action.field]: action.value,
+        },
+      }
+    case 'SET_ERROR':
+      return {
+        ...state,
+        errors: {
+          ...state.errors,
+          [action.field]: action.error,
+        },
+      }
+    case 'RESET':
+      return initialState
+    default:
+      return state
+  }
+}
+
+function Form() {
+  const [state, dispatch] = useReducer(formReducer, initialState)
+
+  const handleChange = (field, value) => {
+    dispatch({ type: 'SET_FIELD', field, value })
+    // валидация...
+  }
+
+  return <form>{/* поля формы */}</form>
+}
+```
+
+### Передача данных в action
+
+```jsx
+function reducer(state, action) {
+  switch (action.type) {
+    case 'increment':
+      return { count: state.count + (action.payload || 1) }
+    case 'set':
+      return { count: action.payload }
+    default:
+      return state
+  }
+}
+
+function Counter() {
+  const [state, dispatch] = useReducer(reducer, { count: 0 })
+
+  return (
+    <div>
+      <p>Count: {state.count}</p>
+      <button onClick={() => dispatch({ type: 'increment' })}>+1</button>
+      <button onClick={() => dispatch({ type: 'increment', payload: 5 })}>
+        +5
+      </button>
+      <button onClick={() => dispatch({ type: 'set', payload: 100 })}>
+        Set to 100
+      </button>
+    </div>
+  )
+}
+```
+
+### Ленивая инициализация
+
+Как и в `useState`, можно передать функцию для инициализации начального состояния:
+
+```jsx
+function init(initialCount) {
+  return { count: initialCount }
+}
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'increment':
+      return { count: state.count + 1 }
+    case 'reset':
+      return init(action.payload)
+    default:
+      return state
+  }
+}
+
+function Counter({ initialCount = 0 }) {
+  // Третий параметр — функция инициализации
+  const [state, dispatch] = useReducer(reducer, initialCount, init)
+
+  return (
+    <div>
+      <p>Count: {state.count}</p>
+      <button onClick={() => dispatch({ type: 'increment' })}>+</button>
+      <button
+        onClick={() => dispatch({ type: 'reset', payload: initialCount })}
+      >
+        Reset
+      </button>
+    </div>
+  )
+}
+```
+
+**Когда использовать:** когда начальное состояние требует вычислений или чтения из localStorage.
+
+### Типизация с TypeScript
+
+Для типобезопасности определите типы для state и action:
+
+```tsx
+interface CounterState {
+  count: number
+}
+
+type CounterAction =
+  | { type: 'increment' }
+  | { type: 'decrement' }
+  | { type: 'reset' }
+  | { type: 'set'; payload: number }
+
+function reducer(state: CounterState, action: CounterAction): CounterState {
+  switch (action.type) {
+    case 'increment':
+      return { count: state.count + 1 }
+    case 'decrement':
+      return { count: state.count - 1 }
+    case 'reset':
+      return { count: 0 }
+    case 'set':
+      return { count: action.payload }
+    default:
+      return state
+  }
+}
+
+function Counter() {
+  const [state, dispatch] = useReducer(reducer, { count: 0 })
+  // TypeScript знает типы state и action
+}
+```
+
+### Action Creators
+
+Для удобства создавайте функции-создатели действий:
+
+```tsx
+const increment = () => ({ type: 'increment' as const })
+const decrement = () => ({ type: 'decrement' as const })
+const setCount = (payload: number) => ({ type: 'set' as const, payload })
+
+function Counter() {
+  const [state, dispatch] = useReducer(reducer, { count: 0 })
+
+  return (
+    <div>
+      <button onClick={() => dispatch(increment())}>+</button>
+      <button onClick={() => dispatch(decrement())}>-</button>
+      <button onClick={() => dispatch(setCount(100))}>Set to 100</button>
+    </div>
+  )
+}
+```
+
+**Преимущества:** централизованное управление действиями, меньше опечаток, легче рефакторить.
+
+### Интеграция с Context API
+
+`useReducer` часто используется вместе с Context для глобального состояния:
+
+```tsx
+interface AppState {
+  user: User | null
+  theme: 'light' | 'dark'
+}
+
+type AppAction =
+  | { type: 'SET_USER'; payload: User }
+  | { type: 'SET_THEME'; payload: 'light' | 'dark' }
+
+function appReducer(state: AppState, action: AppAction): AppState {
+  switch (action.type) {
+    case 'SET_USER':
+      return { ...state, user: action.payload }
+    case 'SET_THEME':
+      return { ...state, theme: action.payload }
+    default:
+      return state
+  }
+}
+
+const AppContext = createContext<{
+  state: AppState
+  dispatch: React.Dispatch<AppAction>
+} | null>(null)
+
+function AppProvider({ children }: { children: React.ReactNode }) {
+  const [state, dispatch] = useReducer(appReducer, {
+    user: null,
+    theme: 'light',
+  })
+
+  return (
+    <AppContext.Provider value={{ state, dispatch }}>
+      {children}
+    </AppContext.Provider>
+  )
+}
+
+function useApp() {
+  const context = useContext(AppContext)
+  if (!context) throw new Error('useApp must be used within AppProvider')
+  return context
+}
+```
+
+**Когда использовать:** для простого глобального состояния без необходимости в Redux.
 
 ---
 
-## 44.3. Reconciliation (согласование)
+## 44.3. Сравнение useState и useReducer
 
-Reconciliation — это процесс сравнения двух деревьев Virtual DOM и определения минимального набора изменений для обновления реального DOM.
+**useState:**
 
-### Алгоритм diffing
+- Простота: проще
+- Логика: в компоненте
+- Тестируемость: сложнее
+- Сложное состояние: неудобно
+- Множество действий: много setState
+- Предсказуемость: меньше
 
-React использует эвристический алгоритм O(n) для сравнения деревьев:
+**useReducer:**
 
-1. **Сравнение по типу элемента:**
-   - Если типы разные — React заменяет старое дерево новым.
-   - Если типы одинаковые — React обновляет только изменённые свойства.
+- Простота: сложнее
+- Логика: в reducer
+- Тестируемость: легче (чистая функция)
+- Сложное состояние: удобно
+- Множество действий: один dispatch
+- Предсказуемость: больше
 
-2. **Сравнение по ключам (keys):**
-   - React использует `key` для идентификации элементов в списках.
-   - Это позволяет эффективно обновлять элементы при изменении порядка.
+**Правило выбора:**
 
-### Пример reconciliation
-
-```jsx
-// До
-<ul>
-  <li key="1">Apple</li>
-  <li key="2">Banana</li>
-  <li key="3">Orange</li>
-</ul>
-
-// После (добавлен элемент в начало)
-<ul>
-  <li key="0">Grape</li>
-  <li key="1">Apple</li>
-  <li key="2">Banana</li>
-  <li key="3">Orange</li>
-</ul>
-```
-
-**С ключами:**
-- React понимает, что элементы с ключами 1, 2, 3 не изменились.
-- Добавляет только новый элемент с ключом 0.
-- Обновляет DOM минимально.
-
-**Без ключей (или с индексами):**
-- React может неправильно сопоставить элементы.
-- Может пересоздать все элементы вместо добавления одного.
-- Может потерять состояние компонентов.
+- **useState** — для простого состояния (число, строка, булево значение, простой объект).
+- **useReducer** — для сложного состояния с множеством переходов (формы, многошаговые процессы, сложная логика).
 
 ---
 
-## 44.4. Keys: зачем они нужны
+## 44.4. Типичные ошибки
 
-При рендеринге списков React требует уникальный `key` для каждого элемента:
-
-```jsx
-const items = [
-  { id: 1, name: 'Apple' },
-  { id: 2, name: 'Banana' },
-  { id: 3, name: 'Orange' }
-]
-
-<ul>
-  {items.map((item) => (
-    <li key={item.id}>{item.name}</li>
-  ))}
-</ul>
-```
-
-** `key` нужен React, а не вам.**
-
-`key` помогает React:
-
-- отслеживать, какие элементы изменились, добавились или удалились;
-- эффективно обновлять только изменённые элементы;
-- сохранять состояние компонентов при изменении порядка элементов.
-
-### Правила для `key`
-
-- должен быть **уникальным** среди siblings (братьев и сестёр);
-- должен быть **стабильным** (не меняться между рендерами);
-- лучше использовать **ID из данных**, а не индекс массива.
-
-### Почему индекс — плохой `key`
+### 1. Мутация состояния
 
 ```jsx
-//  Плохо: индекс меняется при удалении/добавлении элементов
-{
-  items.map((item, index) => <li key={index}>{item.name}</li>)
-}
+// Плохо
+const [items, setItems] = useState([1, 2, 3])
+items.push(4)
+setItems(items)
 
-//  Хорошо: ID стабилен
-{
-  items.map((item) => <li key={item.id}>{item.name}</li>)
-}
+// Хорошо
+setItems([...items, 4])
 ```
 
-**Проблема с индексом:**
+### 2. Забытое функциональное обновление
 
 ```jsx
-// Исходный список
-[
-  { id: 1, name: 'Apple' },
-  { id: 2, name: 'Banana' },
-  { id: 3, name: 'Orange' }
-]
+// Проблема при батчинге
+setCount(count + 1)
+setCount(count + 1)
 
-// После удаления первого элемента
-[
-  { id: 2, name: 'Banana' },   // key={0} (было key={1})
-  { id: 3, name: 'Orange' }    // key={1} (было key={2})
-]
+// Правильно
+setCount((prev) => prev + 1)
+setCount((prev) => prev + 1)
 ```
 
-React видит, что элементы с ключами 0 и 1 изменились, и может пересоздать компоненты, потеряв их внутреннее состояние.
-
----
-
-## 44.5. Частая ошибка: побочные эффекты в теле компонента
+### 3. Неправильная инициализация
 
 ```jsx
-function App() {
-  fetch('/api') //  Выполнится при каждом рендере!
-  return <div>Content</div>
-}
+// Плохо: вычисляется при каждом рендере
+const [data, setData] = useState(expensiveCalculation())
+
+// Хорошо: вычисляется один раз
+const [data, setData] = useState(() => expensiveCalculation())
 ```
-
-**Проблема:**
-
-- компонент может рендериться много раз;
-- `fetch` будет вызываться при каждом рендере;
-- это приведёт к лишним запросам, багам и проблемам производительности.
-
-**Правильное решение:**
-
-```jsx
-function App() {
-  useEffect(() => {
-    fetch('/api') //  Выполнится только при монтировании
-  }, [])
-
-  return <div>Content</div>
-}
-```
-
-Побочные эффекты (запросы, подписки, таймеры) должны быть в `useEffect`, а не в теле компонента.
 
 ---
 
 ## Вопросы на собеседовании
 
-### 1. Что такое Virtual DOM и зачем он нужен?
+### 1. В чём разница между useState и useReducer?
 
-Virtual DOM — это объектное представление реального DOM в памяти. React использует его для эффективного обновления интерфейса: сравнивает два дерева объектов (быстро) и обновляет только изменённые части реального DOM.
+`useState` для простого состояния, `useReducer` для сложного состояния с множеством переходов. `useReducer` централизует логику обновления в reducer.
 
-### 2. В чём разница между рендером и обновлением DOM?
+### 2. Когда использовать функциональное обновление?
 
-Рендер — это вызов функции компонента. React может вызывать компонент много раз. Обновление DOM — это физическое изменение в браузере. React обновляет DOM только при необходимости.
+Когда новое значение зависит от предыдущего, особенно при батчинге обновлений.
 
-### 3. Что такое reconciliation?
+### 3. Почему нужно создавать новые объекты/массивы?
 
-Reconciliation — это процесс сравнения двух деревьев Virtual DOM и определения минимального набора изменений для обновления реального DOM.
+React сравнивает ссылки, а не содержимое. Если ссылка не изменилась, React не заметит изменение.
 
-### 4. Зачем нужны keys в списках?
+### 4. Зачем нужна ленивая инициализация?
 
-Keys помогают React отслеживать, какие элементы изменились, эффективно обновлять только изменённые элементы и сохранять состояние компонентов при изменении порядка.
+Чтобы дорогие вычисления выполнялись только один раз при первом рендере, а не при каждом.
 
-### 5. Почему индекс — плохой key?
+### 5. Когда использовать useReducer вместо useState?
 
-Индекс меняется при удалении/добавлении элементов, что может привести к неправильному сопоставлению элементов и потере состояния компонентов.
-
-### 6. Что такое Fiber?
-
-Fiber — это внутренняя архитектура React, которая позволяет ставить рендер «на паузу» для обработки более важных задач, обеспечивая отзывчивость интерфейса.
+Для сложного состояния с множеством переходов, когда логику обновления нужно вынести из компонента.

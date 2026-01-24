@@ -1,66 +1,305 @@
-# Глава 48. Context API и перерендеры
+# Глава 48. Кастомные хуки
 
-Context API позволяет передавать данные через дерево компонентов без явной передачи пропсов на каждом уровне. Однако неправильное использование может привести к проблемам с производительностью.
+Кастомные хуки — это функции, начинающиеся с `use`, которые могут использовать другие хуки. Это основной способ переиспользования логики в React.
 
 ---
 
-## 48.1. Создание и использование контекста
+## 48.1. Что такое кастомные хуки
 
-### Базовое использование
+Кастомные хуки — это функции, которые:
+
+- начинаются с `use`;
+- могут вызывать другие хуки;
+- инкапсулируют логику для переиспользования.
+
+**Преимущества:**
+
+- переиспользование логики между компонентами;
+- инкапсуляция сложной логики;
+- тестируемость (можно тестировать отдельно от компонентов);
+- читаемость (компоненты становятся проще);
+- композиция (можно комбинировать хуки).
+
+**Правила:**
+
+- должны начинаться с `use`;
+- могут вызывать другие хуки;
+- должны следовать правилам хуков (не вызываться условно);
+- могут возвращать что угодно (объект, массив, значение).
+
+---
+
+## 48.2. Примеры кастомных хуков
+
+### useCounter
 
 ```jsx
-const ThemeContext = createContext('light')
+function useCounter(initial = 0) {
+  const [count, setCount] = useState(initial)
 
-function App() {
-  return (
-    <ThemeContext.Provider value='dark'>
-      <Child />
-    </ThemeContext.Provider>
-  )
+  const increment = () => setCount((c) => c + 1)
+  const decrement = () => setCount((c) => c - 1)
+  const reset = () => setCount(initial)
+
+  return { count, increment, decrement, reset }
 }
 
-function Child() {
-  const theme = useContext(ThemeContext)
-  return <div className={theme}>Content</div>
+// Использование
+function Counter() {
+  const { count, increment, decrement } = useCounter(0)
+
+  return (
+    <div>
+      <p>{count}</p>
+      <button onClick={increment}>+</button>
+      <button onClick={decrement}>-</button>
+    </div>
+  )
 }
 ```
 
-### Контекст с состоянием
+### useFetch
 
 ```jsx
-const ThemeContext = createContext({
-  theme: 'light',
-  toggleTheme: () => {},
-})
+function useFetch(url) {
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState('light')
+  useEffect(() => {
+    setLoading(true)
+    setError(null)
 
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
+    fetch(url)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`)
+        }
+        return res.json()
+      })
+      .then(setData)
+      .catch(setError)
+      .finally(() => setLoading(false))
+  }, [url])
+
+  return { data, loading, error }
+}
+
+// Использование
+function UserProfile({ userId }) {
+  const { data, loading, error } = useFetch(`/api/users/${userId}`)
+
+  if (loading) return <Spinner />
+  if (error) return <Error message={error.message} />
+  return <Profile data={data} />
+}
+```
+
+### useLocalStorage
+
+```jsx
+function useLocalStorage(key, initialValue) {
+  const [storedValue, setStoredValue] = useState(() => {
+    try {
+      const item = window.localStorage.getItem(key)
+      return item ? JSON.parse(item) : initialValue
+    } catch (error) {
+      console.error(error)
+      return initialValue
+    }
+  })
+
+  const setValue = (value) => {
+    try {
+      const valueToStore =
+        value instanceof Function ? value(storedValue) : value
+      setStoredValue(valueToStore)
+      window.localStorage.setItem(key, JSON.stringify(valueToStore))
+    } catch (error) {
+      console.error(error)
+    }
   }
 
-  return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  )
+  return [storedValue, setValue]
 }
 
-function App() {
+// Использование
+function ThemeToggle() {
+  const [theme, setTheme] = useLocalStorage('theme', 'light')
+
   return (
-    <ThemeProvider>
-      <Child />
-    </ThemeProvider>
+    <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+      Current theme: {theme}
+    </button>
   )
 }
+```
 
-function Child() {
-  const { theme, toggleTheme } = useContext(ThemeContext)
+### useDebounce
+
+```jsx
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}
+
+// Использование для поиска
+function SearchBox() {
+  const [query, setQuery] = useState('')
+  const debouncedQuery = useDebounce(query, 300)
+
+  useEffect(() => {
+    if (debouncedQuery) {
+      // Выполнить поиск
+      search(debouncedQuery)
+    }
+  }, [debouncedQuery])
+
+  return <input value={query} onChange={(e) => setQuery(e.target.value)} />
+}
+```
+
+### usePrevious
+
+```jsx
+function usePrevious(value) {
+  const ref = useRef()
+
+  useEffect(() => {
+    ref.current = value
+  }, [value])
+
+  return ref.current
+}
+
+// Использование
+function Counter() {
+  const [count, setCount] = useState(0)
+  const prevCount = usePrevious(count)
+
   return (
     <div>
-      <p>Current theme: {theme}</p>
-      <button onClick={toggleTheme}>Toggle</button>
+      <p>Current: {count}</p>
+      <p>Previous: {prevCount}</p>
+      <button onClick={() => setCount(count + 1)}>Increment</button>
+    </div>
+  )
+}
+```
+
+### useToggle
+
+```jsx
+function useToggle(initial = false) {
+  const [value, setValue] = useState(initial)
+
+  const toggle = useCallback(() => {
+    setValue((prev) => !prev)
+  }, [])
+
+  const setTrue = useCallback(() => {
+    setValue(true)
+  }, [])
+
+  const setFalse = useCallback(() => {
+    setValue(false)
+  }, [])
+
+  return [value, { toggle, setTrue, setFalse }]
+}
+
+// Использование
+function Modal() {
+  const [isOpen, { toggle, setTrue, setFalse }] = useToggle(false)
+
+  return (
+    <>
+      <button onClick={toggle}>Toggle Modal</button>
+      {isOpen && <div>Modal content</div>}
+    </>
+  )
+}
+```
+
+### useClickOutside
+
+```jsx
+function useClickOutside(ref, handler) {
+  useEffect(() => {
+    const handleClick = (event) => {
+      if (ref.current && !ref.current.contains(event.target)) {
+        handler(event)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClick)
+    return () => {
+      document.removeEventListener('mousedown', handleClick)
+    }
+  }, [ref, handler])
+}
+
+// Использование
+function Dropdown() {
+  const [isOpen, setIsOpen] = useState(false)
+  const ref = useRef(null)
+
+  useClickOutside(ref, () => setIsOpen(false))
+
+  return (
+    <div ref={ref}>
+      <button onClick={() => setIsOpen(!isOpen)}>Toggle</button>
+      {isOpen && <div>Dropdown content</div>}
+    </div>
+  )
+}
+```
+
+### useWindowSize
+
+```jsx
+function useWindowSize() {
+  const [size, setSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  })
+
+  useEffect(() => {
+    const handleResize = () => {
+      setSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      })
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => {
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [])
+
+  return size
+}
+
+// Использование
+function ResponsiveComponent() {
+  const { width, height } = useWindowSize()
+
+  return (
+    <div>
+      <p>Width: {width}px</p>
+      <p>Height: {height}px</p>
     </div>
   )
 }
@@ -68,324 +307,137 @@ function Child() {
 
 ---
 
-## 48.2. Проблемы Context API
+## 48.3. Композиция хуков
 
-### 1. Ререндер всех потребителей
-
-При изменении значения контекста **все** компоненты, использующие этот контекст, перерендериваются, даже если они используют только часть данных:
+Кастомные хуки можно комбинировать для создания более сложной логики:
 
 ```jsx
-const AppContext = createContext({ user: null, theme: 'light' })
+function useUserProfile(userId) {
+  const { data: user, loading, error } = useFetch(`/api/users/${userId}`)
+  const [theme, setTheme] = useLocalStorage('theme', 'light')
+  const { width } = useWindowSize()
 
-function App() {
-  const [state, setState] = useState({ user: null, theme: 'light' })
+  return {
+    user,
+    loading,
+    error,
+    theme,
+    setTheme,
+    isMobile: width < 768,
+  }
+}
+
+// Использование
+function ProfilePage({ userId }) {
+  const { user, theme, isMobile } = useUserProfile(userId)
 
   return (
-    <AppContext.Provider value={state}>
-      <UserProfile /> {/* перерендерится при изменении theme */}
-      <ThemeSwitcher /> {/* перерендерится при изменении user */}
-    </AppContext.Provider>
+    <div className={theme}>
+      {isMobile ? <MobileLayout user={user} /> : <DesktopLayout user={user} />}
+    </div>
   )
 }
 ```
-
-**Проблема:** изменение `theme` вызывает ререндер `UserProfile`, хотя он использует только `user`.
-
-### Решение: разделение контекстов
-
-```jsx
-const UserContext = createContext(null)
-const ThemeContext = createContext('light')
-
-function App() {
-  const [user, setUser] = useState(null)
-  const [theme, setTheme] = useState('light')
-
-  return (
-    <UserContext.Provider value={user}>
-      <ThemeContext.Provider value={theme}>
-        <UserProfile /> {/* перерендерится только при изменении user */}
-        <ThemeSwitcher /> {/* перерендерится только при изменении theme */}
-      </ThemeContext.Provider>
-    </UserContext.Provider>
-  )
-}
-```
-
-### 2. Объекты в value
-
-Если передавать объект напрямую, он создаётся заново при каждом рендере:
-
-```jsx
-//  Плохо: новый объект при каждом рендере
-function App() {
-  const [user, setUser] = useState(null)
-
-  return (
-    <UserContext.Provider value={{ user, setUser }}>
-      <Child />
-    </UserContext.Provider>
-  )
-}
-```
-
-**Проблема:** новый объект при каждом рендере вызывает ререндер всех потребителей.
-
-**Решение: мемоизация**
-
-```jsx
-//  Хорошо: объект мемоизирован
-function App() {
-  const [user, setUser] = useState(null)
-
-  const value = useMemo(
-    () => ({
-      user,
-      setUser,
-    }),
-    [user]
-  )
-
-  return (
-    <UserContext.Provider value={value}>
-      <Child />
-    </UserContext.Provider>
-  )
-}
-```
-
-### 3. Context — не замена Redux
-
-Context API подходит для:
-
-- темы, языка интерфейса;
-- данных пользователя (если не меняются часто);
-- простого глобального состояния.
-
-Context API НЕ подходит для:
-
-- сложного состояния с множеством переходов;
-- частых обновлений (каждое обновление вызывает ререндер всех потребителей);
-- когда нужны middleware, time-travel debugging и другие возможности Redux.
 
 ---
 
-## 48.3. Оптимизация Context API
+## 48.4. Тестирование кастомных хуков
 
-### Разделение контекстов
-
-Разделяй контексты по частоте обновления и области использования:
+Кастомные хуки можно тестировать с помощью `@testing-library/react-hooks`:
 
 ```jsx
-// Контекст для редко меняющихся данных
-const UserContext = createContext(null)
+import { renderHook, act } from '@testing-library/react-hooks'
+import { useCounter } from './useCounter'
 
-// Контекст для часто меняющихся данных
-const UIStateContext = createContext({
-  sidebarOpen: false,
-  modalOpen: false,
+test('useCounter increments', () => {
+  const { result } = renderHook(() => useCounter(0))
+
+  act(() => {
+    result.current.increment()
+  })
+
+  expect(result.current.count).toBe(1)
 })
 ```
 
-### Мемоизация значения
-
-```jsx
-function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState('light')
-
-  const value = useMemo(
-    () => ({
-      theme,
-      toggleTheme: () => {
-        setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
-      },
-    }),
-    [theme]
-  )
-
-  return (
-    <ThemeContext.Provider value={value}>
-      {children}
-    </ThemeContext.Provider>
-  )
-}
-```
-
-### Селекторы (как в Redux)
-
-Можно создать хук с селектором для подписки только на нужную часть контекста:
-
-```jsx
-function useTheme() {
-  const context = useContext(ThemeContext)
-  return context.theme
-}
-
-function useToggleTheme() {
-  const context = useContext(ThemeContext)
-  return context.toggleTheme
-}
-
-// Использование
-function Component() {
-  const theme = useTheme() // подписывается только на theme
-  const toggleTheme = useToggleTheme() // подписывается только на toggleTheme
-}
-```
-
-Однако это не предотвращает ререндеры полностью — React всё равно ререндерит при изменении контекста.
-
-### Разделение на Provider и Consumer
-
-```jsx
-const ThemeStateContext = createContext(null)
-const ThemeDispatchContext = createContext(null)
-
-function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState('light')
-
-  return (
-    <ThemeStateContext.Provider value={theme}>
-      <ThemeDispatchContext.Provider value={setTheme}>
-        {children}
-      </ThemeDispatchContext.Provider>
-    </ThemeStateContext.Provider>
-  )
-}
-
-function useThemeState() {
-  return useContext(ThemeStateContext)
-}
-
-function useThemeDispatch() {
-  return useContext(ThemeDispatchContext)
-}
-
-// Использование
-function Component() {
-  const theme = useThemeState() // ререндерится только при изменении theme
-  const setTheme = useThemeDispatch() // не ререндерится (функция стабильна)
-}
-```
-
 ---
 
-## 48.4. Паттерны использования
+## 48.5. Best Practices
 
-### Паттерн: Provider с хуками
+### 1. Именование
 
 ```jsx
-const AuthContext = createContext(null)
+//  Хорошо: начинается с use
+function useAuth() {}
+function useUserData() {}
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+//  Плохо: не начинается с use
+function getAuth() {}
+function fetchUserData() {}
+```
 
-  useEffect(() => {
-    // Загрузка пользователя
-    fetchUser().then((user) => {
-      setUser(user)
-      setLoading(false)
-    })
-  }, [])
+### 2. Возвращаемое значение
 
-  const value = useMemo(
-    () => ({
-      user,
-      loading,
-      login: async (credentials) => {
-        const user = await login(credentials)
-        setUser(user)
-      },
-      logout: () => {
-        setUser(null)
-      },
-    }),
-    [user, loading]
-  )
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+```jsx
+//  Хорошо: объект для множественных значений
+function useAuth() {
+  return { user, login, logout }
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider')
+//  Хорошо: массив для двух значений (как useState)
+function useToggle() {
+  return [value, toggle]
+}
+
+//  Хорошо: одно значение
+function useWindowWidth() {
+  return width
+}
+```
+
+### 3. Инкапсуляция логики
+
+```jsx
+//  Хорошо: вся логика в хуке
+function useForm() {
+  const [values, setValues] = useState({})
+  const [errors, setErrors] = useState({})
+
+  const handleChange = (name, value) => {
+    setValues((prev) => ({ ...prev, [name]: value }))
   }
-  return context
+
+  return { values, errors, handleChange }
+}
+
+//  Плохо: логика в компоненте
+function Form() {
+  const [values, setValues] = useState({})
+  const [errors, setErrors] = useState({})
+  // ... много логики
 }
 ```
-
-### Паттерн: разделение State и Dispatch
-
-```jsx
-const CountStateContext = createContext(0)
-const CountDispatchContext = createContext(null)
-
-function CountProvider({ children }) {
-  const [count, setCount] = useState(0)
-
-  return (
-    <CountStateContext.Provider value={count}>
-      <CountDispatchContext.Provider value={setCount}>
-        {children}
-      </CountDispatchContext.Provider>
-    </CountStateContext.Provider>
-  )
-}
-
-function useCountState() {
-  return useContext(CountStateContext)
-}
-
-function useCountDispatch() {
-  return useContext(CountDispatchContext)
-}
-```
-
----
-
-## 48.5. Когда использовать Context API
-
-###  Подходит для
-
-- Тема (light/dark)
-- Язык интерфейса
-- Данные пользователя (редко меняются)
-- Простое глобальное состояние
-
-###  НЕ подходит для
-
-- Частые обновления (каждое обновление → ререндер всех потребителей)
-- Сложное состояние (много переходов, middleware)
-- Когда нужны селекторы, time-travel debugging
-
-### Альтернативы
-
-- **Zustand** — для клиентского состояния
-- **TanStack Query** — для серверного состояния
-- **Redux** — для сложного состояния с middleware
 
 ---
 
 ## Вопросы на собеседовании
 
-### 1. В чём проблема Context API с производительностью?
+### 1. Что такое кастомные хуки?
 
-При изменении значения контекста все потребители перерендериваются, даже если используют только часть данных.
+Функции, начинающиеся с `use`, которые могут использовать другие хуки для переиспользования логики.
 
-### 2. Как оптимизировать Context API?
+### 2. Какие правила для кастомных хуков?
 
-Разделять контексты, мемоизировать значения, разделять State и Dispatch.
+Должны начинаться с `use`, могут вызывать другие хуки, должны следовать правилам хуков.
 
-### 3. Когда использовать Context API?
+### 3. Зачем нужны кастомные хуки?
 
-Для редко меняющихся данных (тема, язык, данные пользователя). Не для частых обновлений.
+Для переиспользования логики, инкапсуляции сложной логики, улучшения читаемости и тестируемости.
 
-### 4. В чём разница между Context API и Redux?
+### 4. Можно ли комбинировать кастомные хуки?
 
-Context API проще, но не подходит для сложного состояния и частых обновлений. Redux предоставляет middleware, time-travel debugging, селекторы.
+Да, кастомные хуки можно комбинировать для создания более сложной логики.
 
-### 5. Как предотвратить ререндеры при использовании Context?
+### 5. Как тестировать кастомные хуки?
 
-Разделять контексты, мемоизировать значения, использовать селекторы (частично помогает).
+С помощью `@testing-library/react-hooks` или тестируя компоненты, которые их используют.

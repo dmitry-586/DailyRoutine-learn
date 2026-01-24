@@ -1,394 +1,120 @@
-# Глава 42. Оптимизация бандла: tree-shaking, side effects, code splitting и динамические импорты
+# Глава 42. Оптимизация бандла: логика и последовательность
 
-Оптимизация бандла критична для производительности приложения. Понимание tree-shaking, code splitting и динамических импортов позволяет создавать быстрые приложения с минимальным размером бандла.
-
----
-
-## 42.1. Tree Shaking
-
-Удаление неиспользуемого кода из бандла.
-
-### Как работает?
-
-```javascript
-// math.js
-export const sum = (a, b) => a + b
-export const multiply = (a, b) => a * b
-export const divide = (a, b) => a / b
-
-// app.js
-import { sum } from './math'
-console.log(sum(2, 3))
-
-// В bundle попадёт только sum
-// multiply и divide будут удалены
-```
-
-### Требования для tree-shaking
-
-1. **ES Modules** (не CommonJS)
-2. **Статические импорты** (не динамические)
-3. **Side-effect free** код
-
-```javascript
-//  Плохо: CommonJS — не работает tree-shaking
-const { sum } = require('./math')
-
-//  Хорошо: ES Modules
-import { sum } from './math'
-```
-
-### Side Effects
-
-```json
-// package.json
-{
-  "sideEffects": false  // нет side-effects, можно смело tree-shake
-}
-
-// Или указываем файлы с side-effects
-{
-  "sideEffects": ["*.css", "*.scss", "src/polyfills.js"]
-}
-```
-
-**Что такое side effects?**
-
-Любой код, который выполняет действия помимо экспорта:
-
-```javascript
-//  Side effect
-window.myGlobal = 'value'
-
-//  Side effect
-import './styles.css' // CSS должен быть в sideEffects
-
-//  Pure (нет side effects)
-export const sum = (a, b) => a + b
-```
+Цель — быстрее первый экран и меньше JS. Делай оптимизацию по шагам, чтобы понимать, зачем именно ты что-то меняешь.
 
 ---
 
-## 42.2. Code Splitting
+## 42.1. Шаг 1 — понять, что тормозит
 
-Разделение кода на чанки для оптимизации загрузки.
+Сначала измерь: какой у тебя размер бандла и какие чанки самые тяжёлые. Без этого легко «оптимизировать» не то.
+
+---
+
+## 42.2. Шаг 2 — убрать неиспользуемое (tree-shaking)
+
+Tree-shaking удаляет неиспользуемые экспорты, если:
+
+- используются ES Modules,
+- импорты статические,
+- модуль без side-effects.
+
+Минимальный пример:
+
+```ts
+// Хорошо: ESM + именованные экспорты
+import { sum } from './math'
+```
+
+Если модуль делает побочные эффекты (например импортирует CSS), он не будет «выкинут».
+
+---
+
+## 42.3. Шаг 3 — разделить загрузку (code splitting)
+
+Смысл: не грузить всё сразу. Пользователю нужен только текущий экран.
 
 ### Динамический импорт
 
-```typescript
-// Вместо статического импорта
-import HeavyComponent from './HeavyComponent'
-
-// Динамический импорт (lazy loading)
-const HeavyComponent = lazy(() => import('./HeavyComponent'))
-
-function App() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <HeavyComponent />
-    </Suspense>
-  )
-}
+```tsx
+const HeavyChart = lazy(() => import('./HeavyChart'))
 ```
 
-### Route-based splitting
+### Когда это нужно
 
-```typescript
-// router.tsx
-import { lazy } from 'react'
-
-const HomePage = lazy(() => import('./pages/HomePage'))
-const AboutPage = lazy(() => import('./pages/AboutPage'))
-const DashboardPage = lazy(() => import('./pages/DashboardPage'))
-
-const routes = [
-  { path: '/', element: <HomePage /> },
-  { path: '/about', element: <AboutPage /> },
-  { path: '/dashboard', element: <DashboardPage /> },
-]
-```
-
-### Vendor splitting
-
-```typescript
-// vite.config.ts
-export default defineConfig({
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom'],
-          'vendor-router': ['react-router-dom'],
-          'vendor-ui': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-          ],
-        },
-      },
-    },
-  },
-})
-```
-
-**Преимущества:**
-
-- Меньше начальный бандл
-- Быстрее загрузка
-- Лучший Core Web Vitals
-- Кеширование vendor кода
+- редкие экраны (админка, отчёты),
+- тяжёлые библиотеки (графики, редакторы),
+- большие модальные окна.
 
 ---
 
-## 42.3. Стратегии оптимизации
+## 42.4. Шаг 4 — контролировать импорты
 
-### 1. Динамические импорты для тяжёлых библиотек
-
-```typescript
-//  Плохо — весь Chart.js в начальном бандле
-import { Chart } from 'chart.js'
-
-//  Хорошо — загружается только при необходимости
-const Chart = lazy(() => import('chart.js'))
-```
-
-### 2. Импорт только нужных функций
-
-```typescript
-//  Плохо — весь lodash
-import _ from 'lodash'
-
-//  Хорошо — только нужная функция
-import { debounce } from 'lodash-es/debounce'
-
-//  Ещё лучше — tree-shakeable версия
-import debounce from 'lodash-es/debounce'
-```
-
-### 3. Используйте lighter альтернативы
-
-```typescript
-//  Плохо — moment.js (70KB)
-import moment from 'moment'
-
-//  Хорошо — dayjs (2KB)
-import dayjs from 'dayjs'
-```
-
-### 4. Code splitting по роутам
-
-```typescript
-const Dashboard = lazy(() => import('./Dashboard'))
-const Profile = lazy(() => import('./Profile'))
-```
-
-### 5. Условная загрузка компонентов
-
-```typescript
-function App() {
-  const [showChart, setShowChart] = useState(false)
-  
-  return (
-    <div>
-      <button onClick={() => setShowChart(true)}>Show Chart</button>
-      {showChart && (
-        <Suspense fallback={<div>Loading...</div>}>
-          <Chart />
-        </Suspense>
-      )}
-    </div>
-  )
-}
-```
+- Импортируй только то, что используешь.
+- Для тяжёлых библиотек ищи «лёгкие» альтернативы.
+- Не тащи весь пакет «на всякий случай».
 
 ---
 
-## 42.4. Анализ размера бандла
+## 42.5. Минимальный чек-лист
 
-### Vite
+- Бандл измерен.
+- Динамические импорты стоят там, где это реально помогает.
+- Большие библиотеки загружаются лениво.
+- Лишние импорты удалены.
 
-```bash
-npm run build
-npx vite-bundle-visualizer
-```
-
-### Webpack
-
-```bash
-npx webpack-bundle-analyzer dist/stats.json
-```
-
-### Анализ в браузере
-
-```typescript
-// vite.config.ts
-export default defineConfig({
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('react')) {
-              return 'vendor-react'
-            }
-            if (id.includes('lodash')) {
-              return 'vendor-utils'
-            }
-            return 'vendor'
-          }
-        },
-      },
-    },
-  },
-})
-```
+Этого достаточно, чтобы получить реальный выигрыш без лишней сложности.
 
 ---
 
-## 42.5. Оптимизация изображений
+## 42.6. Как измерять правильно
 
-### Lazy loading
-
-```typescript
-<img
-  src="image.jpg"
-  loading="lazy"
-  alt="Description"
-/>
-```
-
-### Responsive images
-
-```typescript
-<img
-  srcSet="image-320w.jpg 320w, image-640w.jpg 640w"
-  sizes="(max-width: 640px) 320px, 640px"
-  src="image-640w.jpg"
-  alt="Description"
-/>
-```
-
-### WebP и AVIF
-
-```typescript
-<picture>
-  <source srcSet="image.avif" type="image/avif" />
-  <source srcSet="image.webp" type="image/webp" />
-  <img src="image.jpg" alt="Description" />
-</picture>
-```
+- Замеряй **общий размер JS** и **размер первого экрана**.
+- Сравнивай до/после одной конкретной правки.
+- Смотри, какие чанки грузятся на первом экране.
+- Учитывай кеш: повторный заход может быть быстрым, но первый — нет.
 
 ---
 
-## 42.6. Оптимизация CSS
+## 42.7. Типичные источники «жирного» бандла
 
-### CSS Modules
-
-```typescript
-// Component.module.css
-.button {
-  background: blue;
-}
-
-// Component.tsx
-import styles from './Component.module.css'
-<button className={styles.button}>Click</button>
-```
-
-### Critical CSS
-
-```typescript
-// Извлечение критического CSS
-import { extractCritical } from '@emotion/server'
-
-const { html, css } = extractCritical(renderedHtml)
-```
-
-### CSS-in-JS оптимизация
-
-```typescript
-// Использование runtime CSS-in-JS только для динамических стилей
-// Статические стили — в CSS файлы
-```
+- Библиотеки графиков, редакторов и PDF.
+- UI-комплекты с монолитными импортами.
+- Большие утилиты, которые можно заменить локальной функцией.
+- Дублирование библиотек из-за разных версий.
 
 ---
 
-## 42.7. Preloading и Prefetching
+## 42.8. Что важно для UX
 
-### Preload критических ресурсов
-
-```html
-<link rel="preload" href="/fonts/main.woff2" as="font" type="font/woff2" crossorigin />
-<link rel="preload" href="/critical.css" as="style" />
-```
-
-### Prefetch для будущих страниц
-
-```typescript
-// Prefetch следующей страницы при hover
-<Link
-  to="/dashboard"
-  onMouseEnter={() => {
-    import('./pages/Dashboard')
-  }}
->
-  Dashboard
-</Link>
-```
+- Пользователь ждёт **первый экран**, а не весь сайт.
+- Слишком много «ленивых» чанков даёт эффект «постоянной подгрузки».
+- Баланс важнее максимального дробления.
 
 ---
 
-## 42.8. Минификация и сжатие
+## 42.9. Практические правила
 
-### Минификация
-
-```typescript
-// vite.config.ts
-export default defineConfig({
-  build: {
-    minify: 'esbuild', // или 'terser'
-  },
-})
-```
-
-### Gzip/Brotli сжатие
-
-```typescript
-// Настройка на сервере
-// Nginx
-gzip on;
-gzip_types text/javascript application/javascript;
-
-// Vercel/Netlify — автоматически
-```
+- Ленивая загрузка — только для реально редких экранов.
+- Общие библиотеки лучше держать в одном стабильном чанке.
+- Для модалок и редких функций — динамический импорт.
+- Для общих компонентов — статический импорт.
 
 ---
 
-## Вопросы на собеседовании
+## 42.10. Ошибки, которые часто делают
 
-### 1. Что такое tree-shaking?
+- Включают динамический импорт «везде», и UX становится хуже.
+- Удаляют полифиллы, ломая старые браузеры, если они нужны.
+- Заменяют библиотеку ради размера, теряя функциональность.
 
-Удаление неиспользуемого кода из бандла. Требует ES Modules и статических импортов.
+---
 
-### 2. Что такое side effects?
+## 42.11. Мини-бюджет производительности
 
-Код, который выполняет действия помимо экспорта (например, изменение глобальных переменных).
+Определи лимиты для команды:
 
-### 3. Что такое code splitting?
+- Размер JS первого экрана.
+- Максимальный размер одного чанка.
+- Время загрузки на медленной сети.
 
-Разделение кода на чанки для оптимизации загрузки. Позволяет загружать только нужный код.
-
-### 4. Как работает динамический импорт?
-
-Создаёт отдельный чанк, который загружается по требованию. Используется с `lazy()` и `Suspense`.
-
-### 5. Зачем нужен vendor splitting?
-
-Отделение библиотек от кода приложения для лучшего кеширования и оптимизации загрузки.
-
-### 6. Как анализировать размер бандла?
-
-Использовать bundle analyzer: `vite-bundle-visualizer` или `webpack-bundle-analyzer`.
-
-### 7. В чём разница между preload и prefetch?
-
-Preload загружает критический ресурс немедленно. Prefetch загружает ресурс для будущего использования.
+Это дисциплинирует и даёт понятные цели.

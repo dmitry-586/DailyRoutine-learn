@@ -1,449 +1,119 @@
-# Глава 41. Сборка: Vite, Webpack, Turbopack, Babel и TypeScript в пайплайне
+# Глава 41. Сборка: что это и зачем нужно
 
-Современные сборщики — основа фронтенд-разработки. Понимание их работы и различий критично для выбора правильного инструмента и оптимизации процесса сборки.
-
----
-
-## 41.1. Эволюция сборщиков
-
-```
-2015: Webpack (module bundler)
-2020: Vite (ESM-based dev server)
-2024: Turbopack (Rust-powered, Next.js)
-2026: Rspack (Rust, Webpack-compatible)
-```
+Главная идея сборщика — превратить исходный код в быстрый, готовый к продакшену бандл. Не важно, Vite это или Webpack — смысл один.
 
 ---
 
-## 41.2. Vite: современный стандарт
+## 41.1. Что делает сборщик
 
-**Vite 6** (2024-2026) — инструмент нового поколения для фронтенд-разработки.
+Сборка — это набор шагов:
 
-### Почему Vite быстрее?
+1. Читает исходники.
+2. Преобразует современный JS/TS в совместимый.
+3. Склеивает модули в чанки.
+4. Удаляет лишнее и минифицирует.
 
-**Dev mode:**
+Результат — быстрый старт страницы и меньше ошибок в проде.
 
-- Использует native ES Modules
-- Без бандлинга в dev
-- Сервер отдаёт файлы напрямую
-- HMR (Hot Module Replacement) на уровне модулей
+---
 
-**Build:**
+## 41.2. Dev сервер vs Production сборка
 
-- Использует Rollup для продакшн-сборки
-- Оптимизированная конфигурация из коробки
-- Tree-shaking и minification автоматически
+- **Dev**: быстрый старт, горячая замена модулей (HMR), всё для скорости разработки.
+- **Prod**: максимальная оптимизация, минификация, tree-shaking, стабильные чанки.
 
-### Конфигурация Vite
+---
 
-```typescript
-// vite.config.ts
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'path'
+## 41.3. Vite, Webpack, Turbopack — суть различий
 
-export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
-  build: {
-    target: 'esnext',
-    minify: 'esbuild',
-    sourcemap: true,
-  },
-  server: {
-    port: 3000,
-    open: true,
-  },
-})
+### Vite
+- Очень быстрый dev сервер за счёт ESM.
+- Отличен для новых проектов.
+- В продакшене использует Rollup.
+
+### Webpack
+- Гибкий и зрелый, но тяжелее в настройке.
+- Нужен для legacy и нестандартных кейсов.
+
+### Turbopack
+- Родной для Next.js, делает dev режим очень быстрым.
+- Экосистема ещё растёт, но перспективен.
+
+---
+
+## 41.4. Где в этом Babel и TypeScript
+
+- **TypeScript** отвечает за типы, а не за сборку.
+- **Babel/esbuild** преобразуют синтаксис.
+- В современных инструментах это «встроено», поэтому отдельный конфиг не нужен почти никогда.
+
+Минимальная практическая формула:
+
 ```
-
-### Плагины Vite
-
-```typescript
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import svgr from 'vite-plugin-svgr'
-import { VitePWA } from 'vite-plugin-pwa'
-
-export default defineConfig({
-  plugins: [
-    react(),
-    svgr(), // SVG как React компоненты
-    VitePWA({ registerType: 'autoUpdate' }), // PWA
-  ],
-})
-```
-
-### Переменные окружения
-
-```bash
-# .env
-VITE_API_URL=https://api.example.com
-VITE_APP_VERSION=$npm_package_version
-```
-
-```typescript
-const apiUrl = import.meta.env.VITE_API_URL
+TypeScript → (Babel/esbuild) → Bundler → Prod-чанки
 ```
 
 ---
 
-## 41.3. Webpack: всё ещё актуален
+## 41.5. Как выбрать инструмент
 
-**Webpack 5** остаётся стандартом для сложных конфигураций.
+- **Next.js** → Turbopack (или Webpack по умолчанию).
+- **Новый SPA** → Vite.
+- **Сложная/старая система** → Webpack.
 
-### Базовая концепция
-
-1. **Entry** — точка входа
-2. **Graph** — граф зависимостей
-3. **Loaders** — обработка файлов
-4. **Plugins** — расширение логики
-5. **Output** — результат сборки
-
-### Минимальная конфигурация
-
-```javascript
-// webpack.config.js
-const path = require('path')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-
-module.exports = {
-  mode: 'production',
-  entry: './src/index.tsx',
-  output: {
-    filename: '[name].[contenthash].js',
-    path: path.resolve(__dirname, 'dist'),
-    clean: true,
-  },
-  module: {
-    rules: [
-      {
-        test: /\.tsx?$/,
-        use: 'ts-loader',
-        exclude: /node_modules/,
-      },
-      {
-        test: /\.css$/,
-        use: ['style-loader', 'css-loader'],
-      },
-    ],
-  },
-  plugins: [
-    new HtmlWebpackPlugin({
-      template: './src/index.html',
-    }),
-  ],
-  resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
-  },
-}
-```
-
-### Loaders vs Plugins
-
-**Loader:**
-
-- Трансформирует отдельные файлы
-- Работают справа налево в цепочке
-- Пример: `ts-loader`, `css-loader`
-
-**Plugin:**
-
-- Работает на уровне всего процесса сборки
-- Доступ к compilation events
-- Пример: `HtmlWebpackPlugin`, `MiniCssExtractPlugin`
+Главный критерий — требования проекта, а не модность инструмента.
 
 ---
 
-## 41.4. Turbopack: будущее Next.js
+## 41.6. Что именно оптимизирует сборщик
 
-**Turbopack** — новый сборщик от Vercel на Rust.
+- Разделяет код на чанки по страницам и фичам.
+- Удаляет неиспользуемые экспорты.
+- Минифицирует JS и CSS.
+- Упорядочивает порядок загрузки ресурсов.
+- Стабилизирует имена файлов для кеширования.
 
-```javascript
-// next.config.js
-module.exports = {
-  experimental: {
-    turbo: {
-      loaders: {
-        '.svg': ['@svgr/webpack'],
-      },
-    },
-  },
-}
-```
-
-**Особенности:**
-
-- В 10x быстрее Webpack в dev
-- Инкрементальная компиляция
-- Встроенная поддержка TypeScript, JSX, CSS
-- Интеграция с Next.js 14+
-
-**Производительность:**
-
-```
-Cold start (Next.js app):
-Webpack: ~12s
-Vite:    ~5s
-Turbopack: ~1.8s
-```
+Эти шаги напрямую влияют на скорость первого экрана и повторные визиты.
 
 ---
 
-## 41.5. Сравнение сборщиков (2026)
+## 41.7. Кэш и повторные сборки
 
-**Vite:**
+Для больших проектов важно, как быстро пересобирается проект:
 
-- Dev server: очень быстрый
-- Конфигурация: простая
-- Production build: быстрый
-- Legacy support: ограничено
-- Плагины: много
-- Размер bundle: средний
-
-**Webpack:**
-
-- Dev server: медленнее
-- Конфигурация: сложная
-- Production build: очень быстрый
-- Legacy support: отлично
-- Плагины: огромная экосистема
-- Размер bundle: контролируемый
-
-**Turbopack:**
-
-- Dev server: очень быстрый
-- Конфигурация: минимальная
-- Production build: очень быстрый
-- Legacy support: хорошо
-- Плагины: растёт
-- Размер bundle: оптимальный
-
-**Когда использовать:**
-
-**Vite:**
-
-- Новые проекты (React, Vue, Svelte)
-- Быстрая разработка
-- Современные браузеры
-
-**Webpack:**
-
-- Legacy проекты
-- Сложные требования к сборке
-- Специфичные плагины
-
-**Turbopack:**
-
-- Next.js 14+
-- Максимальная производительность
-- Ограниченная экосистема (пока)
+- Dev сборка должна быть быстрой, даже если prod сборка дольше.
+- Инкрементальные сборки экономят часы в больших репозиториях.
+- Полная очистка кеша нужна только при странных ошибках, а не «по привычке».
 
 ---
 
-## 41.6. Babel и транспиляция
+## 41.8. Source maps и дебаг
 
-**Babel** — транспилятор JavaScript.
+Source maps — это возможность видеть исходный код в продакшене при ошибках.
 
-### Зачем нужен?
-
-Превращает современный JavaScript в код для старых браузеров:
-
-```javascript
-// Исходный код (ES2024)
-const sum = (a, b) => a + b
-const result = numbers?.find((n) => n > 10)
-
-// После Babel (ES5)
-var sum = function (a, b) {
-  return a + b
-}
-var result =
-  numbers &&
-  numbers.find(function (n) {
-    return n > 10
-  })
-```
-
-### Presets
-
-```json
-{
-  "presets": [
-    [
-      "@babel/preset-env",
-      {
-        "targets": {
-          "browsers": [">0.25%", "not dead"]
-        },
-        "useBuiltIns": "usage",
-        "corejs": 3
-      }
-    ],
-    "@babel/preset-react",
-    "@babel/preset-typescript"
-  ]
-}
-```
-
-### Polyfills
-
-**Babel** трансформирует только **синтаксис**.
-
-Для **API** нужны polyfills:
-
-```javascript
-// Без polyfill — ошибка в IE11
-const hasValue = array.includes(5)
-const promise = Promise.resolve(42)
-
-// С polyfill работает везде
-import 'core-js/stable'
-import 'regenerator-runtime/runtime'
-```
-
-**Современный подход (Vite):**
-
-Polyfills не нужны! Vite генерирует два bundle:
-
-1. **Modern** (ES2020+) — для новых браузеров
-2. **Legacy** (ES5) — для старых (с polyfills)
+- Включай sourcemaps в staging.
+- В проде включай только если есть безопасный доступ.
+- Для публичных приложений разумно ограничивать детализацию.
 
 ---
 
-## 41.7. TypeScript в пайплайне
+## 41.9. Когда важно менять инструмент
 
-### Компиляция TypeScript
+Менять сборщик стоит только если:
 
-**Вариант 1: tsc (TypeScript Compiler)**
+- скорость сборки тормозит команду,
+- нужна специфичная функциональность,
+- текущий инструмент упирается в ограничения.
 
-```json
-{
-  "scripts": {
-    "type-check": "tsc --noEmit",
-    "build": "tsc && vite build"
-  }
-}
-```
-
-**Вариант 2: Встроенная поддержка (Vite)**
-
-Vite использует esbuild для транспиляции TypeScript:
-
-```typescript
-// vite.config.ts
-export default defineConfig({
-  // TypeScript обрабатывается автоматически
-  // esbuild быстрее tsc
-})
-```
-
-**Вариант 3: Babel + TypeScript**
-
-```json
-{
-  "presets": ["@babel/preset-typescript"]
-}
-```
-
-### Настройка tsconfig.json
-
-```json
-{
-  "compilerOptions": {
-    "target": "ES2020",
-    "module": "ESNext",
-    "lib": ["ES2020", "DOM"],
-    "jsx": "react-jsx",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "moduleResolution": "bundler"
-  }
-}
-```
+Если проблемы нет — миграция не даёт ценности.
 
 ---
 
-## 41.8. Пайплайн сборки
+## 41.10. Мини-чек-лист для проекта
 
-### Типичный пайплайн
-
-```
-Исходный код (.ts, .tsx, .css)
-    ↓
-[TypeScript/ESLint проверка]
-    ↓
-[Транспиляция (esbuild/Babel)]
-    ↓
-[Обработка CSS (PostCSS)]
-    ↓
-[Бандлинг (Rollup/Webpack)]
-    ↓
-[Оптимизация (minify, tree-shake)]
-    ↓
-Готовый bundle
-```
-
-### Пример конфигурации
-
-```typescript
-// vite.config.ts
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-
-export default defineConfig({
-  plugins: [
-    react(), // JSX → JS
-  ],
-  build: {
-    target: 'esnext', // Современный JS
-    minify: 'esbuild', // Минификация
-    sourcemap: true, // Source maps
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-        },
-      },
-    },
-  },
-})
-```
-
----
-
-## Вопросы на собеседовании
-
-### 1. Почему Vite быстрее Webpack в dev режиме?
-
-Vite использует native ES Modules без бандлинга в dev, сервер отдаёт файлы напрямую. Webpack бандлит всё перед запуском.
-
-### 2. В чём разница между Loader и Plugin в Webpack?
-
-Loader трансформирует отдельные файлы. Plugin работает на уровне всего процесса сборки.
-
-### 3. Что такое Turbopack?
-
-Новый сборщик от Vercel на Rust, в 10x быстрее Webpack, интегрирован с Next.js 14+.
-
-### 4. Зачем нужен Babel?
-
-Транспиляция современного JavaScript в код для старых браузеров. Трансформирует синтаксис.
-
-### 5. В чём разница между транспиляцией и компиляцией?
-
-Транспиляция — преобразование кода в код (JS → JS). Компиляция — преобразование в машинный код.
-
-### 6. Как TypeScript обрабатывается в Vite?
-
-Vite использует esbuild для транспиляции TypeScript, что быстрее tsc.
-
-### 7. Когда использовать Webpack вместо Vite?
-
-Для legacy проектов, сложных конфигураций, специфичных плагинов.
+- Выбран инструмент и версия.
+- Настроены окружения dev/prod.
+- Понимание, где включены sourcemaps.
+- Бандл анализируется перед релизом.
+- У команды есть единые правила сборки.
 

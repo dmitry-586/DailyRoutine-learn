@@ -1,420 +1,418 @@
-# Глава 49. Кастомные хуки
+# Глава 49. Error boundaries и стратегия обработки ошибок
 
-Кастомные хуки — это функции, начинающиеся с `use`, которые могут использовать другие хуки. Это основной способ переиспользования логики в React.
-
----
-
-## 49.1. Что такое кастомные хуки
-
-Кастомные хуки — это функции, которые:
-
-- начинаются с `use`;
-- могут вызывать другие хуки;
-- инкапсулируют логику для переиспользования.
-
-**Преимущества:**
-
-- переиспользование логики между компонентами;
-- инкапсуляция сложной логики;
-- тестируемость (можно тестировать отдельно от компонентов);
-- читаемость (компоненты становятся проще);
-- композиция (можно комбинировать хуки).
-
-**Правила:**
-
-- должны начинаться с `use`;
-- могут вызывать другие хуки;
-- должны следовать правилам хуков (не вызываться условно);
-- могут возвращать что угодно (объект, массив, значение).
+Обработка ошибок — критическая часть React-приложений. Error Boundaries позволяют gracefully обрабатывать ошибки в компонентах и предотвращать полный крах приложения.
 
 ---
 
-## 49.2. Примеры кастомных хуков
+## 49.1. Что такое Error Boundaries
 
-### useCounter
+Error Boundaries — это React-компоненты, которые ловят ошибки JavaScript в любом месте дерева дочерних компонентов, логируют их и отображают запасной UI вместо упавшего дерева компонентов.
+
+**Важно:**
+
+- Error Boundaries ловят ошибки только в:
+  - рендере компонентов;
+  - методах жизненного цикла;
+  - конструкторах компонентов.
+- Error Boundaries НЕ ловят ошибки в:
+  - обработчиках событий;
+  - асинхронном коде (setTimeout, промисы);
+  - серверном рендеринге (SSR);
+  - самом Error Boundary.
+
+---
+
+## 49.2. Создание Error Boundary
+
+Error Boundary — это классовый компонент (пока нет хука для этого):
 
 ```jsx
-function useCounter(initial = 0) {
-  const [count, setCount] = useState(initial)
+import { Component, ReactNode, ErrorInfo } from 'react'
 
-  const increment = () => setCount((c) => c + 1)
-  const decrement = () => setCount((c) => c - 1)
-  const reset = () => setCount(initial)
-
-  return { count, increment, decrement, reset }
+interface Props {
+  children: ReactNode
+  fallback?: ReactNode
 }
 
-// Использование
-function Counter() {
-  const { count, increment, decrement } = useCounter(0)
+interface State {
+  hasError: boolean
+  error?: Error
+}
 
+export class ErrorBoundary extends Component<Props, State> {
+  state: State = {
+    hasError: false,
+  }
+
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('Error caught by boundary:', error, errorInfo)
+    // Можно отправить ошибку в сервис мониторинга
+    // logErrorToService(error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        this.props.fallback || (
+          <div>
+            <h2>Something went wrong.</h2>
+            <p>{this.state.error?.message}</p>
+          </div>
+        )
+      )
+    }
+
+    return this.props.children
+  }
+}
+```
+
+### Использование
+
+```jsx
+function App() {
+  return (
+    <ErrorBoundary fallback={<ErrorFallback />}>
+      <Dashboard />
+    </ErrorBoundary>
+  )
+}
+```
+
+---
+
+## 49.3. Где размещать Error Boundaries
+
+### На верхнем уровне
+
+```jsx
+function App() {
+  return (
+    <ErrorBoundary>
+      <Router>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/about" element={<AboutPage />} />
+        </Routes>
+      </Router>
+    </ErrorBoundary>
+  )
+}
+```
+
+### На уровне страниц
+
+```jsx
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route
+          path="/dashboard"
+          element={
+            <ErrorBoundary>
+              <DashboardPage />
+            </ErrorBoundary>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ErrorBoundary>
+              <ProfilePage />
+            </ErrorBoundary>
+          }
+        />
+      </Routes>
+    </Router>
+  )
+}
+```
+
+### Вокруг критичных компонентов
+
+```jsx
+function Dashboard() {
   return (
     <div>
-      <p>{count}</p>
-      <button onClick={increment}>+</button>
-      <button onClick={decrement}>-</button>
+      <Header />
+      <ErrorBoundary fallback={<ChartError />}>
+        <Chart />
+      </ErrorBoundary>
+      <ErrorBoundary fallback={<TableError />}>
+        <DataTable />
+      </ErrorBoundary>
     </div>
   )
 }
 ```
 
-### useFetch
+---
+
+## 49.4. Обработка ошибок в обработчиках событий
+
+Error Boundaries не ловят ошибки в обработчиках событий. Используй `try/catch`:
 
 ```jsx
-function useFetch(url) {
-  const [data, setData] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    setLoading(true)
-    setError(null)
-
-    fetch(url)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`)
-        }
-        return res.json()
-      })
-      .then(setData)
-      .catch(setError)
-      .finally(() => setLoading(false))
-  }, [url])
-
-  return { data, loading, error }
-}
-
-// Использование
-function UserProfile({ userId }) {
-  const { data, loading, error } = useFetch(`/api/users/${userId}`)
-
-  if (loading) return <Spinner />
-  if (error) return <Error message={error.message} />
-  return <Profile data={data} />
-}
-```
-
-### useLocalStorage
-
-```jsx
-function useLocalStorage(key, initialValue) {
-  const [storedValue, setStoredValue] = useState(() => {
+function Button() {
+  const handleClick = () => {
     try {
-      const item = window.localStorage.getItem(key)
-      return item ? JSON.parse(item) : initialValue
+      // Код, который может упасть
+      riskyOperation()
     } catch (error) {
-      console.error(error)
-      return initialValue
-    }
-  })
-
-  const setValue = (value) => {
-    try {
-      const valueToStore =
-        value instanceof Function ? value(storedValue) : value
-      setStoredValue(valueToStore)
-      window.localStorage.setItem(key, JSON.stringify(valueToStore))
-    } catch (error) {
-      console.error(error)
+      console.error('Error in click handler:', error)
+      // Обработка ошибки
     }
   }
 
-  return [storedValue, setValue]
-}
-
-// Использование
-function ThemeToggle() {
-  const [theme, setTheme] = useLocalStorage('theme', 'light')
-
-  return (
-    <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
-      Current theme: {theme}
-    </button>
-  )
+  return <button onClick={handleClick}>Click</button>
 }
 ```
 
-### useDebounce
+---
+
+## 49.5. Обработка ошибок в асинхронном коде
+
+Error Boundaries не ловят ошибки в асинхронном коде. Используй `try/catch` или `.catch()`:
 
 ```jsx
-function useDebounce(value, delay) {
-  const [debouncedValue, setDebouncedValue] = useState(value)
-
+function Component() {
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value)
-    }, delay)
-
-    return () => {
-      clearTimeout(handler)
-    }
-  }, [value, delay])
-
-  return debouncedValue
-}
-
-// Использование для поиска
-function SearchBox() {
-  const [query, setQuery] = useState('')
-  const debouncedQuery = useDebounce(query, 300)
-
-  useEffect(() => {
-    if (debouncedQuery) {
-      // Выполнить поиск
-      search(debouncedQuery)
-    }
-  }, [debouncedQuery])
-
-  return <input value={query} onChange={(e) => setQuery(e.target.value)} />
-}
-```
-
-### usePrevious
-
-```jsx
-function usePrevious(value) {
-  const ref = useRef()
-
-  useEffect(() => {
-    ref.current = value
-  }, [value])
-
-  return ref.current
-}
-
-// Использование
-function Counter() {
-  const [count, setCount] = useState(0)
-  const prevCount = usePrevious(count)
-
-  return (
-    <div>
-      <p>Current: {count}</p>
-      <p>Previous: {prevCount}</p>
-      <button onClick={() => setCount(count + 1)}>Increment</button>
-    </div>
-  )
-}
-```
-
-### useToggle
-
-```jsx
-function useToggle(initial = false) {
-  const [value, setValue] = useState(initial)
-
-  const toggle = useCallback(() => {
-    setValue((prev) => !prev)
-  }, [])
-
-  const setTrue = useCallback(() => {
-    setValue(true)
-  }, [])
-
-  const setFalse = useCallback(() => {
-    setValue(false)
-  }, [])
-
-  return [value, { toggle, setTrue, setFalse }]
-}
-
-// Использование
-function Modal() {
-  const [isOpen, { toggle, setTrue, setFalse }] = useToggle(false)
-
-  return (
-    <>
-      <button onClick={toggle}>Toggle Modal</button>
-      {isOpen && <div>Modal content</div>}
-    </>
-  )
-}
-```
-
-### useClickOutside
-
-```jsx
-function useClickOutside(ref, handler) {
-  useEffect(() => {
-    const handleClick = (event) => {
-      if (ref.current && !ref.current.contains(event.target)) {
-        handler(event)
+    async function fetchData() {
+      try {
+        const data = await fetch('/api/data')
+        setData(data)
+      } catch (error) {
+        console.error('Error fetching data:', error)
+        setError(error)
       }
     }
 
-    document.addEventListener('mousedown', handleClick)
-    return () => {
-      document.removeEventListener('mousedown', handleClick)
-    }
-  }, [ref, handler])
-}
-
-// Использование
-function Dropdown() {
-  const [isOpen, setIsOpen] = useState(false)
-  const ref = useRef(null)
-
-  useClickOutside(ref, () => setIsOpen(false))
-
-  return (
-    <div ref={ref}>
-      <button onClick={() => setIsOpen(!isOpen)}>Toggle</button>
-      {isOpen && <div>Dropdown content</div>}
-    </div>
-  )
-}
-```
-
-### useWindowSize
-
-```jsx
-function useWindowSize() {
-  const [size, setSize] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight,
-  })
-
-  useEffect(() => {
-    const handleResize = () => {
-      setSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      })
-    }
-
-    window.addEventListener('resize', handleResize)
-    return () => {
-      window.removeEventListener('resize', handleResize)
-    }
+    fetchData()
   }, [])
 
-  return size
+  // Или с .catch()
+  useEffect(() => {
+    fetch('/api/data')
+      .then((res) => res.json())
+      .then(setData)
+      .catch((error) => {
+        console.error('Error:', error)
+        setError(error)
+      })
+  }, [])
 }
+```
 
-// Использование
-function ResponsiveComponent() {
-  const { width, height } = useWindowSize()
+---
 
+## 49.6. Стратегия обработки ошибок
+
+### 1. Разные уровни Error Boundaries
+
+```jsx
+function App() {
+  return (
+    <ErrorBoundary fallback={<AppError />}>
+      <Router>
+        <Routes>
+          <Route
+            path="/dashboard"
+            element={
+              <ErrorBoundary fallback={<PageError />}>
+                <DashboardPage />
+              </ErrorBoundary>
+            }
+          />
+        </Routes>
+      </Router>
+    </ErrorBoundary>
+  )
+}
+```
+
+### 2. Специализированные Error Boundaries
+
+```jsx
+function ChartErrorBoundary({ children }) {
+  return (
+    <ErrorBoundary
+      fallback={
+        <div>
+          <p>Не удалось загрузить график</p>
+          <button onClick={() => window.location.reload()}>
+            Перезагрузить
+          </button>
+        </div>
+      }
+    >
+      {children}
+    </ErrorBoundary>
+  )
+}
+```
+
+### 3. Логирование ошибок
+
+```jsx
+class ErrorBoundary extends Component {
+  componentDidCatch(error, errorInfo) {
+    // Локальное логирование
+    console.error('Error caught:', error, errorInfo)
+
+    // Отправка в сервис мониторинга
+    if (window.Sentry) {
+      window.Sentry.captureException(error, {
+        contexts: {
+          react: {
+            componentStack: errorInfo.componentStack,
+          },
+        },
+      })
+    }
+  }
+}
+```
+
+### 4. Восстановление после ошибки
+
+```jsx
+class ErrorBoundary extends Component {
+  state = { hasError: false, error: null }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Error:', error, errorInfo)
+  }
+
+  handleReset = () => {
+    this.setState({ hasError: false, error: null })
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div>
+          <h2>Something went wrong</h2>
+          <button onClick={this.handleReset}>Try again</button>
+        </div>
+      )
+    }
+
+    return this.props.children
+  }
+}
+```
+
+---
+
+## 49.7. Интеграция с мониторингом
+
+### Sentry
+
+```jsx
+import * as Sentry from '@sentry/react'
+
+class ErrorBoundary extends Component {
+  componentDidCatch(error, errorInfo) {
+    Sentry.captureException(error, {
+      contexts: {
+        react: {
+          componentStack: errorInfo.componentStack,
+        },
+      },
+    })
+  }
+
+  render() {
+    return <Sentry.ErrorBoundary>{this.props.children}</Sentry.ErrorBoundary>
+  }
+}
+```
+
+### Логирование в API
+
+```jsx
+class ErrorBoundary extends Component {
+  componentDidCatch(error, errorInfo) {
+    // Отправка на сервер
+    fetch('/api/errors', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        error: error.message,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack,
+        userAgent: navigator.userAgent,
+        url: window.location.href,
+      }),
+    })
+  }
+}
+```
+
+---
+
+## 49.8. Best Practices
+
+### 1. Размещай Error Boundaries стратегически
+
+```jsx
+//  Хорошо: на разных уровнях
+<ErrorBoundary>
+  <App />
+</ErrorBoundary>
+
+<ErrorBoundary>
+  <Dashboard />
+</ErrorBoundary>
+
+<ErrorBoundary>
+  <Chart />
+</ErrorBoundary>
+```
+
+### 2. Используй try/catch для событий и асинхронного кода
+
+```jsx
+//  Хорошо
+const handleClick = () => {
+  try {
+    riskyOperation()
+  } catch (error) {
+    console.error(error)
+  }
+}
+```
+
+### 3. Логируй ошибки
+
+```jsx
+//  Хорошо
+componentDidCatch(error, errorInfo) {
+  console.error('Error:', error)
+  logErrorToService(error, errorInfo)
+}
+```
+
+### 4. Предоставляй возможность восстановления
+
+```jsx
+//  Хорошо
+if (this.state.hasError) {
   return (
     <div>
-      <p>Width: {width}px</p>
-      <p>Height: {height}px</p>
+      <p>Something went wrong</p>
+      <button onClick={this.handleReset}>Try again</button>
     </div>
   )
-}
-```
-
----
-
-## 49.3. Композиция хуков
-
-Кастомные хуки можно комбинировать для создания более сложной логики:
-
-```jsx
-function useUserProfile(userId) {
-  const { data: user, loading, error } = useFetch(`/api/users/${userId}`)
-  const [theme, setTheme] = useLocalStorage('theme', 'light')
-  const { width } = useWindowSize()
-
-  return {
-    user,
-    loading,
-    error,
-    theme,
-    setTheme,
-    isMobile: width < 768,
-  }
-}
-
-// Использование
-function ProfilePage({ userId }) {
-  const { user, theme, isMobile } = useUserProfile(userId)
-
-  return (
-    <div className={theme}>
-      {isMobile ? <MobileLayout user={user} /> : <DesktopLayout user={user} />}
-    </div>
-  )
-}
-```
-
----
-
-## 49.4. Тестирование кастомных хуков
-
-Кастомные хуки можно тестировать с помощью `@testing-library/react-hooks`:
-
-```jsx
-import { renderHook, act } from '@testing-library/react-hooks'
-import { useCounter } from './useCounter'
-
-test('useCounter increments', () => {
-  const { result } = renderHook(() => useCounter(0))
-
-  act(() => {
-    result.current.increment()
-  })
-
-  expect(result.current.count).toBe(1)
-})
-```
-
----
-
-## 49.5. Best Practices
-
-### 1. Именование
-
-```jsx
-//  Хорошо: начинается с use
-function useAuth() {}
-function useUserData() {}
-
-//  Плохо: не начинается с use
-function getAuth() {}
-function fetchUserData() {}
-```
-
-### 2. Возвращаемое значение
-
-```jsx
-//  Хорошо: объект для множественных значений
-function useAuth() {
-  return { user, login, logout }
-}
-
-//  Хорошо: массив для двух значений (как useState)
-function useToggle() {
-  return [value, toggle]
-}
-
-//  Хорошо: одно значение
-function useWindowWidth() {
-  return width
-}
-```
-
-### 3. Инкапсуляция логики
-
-```jsx
-//  Хорошо: вся логика в хуке
-function useForm() {
-  const [values, setValues] = useState({})
-  const [errors, setErrors] = useState({})
-
-  const handleChange = (name, value) => {
-    setValues((prev) => ({ ...prev, [name]: value }))
-  }
-
-  return { values, errors, handleChange }
-}
-
-//  Плохо: логика в компоненте
-function Form() {
-  const [values, setValues] = useState({})
-  const [errors, setErrors] = useState({})
-  // ... много логики
 }
 ```
 
@@ -422,22 +420,22 @@ function Form() {
 
 ## Вопросы на собеседовании
 
-### 1. Что такое кастомные хуки?
+### 1. Что такое Error Boundary?
 
-Функции, начинающиеся с `use`, которые могут использовать другие хуки для переиспользования логики.
+React-компонент, который ловит ошибки в дочерних компонентах и отображает запасной UI.
 
-### 2. Какие правила для кастомных хуков?
+### 2. Какие ошибки ловит Error Boundary?
 
-Должны начинаться с `use`, могут вызывать другие хуки, должны следовать правилам хуков.
+Ошибки в рендере, методах жизненного цикла и конструкторах. НЕ ловит ошибки в обработчиках событий и асинхронном коде.
 
-### 3. Зачем нужны кастомные хуки?
+### 3. Почему Error Boundary — классовый компонент?
 
-Для переиспользования логики, инкапсуляции сложной логики, улучшения читаемости и тестируемости.
+Пока нет хука для Error Boundary. Нужны методы `getDerivedStateFromError` и `componentDidCatch`.
 
-### 4. Можно ли комбинировать кастомные хуки?
+### 4. Как обрабатывать ошибки в обработчиках событий?
 
-Да, кастомные хуки можно комбинировать для создания более сложной логики.
+Использовать `try/catch` в обработчике события.
 
-### 5. Как тестировать кастомные хуки?
+### 5. Как обрабатывать ошибки в асинхронном коде?
 
-С помощью `@testing-library/react-hooks` или тестируя компоненты, которые их используют.
+Использовать `try/catch` с `async/await` или `.catch()` с промисами.
