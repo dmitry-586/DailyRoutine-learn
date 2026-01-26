@@ -1,4 +1,4 @@
-# Глава 53. TanStack Query: useQuery, кэширование и query keys
+﻿# Глава 53. TanStack Query: useQuery, кэширование и query keys
 
 TanStack Query (ранее React Query) — стандарт для управления серверным состоянием в React. Понимание `useQuery`, кэширования и query keys критично для эффективной работы с API.
 

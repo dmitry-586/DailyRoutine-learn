@@ -1,4 +1,4 @@
-# Глава 54. TanStack Query: мутации, invalidation, optimistic updates, prefetch и infinite queries
+﻿# Глава 54. TanStack Query: мутации, invalidation, optimistic updates, prefetch и infinite queries
 
 Мутации, инвалидация, optimistic updates и prefetch — продвинутые возможности TanStack Query для эффективной работы с изменениями данных и оптимизации UX.
 
