@@ -135,19 +135,23 @@ function Dashboard() {
 
 Иногда данные могут быть и Server, и Client State:
 
-### Пример: фильтры
+### Пример: фильтры (производное состояние)
+
+В современных приложениях клиентское состояние часто является **производным от серверного**. Например, локальный поиск по кешированным данным:
 
 ```typescript
-// Server State: список пользователей
+// Server State: список пользователей (кешируется TanStack Query)
 const { data: users } = useUsers()
 
-// Client State: фильтры (применяются локально)
+// Client State: фильтры (применяются локально к кешированным данным)
 const [filter, setFilter] = useState('active')
 
 const filteredUsers = useMemo(() => {
   return users?.filter((user) => user.status === filter) ?? []
 }, [users, filter])
 ```
+
+**Важно:** фильтры применяются к уже загруженным данным из кеша, без дополнительных запросов к серверу.
 
 ### Пример: редактирование
 
@@ -162,6 +166,51 @@ useEffect(() => {
   setEditedUser(user)
 }, [user])
 ```
+
+---
+
+## 52.6. Критическое предостережение: не синхронизируйте вручную
+
+**Никогда не пытайтесь синхронизировать Server State и Client State вручную** (например, копировать данные из Query в Zustand через `useEffect`). Это нарушает принцип **«единственного источника правды»**.
+
+### ❌ Плохо: ручная синхронизация
+
+```typescript
+// ОПАСНО: дублирование данных
+const { data: users } = useUsers()
+
+useEffect(() => {
+  // Копируем данные из Query в Zustand
+  useUsersStore.setState({ users })
+}, [users])
+```
+
+**Проблемы:**
+- Дублирование данных в памяти
+- Риск рассинхронизации
+- Лишние ререндеры
+- Сложность поддержки
+
+### ✅ Правильно: разделение ответственности
+
+```typescript
+// Server State: данные с API (TanStack Query)
+const { data: users } = useUsers()
+
+// Client State: только UI-логика (Zustand)
+const sidebarOpen = useUIStore((state) => state.sidebarOpen)
+const toggleSidebar = useUIStore((state) => state.toggleSidebar)
+
+// Используем данные напрямую из Query
+return (
+  <div>
+    {sidebarOpen && <Sidebar />}
+    {users?.map((user) => <UserCard key={user.id} user={user} />)}
+  </div>
+)
+```
+
+**Правило:** Zustand — для UI-логики (тема, модалки, сайдбар). TanStack Query — для кеширования API. Не смешивайте их.
 
 ---
 

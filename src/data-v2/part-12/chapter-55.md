@@ -131,15 +131,66 @@ API может вернуть ошибки, которые не покрывае
 
 React Hook Form + Zod + TanStack Query — полный стек для работы с формами.
 
+**Стандартный паттерн:** форма (RHF) → мутация (TanStack Query) → инвалидация списка.
+
 **Паттерн интеграции:**
 
 1. **Zod-схема** — определяет валидацию
 2. **useForm** — управляет формой
 3. **useMutation** — отправляет данные на сервер
+4. **Инвалидация** — обновление списка после успешной мутации
+
+**Пример полного цикла:**
+
+```typescript
+const createUserSchema = z.object({
+  name: z.string().min(1, 'Имя обязательно'),
+  email: z.string().email('Некорректный email'),
+})
+
+type CreateUserForm = z.infer<typeof createUserSchema>
+
+function CreateUserForm() {
+  const form = useForm<CreateUserForm>({
+    resolver: zodResolver(createUserSchema),
+  })
+
+  const createUser = useMutation({
+    mutationFn: (data: CreateUserForm) => apiClient.post('/users', data),
+    onSuccess: () => {
+      form.reset() // Очистить форму
+      queryClient.invalidateQueries({ queryKey: ['users'] }) // Обновить список
+      toast.success('Пользователь создан')
+    },
+    onError: (error) => {
+      // Маппинг серверных ошибок на поля
+      if (error.response?.data?.errors) {
+        Object.entries(error.response.data.errors).forEach(([field, message]) => {
+          form.setError(field as keyof CreateUserForm, { message })
+        })
+      }
+    },
+  })
+
+  return (
+    <form onSubmit={form.handleSubmit((data) => createUser.mutate(data))}>
+      <input {...form.register('name')} />
+      {form.formState.errors.name && <span>{form.formState.errors.name.message}</span>}
+      
+      <input {...form.register('email')} />
+      {form.formState.errors.email && <span>{form.formState.errors.email.message}</span>}
+      
+      <button disabled={createUser.isPending}>
+        {createUser.isPending ? 'Создание...' : 'Создать'}
+      </button>
+    </form>
+  )
+}
+```
 
 **Обработка результатов:**
 
-- **onSuccess** — очистить форму через `reset()`, показать уведомление
+- **onSuccess** — очистить форму через `reset()`, инвалидировать список, показать уведомление
 - **onError** — мапить серверные ошибки на поля через `setError()`
 
 **Кнопка submit:**
@@ -147,21 +198,47 @@ React Hook Form + Zod + TanStack Query — полный стек для рабо
 - `disabled={createUser.isPending}` — блокировать при отправке
 - Показывать состояние: «Создание...» / «Создать»
 
-**Серверные ошибки:** если API возвращает ошибки в формате `{ errors: { email: 'Уже занят' } }`, пройдитесь по ним и вызовите `setError()` для каждого поля.
-
 ---
 
 ## 55.7. Валидация API ответов с Zod
 
 ### Зачем валидировать ответы API?
 
-API — это граница вашего приложения. Данные извне могут быть невалидными: backend изменился, ошибка в API, атака.
+Zod полезен не только для форм, но и для проверки того, что пришло с бэкенда. Это защита от «сломанных» контрактов.
+
+**Проблема:** API — это граница вашего приложения. Данные извне могут быть невалидными: backend изменился, ошибка в API, атака. TypeScript не защищает от runtime ошибок.
 
 **Паттерн:** валидируйте ВСЕ данные на границе приложения через Zod-схемы.
 
+### Пример валидации API ответа
+
+```typescript
+// Схема для ответа API
+const UserResponseSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  email: z.string().email(),
+  createdAt: z.string().datetime(),
+})
+
+type UserResponse = z.infer<typeof UserResponseSchema>
+
+// В queryFn валидируем ответ
+const useUser = (id: number) => {
+  return useQuery({
+    queryKey: ['users', id],
+    queryFn: async () => {
+      const { data } = await apiClient.get(`/users/${id}`)
+      // Валидация на границе приложения
+      return UserResponseSchema.parse(data) // Выбросит ошибку при невалидных данных
+    },
+  })
+}
+```
+
 ### parse vs safeParse
 
-- **parse()** — выбрасывает ошибку при невалидных данных. Используйте когда невалидные данные = критическая ошибка.
+- **parse()** — выбрасывает ошибку при невалидных данных. Используйте когда невалидные данные = критическая ошибка. TanStack Query обработает ошибку автоматически.
 
 - **safeParse()** — возвращает `{ success, data/error }`. Используйте когда нужно graceful handling (показать fallback UI, залогировать ошибку).
 

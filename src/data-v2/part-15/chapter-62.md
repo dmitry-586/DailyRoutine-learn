@@ -555,7 +555,111 @@ function Dashboard() {
 
 ---
 
-## 62.5. Паттерны композиции
+## 62.5. Бизнес-слой в кастомных хуках
+
+**Паттерн:** вместо прямой логики в компонентах, создавайте хуки, которые оркеструют работу Zustand и TanStack Query. Компонент должен быть «глупым» и только вызывать этот хук.
+
+### ❌ Плохо: логика в компоненте
+
+```tsx
+function UserProfile({ userId }: { userId: number }) {
+  // Прямое использование Query и Store в компоненте
+  const { data: user, isLoading } = useQuery({
+    queryKey: ['users', userId],
+    queryFn: () => fetchUser(userId),
+  })
+  
+  const updateUser = useMutation({
+    mutationFn: updateUserApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users', userId] })
+      useUIStore.getState().showToast('Пользователь обновлён')
+    },
+  })
+
+  const isEditing = useUIStore((state) => state.isEditing)
+  const setIsEditing = useUIStore((state) => state.setIsEditing)
+
+  // Компонент знает слишком много о логике
+  return (
+    <div>
+      {isLoading && <Loader />}
+      {user && (
+        <div>
+          <h1>{user.name}</h1>
+          <button onClick={() => setIsEditing(true)}>Редактировать</button>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+### ✅ Правильно: бизнес-логика в хуке
+
+```tsx
+// hooks/useUserProfile.ts
+function useUserProfile(userId: number) {
+  const { data: user, isLoading } = useQuery({
+    queryKey: ['users', userId],
+    queryFn: () => fetchUser(userId),
+  })
+
+  const updateUser = useMutation({
+    mutationFn: updateUserApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users', userId] })
+      useUIStore.getState().showToast('Пользователь обновлён')
+    },
+  })
+
+  const isEditing = useUIStore((state) => state.isEditing)
+  const setIsEditing = useUIStore((state) => state.setIsEditing)
+
+  const handleEdit = () => setIsEditing(true)
+  const handleSave = (data: UserData) => updateUser.mutate(data)
+
+  return {
+    user,
+    isLoading,
+    isEditing,
+    handleEdit,
+    handleSave,
+    isSaving: updateUser.isPending,
+  }
+}
+
+// components/UserProfile.tsx
+function UserProfile({ userId }: { userId: number }) {
+  // Компонент «глупый», только вызывает хук
+  const { user, isLoading, isEditing, handleEdit, handleSave, isSaving } =
+    useUserProfile(userId)
+
+  if (isLoading) return <Loader />
+  if (!user) return null
+
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      {isEditing ? (
+        <EditForm user={user} onSave={handleSave} isSaving={isSaving} />
+      ) : (
+        <button onClick={handleEdit}>Редактировать</button>
+      )}
+    </div>
+  )
+}
+```
+
+**Преимущества:**
+- Компонент фокусируется только на отображении
+- Бизнес-логика переиспользуема
+- Легко тестировать (хук отдельно от компонента)
+- Проще поддерживать и модифицировать
+
+---
+
+## 62.6. Паттерны композиции
 
 ### Compound Components
 
@@ -676,7 +780,7 @@ function App() {
 
 ---
 
-## 62.6. Code Splitting и ленивая загрузка
+## 62.7. Code Splitting и ленивая загрузка
 
 ### Route-based splitting
 
@@ -723,7 +827,7 @@ export function Dashboard() {
 
 ---
 
-## 62.7. Best Practices
+## 62.8. Best Practices
 
 ### 1. Разделяйте ответственность
 
@@ -826,7 +930,7 @@ function Parent() {
 
 ---
 
-## 62.8. Структура проекта
+## 62.9. Структура проекта
 
 ### Рекомендуемая структура
 

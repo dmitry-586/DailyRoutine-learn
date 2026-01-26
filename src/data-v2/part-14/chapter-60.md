@@ -228,7 +228,7 @@ Set-Cookie: session=abc123; SameSite=Lax; Secure
 
 - Короткоживущий (15 минут)
 - Используется для запросов к API
-- Хранится в памяти или HttpOnly cookie
+- Хранится в памяти (для SPA) или HttpOnly cookie
 
 **Refresh token:**
 
@@ -261,7 +261,91 @@ Set-Cookie: token=abc123; HttpOnly; Secure; SameSite=Strict
 
 ---
 
-## 60.6. OWASP Top-10
+## 60.6. Axios Interceptors для JWT
+
+### Автоматическая подстановка токена
+
+Axios interceptors позволяют автоматически добавлять JWT токен к каждому запросу:
+
+```typescript
+// lib/api/axios.ts
+import axios from 'axios'
+
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+})
+
+// Request interceptor: добавляем токен
+apiClient.interceptors.request.use((config) => {
+  // ВАЖНО: на сервере токены нужно брать из cookies, а не localStorage
+  const token = typeof window !== 'undefined' 
+    ? localStorage.getItem('token') // Только на клиенте
+    : getTokenFromCookies() // На сервере из cookies
+  
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  
+  return config
+})
+
+// Response interceptor: обработка ошибок
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      // Токен истёк, обновляем через refresh token
+      const newToken = await refreshToken()
+      if (newToken) {
+        // Повторяем запрос с новым токеном
+        return apiClient.request(error.config)
+      }
+      // Редирект на логин
+      window.location.href = '/login'
+    }
+    return Promise.reject(error)
+  }
+)
+```
+
+### Критически важно для SSR
+
+**Проблема:** интерцепторы, использующие `localStorage`, сломаются при SSR, так как `localStorage` доступен только в браузере.
+
+**Решение:** на сервере токены нужно брать из `cookies`:
+
+```typescript
+import { cookies } from 'next/headers'
+
+function getTokenFromCookies() {
+  const cookieStore = cookies()
+  return cookieStore.get('token')?.value
+}
+
+// В Server Component или Server Action
+apiClient.interceptors.request.use((config) => {
+  if (typeof window === 'undefined') {
+    // На сервере
+    const token = getTokenFromCookies()
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+  } else {
+    // На клиенте
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+  }
+  return config
+})
+```
+
+**Рекомендация:** для Next.js App Router лучше использовать HttpOnly cookies для токенов — это решает проблему SSR из коробки.
+
+---
+
+## 60.7. OWASP Top-10
 
 **Ключевые пункты для фронтенда:**
 
@@ -280,7 +364,7 @@ Set-Cookie: token=abc123; HttpOnly; Secure; SameSite=Strict
 
 ---
 
-## 60.7. Практические сценарии
+## 60.8. Практические сценарии
 
 ### Сценарий 1: SPA на React с токенами
 

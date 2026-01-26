@@ -1,6 +1,6 @@
 # Глава 48. Кастомные хуки
 
-Кастомные хуки — это функции, начинающиеся с `use`, которые могут использовать другие хуки. Это основной способ переиспользования логики в React.
+Кастомные хуки — это способ «вынести мозг» (логику) компонента наружу, оставив в самом компоненте только описание интерфейса. Это основной способ переиспользования логики в React.
 
 ---
 
@@ -29,36 +29,9 @@
 
 ---
 
-## 48.2. Примеры кастомных хуков
+## 48.2. useFetch: работа с API
 
-### useCounter
-
-```jsx
-function useCounter(initial = 0) {
-  const [count, setCount] = useState(initial)
-
-  const increment = () => setCount((c) => c + 1)
-  const decrement = () => setCount((c) => c - 1)
-  const reset = () => setCount(initial)
-
-  return { count, increment, decrement, reset }
-}
-
-// Использование
-function Counter() {
-  const { count, increment, decrement } = useCounter(0)
-
-  return (
-    <div>
-      <p>{count}</p>
-      <button onClick={increment}>+</button>
-      <button onClick={decrement}>-</button>
-    </div>
-  )
-}
-```
-
-### useFetch
+Один из самых частых паттернов — загрузка данных. Вместо того чтобы писать логику загрузки в каждом компоненте, вынеси её в хук:
 
 ```jsx
 function useFetch(url) {
@@ -95,7 +68,54 @@ function UserProfile({ userId }) {
 }
 ```
 
-### useLocalStorage
+Теперь компонент описывает только интерфейс, а вся логика загрузки данных инкапсулирована в хуке. Это можно переиспользовать в любом компоненте, который нужно загружать данные.
+
+---
+
+## 48.3. useDebounce: оптимизация запросов
+
+Частая задача — не отправлять запрос при каждом изменении инпута, а подождать, пока пользователь перестанет печатать. Это называется debounce:
+
+```jsx
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}
+
+// Использование для поиска
+function SearchBox() {
+  const [query, setQuery] = useState('')
+  const debouncedQuery = useDebounce(query, 300)
+
+  useEffect(() => {
+    if (debouncedQuery) {
+      // Выполнить поиск только после паузы в 300мс
+      search(debouncedQuery)
+    }
+  }, [debouncedQuery])
+
+  return <input value={query} onChange={(e) => setQuery(e.target.value)} />
+}
+```
+
+Хук задерживает обновление значения на указанное время. Если значение меняется раньше, таймер сбрасывается. Это предотвращает лишние запросы при быстром вводе.
+
+---
+
+## 48.4. useLocalStorage: синхронизация с хранилищем
+
+Ещё один частый паттерн — сохранение состояния в localStorage и восстановление при загрузке:
 
 ```jsx
 function useLocalStorage(key, initialValue) {
@@ -135,179 +155,11 @@ function ThemeToggle() {
 }
 ```
 
-### useDebounce
-
-```jsx
-function useDebounce(value, delay) {
-  const [debouncedValue, setDebouncedValue] = useState(value)
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value)
-    }, delay)
-
-    return () => {
-      clearTimeout(handler)
-    }
-  }, [value, delay])
-
-  return debouncedValue
-}
-
-// Использование для поиска
-function SearchBox() {
-  const [query, setQuery] = useState('')
-  const debouncedQuery = useDebounce(query, 300)
-
-  useEffect(() => {
-    if (debouncedQuery) {
-      // Выполнить поиск
-      search(debouncedQuery)
-    }
-  }, [debouncedQuery])
-
-  return <input value={query} onChange={(e) => setQuery(e.target.value)} />
-}
-```
-
-### usePrevious
-
-```jsx
-function usePrevious(value) {
-  const ref = useRef()
-
-  useEffect(() => {
-    ref.current = value
-  }, [value])
-
-  return ref.current
-}
-
-// Использование
-function Counter() {
-  const [count, setCount] = useState(0)
-  const prevCount = usePrevious(count)
-
-  return (
-    <div>
-      <p>Current: {count}</p>
-      <p>Previous: {prevCount}</p>
-      <button onClick={() => setCount(count + 1)}>Increment</button>
-    </div>
-  )
-}
-```
-
-### useToggle
-
-```jsx
-function useToggle(initial = false) {
-  const [value, setValue] = useState(initial)
-
-  const toggle = useCallback(() => {
-    setValue((prev) => !prev)
-  }, [])
-
-  const setTrue = useCallback(() => {
-    setValue(true)
-  }, [])
-
-  const setFalse = useCallback(() => {
-    setValue(false)
-  }, [])
-
-  return [value, { toggle, setTrue, setFalse }]
-}
-
-// Использование
-function Modal() {
-  const [isOpen, { toggle, setTrue, setFalse }] = useToggle(false)
-
-  return (
-    <>
-      <button onClick={toggle}>Toggle Modal</button>
-      {isOpen && <div>Modal content</div>}
-    </>
-  )
-}
-```
-
-### useClickOutside
-
-```jsx
-function useClickOutside(ref, handler) {
-  useEffect(() => {
-    const handleClick = (event) => {
-      if (ref.current && !ref.current.contains(event.target)) {
-        handler(event)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClick)
-    return () => {
-      document.removeEventListener('mousedown', handleClick)
-    }
-  }, [ref, handler])
-}
-
-// Использование
-function Dropdown() {
-  const [isOpen, setIsOpen] = useState(false)
-  const ref = useRef(null)
-
-  useClickOutside(ref, () => setIsOpen(false))
-
-  return (
-    <div ref={ref}>
-      <button onClick={() => setIsOpen(!isOpen)}>Toggle</button>
-      {isOpen && <div>Dropdown content</div>}
-    </div>
-  )
-}
-```
-
-### useWindowSize
-
-```jsx
-function useWindowSize() {
-  const [size, setSize] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight,
-  })
-
-  useEffect(() => {
-    const handleResize = () => {
-      setSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      })
-    }
-
-    window.addEventListener('resize', handleResize)
-    return () => {
-      window.removeEventListener('resize', handleResize)
-    }
-  }, [])
-
-  return size
-}
-
-// Использование
-function ResponsiveComponent() {
-  const { width, height } = useWindowSize()
-
-  return (
-    <div>
-      <p>Width: {width}px</p>
-      <p>Height: {height}px</p>
-    </div>
-  )
-}
-```
+Хук автоматически синхронизирует состояние с localStorage, сохраняя значение при изменении и восстанавливая при загрузке страницы.
 
 ---
 
-## 48.3. Композиция хуков
+## 48.5. Композиция хуков
 
 Кастомные хуки можно комбинировать для создания более сложной логики:
 
@@ -315,7 +167,8 @@ function ResponsiveComponent() {
 function useUserProfile(userId) {
   const { data: user, loading, error } = useFetch(`/api/users/${userId}`)
   const [theme, setTheme] = useLocalStorage('theme', 'light')
-  const { width } = useWindowSize()
+  const [query, setQuery] = useState('')
+  const debouncedQuery = useDebounce(query, 300)
 
   return {
     user,
@@ -323,55 +176,39 @@ function useUserProfile(userId) {
     error,
     theme,
     setTheme,
-    isMobile: width < 768,
+    query,
+    setQuery,
+    debouncedQuery,
   }
 }
 
 // Использование
 function ProfilePage({ userId }) {
-  const { user, theme, isMobile } = useUserProfile(userId)
+  const { user, theme, query, debouncedQuery } = useUserProfile(userId)
 
   return (
     <div className={theme}>
-      {isMobile ? <MobileLayout user={user} /> : <DesktopLayout user={user} />}
+      <input value={query} onChange={(e) => setQuery(e.target.value)} />
+      <Profile user={user} searchQuery={debouncedQuery} />
     </div>
   )
 }
 ```
 
----
-
-## 48.4. Тестирование кастомных хуков
-
-Кастомные хуки можно тестировать с помощью `@testing-library/react-hooks`:
-
-```jsx
-import { renderHook, act } from '@testing-library/react-hooks'
-import { useCounter } from './useCounter'
-
-test('useCounter increments', () => {
-  const { result } = renderHook(() => useCounter(0))
-
-  act(() => {
-    result.current.increment()
-  })
-
-  expect(result.current.count).toBe(1)
-})
-```
+Композиция хуков позволяет создавать сложную логику из простых частей, делая код более модульным и переиспользуемым.
 
 ---
 
-## 48.5. Best Practices
+## 48.6. Best Practices
 
 ### 1. Именование
 
 ```jsx
-//  Хорошо: начинается с use
+// Хорошо: начинается с use
 function useAuth() {}
 function useUserData() {}
 
-//  Плохо: не начинается с use
+// Плохо: не начинается с use
 function getAuth() {}
 function fetchUserData() {}
 ```
@@ -379,17 +216,17 @@ function fetchUserData() {}
 ### 2. Возвращаемое значение
 
 ```jsx
-//  Хорошо: объект для множественных значений
+// Хорошо: объект для множественных значений
 function useAuth() {
   return { user, login, logout }
 }
 
-//  Хорошо: массив для двух значений (как useState)
+// Хорошо: массив для двух значений (как useState)
 function useToggle() {
   return [value, toggle]
 }
 
-//  Хорошо: одно значение
+// Хорошо: одно значение
 function useWindowWidth() {
   return width
 }
@@ -398,7 +235,7 @@ function useWindowWidth() {
 ### 3. Инкапсуляция логики
 
 ```jsx
-//  Хорошо: вся логика в хуке
+// Хорошо: вся логика в хуке
 function useForm() {
   const [values, setValues] = useState({})
   const [errors, setErrors] = useState({})
@@ -410,7 +247,7 @@ function useForm() {
   return { values, errors, handleChange }
 }
 
-//  Плохо: логика в компоненте
+// Плохо: логика в компоненте
 function Form() {
   const [values, setValues] = useState({})
   const [errors, setErrors] = useState({})
@@ -424,20 +261,20 @@ function Form() {
 
 ### 1. Что такое кастомные хуки?
 
-Функции, начинающиеся с `use`, которые могут использовать другие хуки для переиспользования логики.
+Функции, начинающиеся с `use`, которые могут использовать другие хуки для переиспользования логики. Это способ «вынести мозг» компонента наружу, оставив в компоненте только описание интерфейса.
 
 ### 2. Какие правила для кастомных хуков?
 
-Должны начинаться с `use`, могут вызывать другие хуки, должны следовать правилам хуков.
+Должны начинаться с `use`, могут вызывать другие хуки, должны следовать правилам хуков (не вызываться условно).
 
 ### 3. Зачем нужны кастомные хуки?
 
-Для переиспользования логики, инкапсуляции сложной логики, улучшения читаемости и тестируемости.
+Для переиспользования логики, инкапсуляции сложной логики, улучшения читаемости и тестируемости. Компоненты становятся проще, а логика — переиспользуемой.
 
 ### 4. Можно ли комбинировать кастомные хуки?
 
-Да, кастомные хуки можно комбинировать для создания более сложной логики.
+Да, кастомные хуки можно комбинировать для создания более сложной логики. Композиция хуков позволяет создавать сложную логику из простых частей.
 
 ### 5. Как тестировать кастомные хуки?
 
-С помощью `@testing-library/react-hooks` или тестируя компоненты, которые их используют.
+С помощью `@testing-library/react-hooks` или тестируя компоненты, которые их используют. Кастомные хуки можно тестировать отдельно от компонентов, что упрощает тестирование.

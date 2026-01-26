@@ -435,6 +435,11 @@ export const partsConfig = [
         title: '63. Архитектурные договоренности и поддержка проекта',
         file: 'chapter-63.md',
       },
+      {
+        id: 'chapter-64',
+        title: '64. Evolution Design (ED)',
+        file: 'chapter-64.md',
+      },
     ],
   },
   {
@@ -443,19 +448,19 @@ export const partsConfig = [
     folder: 'part-16',
     chapters: [
       {
-        id: 'chapter-64',
-        title: '64. Заключение: как закрепить знания',
-        file: 'chapter-64.md',
-      },
-      {
         id: 'chapter-65',
-        title: '65. Собеседование: подготовка и поведение',
+        title: '65. Заключение: как закрепить знания',
         file: 'chapter-65.md',
       },
       {
         id: 'chapter-66',
-        title: '66. Грейды и ожидания',
+        title: '66. Собеседование: подготовка и поведение',
         file: 'chapter-66.md',
+      },
+      {
+        id: 'chapter-67',
+        title: '67. Грейды и ожидания',
+        file: 'chapter-67.md',
       },
     ],
   },
