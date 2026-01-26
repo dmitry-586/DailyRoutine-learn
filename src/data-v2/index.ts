@@ -432,13 +432,8 @@ export const partsConfig = [
       },
       {
         id: 'chapter-63',
-        title: '63. Архитектурные договоренности и поддержка проекта',
+        title: '63. Архитектурные договоренности: Evolution Design (ED)',
         file: 'chapter-63.md',
-      },
-      {
-        id: 'chapter-64',
-        title: '64. Evolution Design (ED)',
-        file: 'chapter-64.md',
       },
     ],
   },
@@ -448,19 +443,14 @@ export const partsConfig = [
     folder: 'part-16',
     chapters: [
       {
+        id: 'chapter-64',
+        title: '64. Софт-скиллы и уверенность: как вести себя на собеседовании и определить свой грейд',
+        file: 'chapter-64.md',
+      },
+      {
         id: 'chapter-65',
-        title: '65. Заключение: как закрепить знания',
+        title: '65. Грейды и ожидания: уровень ответственности, а не синтаксис',
         file: 'chapter-65.md',
-      },
-      {
-        id: 'chapter-66',
-        title: '66. Собеседование: подготовка и поведение',
-        file: 'chapter-66.md',
-      },
-      {
-        id: 'chapter-67',
-        title: '67. Грейды и ожидания',
-        file: 'chapter-67.md',
       },
     ],
   },
