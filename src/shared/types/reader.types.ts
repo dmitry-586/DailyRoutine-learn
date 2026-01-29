@@ -3,6 +3,7 @@ export interface ChapterMeta {
   title: string
   file: string
   partId: string
+  content?: string
 }
 
 export interface Part {

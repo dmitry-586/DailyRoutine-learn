@@ -1,5 +1,4 @@
-import type { NavigationPart, ReaderContent } from '@/shared/types/reader.types'
-import { loadContent } from './loader'
+import type { NavigationPart } from '@/shared/types/reader.types'
 
 export const partsConfig = [
   {
@@ -272,7 +271,8 @@ export const partsConfig = [
     chapters: [
       {
         id: 'chapter-40',
-        title: '40. Зависимости: package.json, semver, lockfiles и выбор менеджера',
+        title:
+          '40. Зависимости: package.json, semver, lockfiles и выбор менеджера',
         file: 'chapter-40.md',
       },
       {
@@ -341,7 +341,8 @@ export const partsConfig = [
       },
       {
         id: 'chapter-51',
-        title: '51. Инструменты тестирования: Unit/Integration/E2E и как их запускать',
+        title:
+          '51. Инструменты тестирования: Unit/Integration/E2E и как их запускать',
         file: 'chapter-51.md',
       },
     ],
@@ -386,7 +387,8 @@ export const partsConfig = [
       },
       {
         id: 'chapter-57',
-        title: '57. Маршрутизация и компоновка: layout, template, loading, error',
+        title:
+          '57. Маршрутизация и компоновка: layout, template, loading, error',
         file: 'chapter-57.md',
       },
       {
@@ -444,7 +446,8 @@ export const partsConfig = [
     chapters: [
       {
         id: 'chapter-64',
-        title: '64. Софт-скиллы и уверенность: как вести себя на собеседовании и определить свой грейд',
+        title:
+          '64. Софт-скиллы и уверенность: как вести себя на собеседовании и определить свой грейд',
         file: 'chapter-64.md',
       },
       {
@@ -456,14 +459,20 @@ export const partsConfig = [
   },
 ]
 
+/** Тип конфига части (для buildNavigationFromConfig) */
+type PartConfigItem = (typeof partsConfig)[number]
+
 /**
- * Создает структуру навигации из конфигурации (без загрузки контента)
+ * Создаёт структуру навигации из конфигурации (без загрузки контента).
+ * Вызывается только на сервере при сборке content.
  */
-function buildNavigationFromConfig(): NavigationPart[] {
+export function buildNavigationFromConfig(
+  config: PartConfigItem[],
+): NavigationPart[] {
   const navigation: NavigationPart[] = []
   let globalIndex = 0
 
-  for (const partConfig of partsConfig) {
+  for (const partConfig of config) {
     const partStartIndex = globalIndex
     const chapters = partConfig.chapters.map((chapterConfig) => {
       const chapterGlobalIndex = globalIndex++
@@ -483,16 +492,4 @@ function buildNavigationFromConfig(): NavigationPart[] {
   }
 
   return navigation
-}
-
-// Предвычисляем навигацию из конфигурации
-const navigation = buildNavigationFromConfig()
-
-// Загружаем контент из markdown файлов
-const loadedContent = loadContent(partsConfig)
-
-// Объединяем загруженный контент с предвычисленной навигацией
-export const content: ReaderContent = {
-  ...loadedContent,
-  navigation,
 }

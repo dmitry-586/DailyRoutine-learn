@@ -29,7 +29,7 @@ export default function PracticePage() {
     setShowSolutions(false)
 
     try {
-      const response = await fetch(`/api/practice/${practiceId}`)
+      const response = await fetch(`/app-api/practice/${practiceId}`)
       if (!response.ok) {
         throw new Error('Не удалось загрузить практику')
       }

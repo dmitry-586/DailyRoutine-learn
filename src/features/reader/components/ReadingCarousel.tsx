@@ -5,10 +5,10 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useChapterContent, useEmblaCarouselLogic } from '../hooks'
 import {
-  findChapterIndexById,
-  getAllChapters,
-  getChapterIndexInPart,
-  getCurrentPart,
+    findChapterIndexById,
+    getAllChapters,
+    getChapterIndexInPart,
+    getCurrentPart,
 } from '../utils'
 import { ChapterSlide } from './ChapterSlide'
 import { GlobalTableOfContents } from './GlobalTableOfContents'
@@ -70,6 +70,7 @@ export function ReadingCarousel({ content }: ReadingCarouselProps) {
   const { cache, loadChapter } = useChapterContent({
     chapters: allChapters,
     currentIndex,
+    content,
   })
 
   const currentPart = useMemo(

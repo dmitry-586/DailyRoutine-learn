@@ -31,10 +31,7 @@ export async function GET(
     }
   }
 
-  return NextResponse.json(
-    { message: 'Аудиофайл не найден' },
-    { status: 404 },
-  )
+  return NextResponse.json({ message: 'Аудиофайл не найден' }, { status: 404 })
 }
 
 export const revalidate = 0

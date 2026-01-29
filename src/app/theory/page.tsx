@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 
-import { content } from '@/data-v2'
+import { content } from '@/data-v2/content-server'
 import { ReadingCarousel } from '@/features/reader'
 
 export default function TheoryPage() {

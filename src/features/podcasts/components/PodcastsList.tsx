@@ -18,7 +18,7 @@ export function PodcastsList() {
       await Promise.all(
         partsConfig.map(async (part) => {
           try {
-            const response = await fetch(`/api/audio/${part.id}`)
+            const response = await fetch(`/app-api/audio/${part.id}`)
             if (response.ok) {
               const data = await response.json()
               files[part.id] = data.path || null
